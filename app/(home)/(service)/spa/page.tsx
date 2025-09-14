@@ -21,7 +21,7 @@ const services = [
     subtitle: "Tắm, cắt tỉa, vệ sinh móng, tạo kiểu lông.",
     icon: LucideBath,
     price: "Từ 250.000đ",
-    img: "/shower.jpg",
+    img: "/images/shower.jpg",
   },
   {
     id: "boarding",
@@ -29,7 +29,7 @@ const services = [
     subtitle: "Chỗ ở tiện nghi, giám sát 24/7, an toàn tuyệt đối.",
     icon: LucideHome,
     price: "Từ 300.000đ/đêm",
-    img: "/hotel.jpg",
+    img: "/images/hotel.jpg",
   },
   {
     id: "daycare",
@@ -37,7 +37,7 @@ const services = [
     subtitle: "Chăm sóc ban ngày, chơi & vận động cho thú cưng.",
     icon: LucideDog,
     price: "150.000đ/ngày",
-    img: "/care.jpg",
+    img: "/images/care.jpg",
   },
   {
     id: "training",
@@ -45,7 +45,7 @@ const services = [
     subtitle: "Hành vi, obedience, tricks cơ bản & nâng cao.",
     icon: LucideGraduationCap,
     price: "Từ 1.200.000đ/khóa",
-    img: "/train.jpg",
+    img: "/images/train.jpg",
   },
   {
     id: "vet",
@@ -53,7 +53,7 @@ const services = [
     subtitle: "Bác sĩ thú y tận tình, dịch vụ y tế toàn diện.",
     icon: LucideStethoscope,
     price: "Khám: 200.000đ",
-    img: "/medical.jpg",
+    img: "/images/medical.jpg",
   },
   {
     id: "pickup",
@@ -61,7 +61,7 @@ const services = [
     subtitle: "Đưa đón thú cưng tiện lợi, an toàn & nhanh chóng.",
     icon: LucideTruck,
     price: "50.000đ/chuyến",
-    img: "/travel.jpg",
+    img: "/images/travel.jpg",
   },
 ];
 // Animation
