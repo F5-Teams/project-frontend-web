@@ -18,7 +18,7 @@ export default function Header() {
   // toggle dark class on body (simple demo)
 
   const nav = [
-    { href: "/home", label: "Home" },
+    { href: "/", label: "Home" },
     { href: "/adoption", label: "Adoption" },
     { href: "/services", label: "Services" },
     { href: "/about", label: "About" },
