@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { motion } from "framer-motion";
-import { LucideHome } from "lucide-react";
+import { Check, LucideHome, Star } from "lucide-react";
 import Image from "next/image";
 
 import hotel7 from "@/public/images/hotel7.jpg";
@@ -161,96 +161,20 @@ const PetHotelPage = () => {
             </h2>
             <ul className="space-y-4 text-slate-700">
               <li className="flex gap-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    fill="#cbd218"
-                    d="M18.483 16.767A8.5 8.5 0 0 1 8.118 7.081a1 1 0 0 1-.113.097c-.28.213-.63.292-1.33.45l-.635.144c-2.46.557-3.69.835-3.983 1.776c-.292.94.546 1.921 2.223 3.882l.434.507c.476.557.715.836.822 1.18c.107.345.071.717-.001 1.46l-.066.677c-.253 2.617-.38 3.925.386 4.506s1.918.052 4.22-1.009l.597-.274c.654-.302.981-.452 1.328-.452s.674.15 1.329.452l.595.274c2.303 1.06 3.455 1.59 4.22 1.01c.767-.582.64-1.89.387-4.507z"
-                    stroke-width="0.5"
-                    stroke="#cbd218"
-                  />
-                  <path
-                    fill="#cbd218"
-                    d="m9.153 5.408l-.328.588c-.36.646-.54.969-.82 1.182q.06-.045.113-.097a8.5 8.5 0 0 0 10.366 9.686l-.02-.19c-.071-.743-.107-1.115 0-1.46c.107-.344.345-.623.822-1.18l.434-.507c1.677-1.96 2.515-2.941 2.222-3.882c-.292-.941-1.522-1.22-3.982-1.776l-.636-.144c-.699-.158-1.049-.237-1.33-.45c-.28-.213-.46-.536-.82-1.182l-.327-.588C13.58 3.136 12.947 2 12 2s-1.58 1.136-2.847 3.408"
-                    opacity="0.8"
-                    stroke-width="0.5"
-                    stroke="#cbd218"
-                  />
-                </svg>{" "}
+                <Star size={24} color="#cbbd25" strokeWidth={1.5} />
                 Giám sát 24/7, đảm bảo an toàn tuyệt đối
               </li>
               <li className="flex gap-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    fill="#cbd218"
-                    d="M18.483 16.767A8.5 8.5 0 0 1 8.118 7.081a1 1 0 0 1-.113.097c-.28.213-.63.292-1.33.45l-.635.144c-2.46.557-3.69.835-3.983 1.776c-.292.94.546 1.921 2.223 3.882l.434.507c.476.557.715.836.822 1.18c.107.345.071.717-.001 1.46l-.066.677c-.253 2.617-.38 3.925.386 4.506s1.918.052 4.22-1.009l.597-.274c.654-.302.981-.452 1.328-.452s.674.15 1.329.452l.595.274c2.303 1.06 3.455 1.59 4.22 1.01c.767-.582.64-1.89.387-4.507z"
-                    stroke-width="0.5"
-                    stroke="#cbd218"
-                  />
-                  <path
-                    fill="#cbd218"
-                    d="m9.153 5.408l-.328.588c-.36.646-.54.969-.82 1.182q.06-.045.113-.097a8.5 8.5 0 0 0 10.366 9.686l-.02-.19c-.071-.743-.107-1.115 0-1.46c.107-.344.345-.623.822-1.18l.434-.507c1.677-1.96 2.515-2.941 2.222-3.882c-.292-.941-1.522-1.22-3.982-1.776l-.636-.144c-.699-.158-1.049-.237-1.33-.45c-.28-.213-.46-.536-.82-1.182l-.327-.588C13.58 3.136 12.947 2 12 2s-1.58 1.136-2.847 3.408"
-                    opacity="0.8"
-                    stroke-width="0.5"
-                    stroke="#cbd218"
-                  />
-                </svg>{" "}
-                Phòng tiện nghi, thoáng mát và sạch sẽ
+                <Star size={24} color="#cbbd25" strokeWidth={1.5} /> Phòng tiện
+                nghi, thoáng mát và sạch sẽ
               </li>
               <li className="flex gap-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    fill="#cbd218"
-                    d="M18.483 16.767A8.5 8.5 0 0 1 8.118 7.081a1 1 0 0 1-.113.097c-.28.213-.63.292-1.33.45l-.635.144c-2.46.557-3.69.835-3.983 1.776c-.292.94.546 1.921 2.223 3.882l.434.507c.476.557.715.836.822 1.18c.107.345.071.717-.001 1.46l-.066.677c-.253 2.617-.38 3.925.386 4.506s1.918.052 4.22-1.009l.597-.274c.654-.302.981-.452 1.328-.452s.674.15 1.329.452l.595.274c2.303 1.06 3.455 1.59 4.22 1.01c.767-.582.64-1.89.387-4.507z"
-                    stroke-width="0.5"
-                    stroke="#cbd218"
-                  />
-                  <path
-                    fill="#cbd218"
-                    d="m9.153 5.408l-.328.588c-.36.646-.54.969-.82 1.182q.06-.045.113-.097a8.5 8.5 0 0 0 10.366 9.686l-.02-.19c-.071-.743-.107-1.115 0-1.46c.107-.344.345-.623.822-1.18l.434-.507c1.677-1.96 2.515-2.941 2.222-3.882c-.292-.941-1.522-1.22-3.982-1.776l-.636-.144c-.699-.158-1.049-.237-1.33-.45c-.28-.213-.46-.536-.82-1.182l-.327-.588C13.58 3.136 12.947 2 12 2s-1.58 1.136-2.847 3.408"
-                    opacity="0.8"
-                    stroke-width="0.5"
-                    stroke="#cbd218"
-                  />
-                </svg>{" "}
-                Khu vui chơi rộng rãi, vận động thoải mái
+                <Star size={24} color="#cbbd25" strokeWidth={1.5} /> Khu vui
+                chơi rộng rãi, vận động thoải mái
               </li>
               <li className="flex gap-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    fill="#cbd218"
-                    d="M18.483 16.767A8.5 8.5 0 0 1 8.118 7.081a1 1 0 0 1-.113.097c-.28.213-.63.292-1.33.45l-.635.144c-2.46.557-3.69.835-3.983 1.776c-.292.94.546 1.921 2.223 3.882l.434.507c.476.557.715.836.822 1.18c.107.345.071.717-.001 1.46l-.066.677c-.253 2.617-.38 3.925.386 4.506s1.918.052 4.22-1.009l.597-.274c.654-.302.981-.452 1.328-.452s.674.15 1.329.452l.595.274c2.303 1.06 3.455 1.59 4.22 1.01c.767-.582.64-1.89.387-4.507z"
-                    stroke-width="0.5"
-                    stroke="#cbd218"
-                  />
-                  <path
-                    fill="#cbd218"
-                    d="m9.153 5.408l-.328.588c-.36.646-.54.969-.82 1.182q.06-.045.113-.097a8.5 8.5 0 0 0 10.366 9.686l-.02-.19c-.071-.743-.107-1.115 0-1.46c.107-.344.345-.623.822-1.18l.434-.507c1.677-1.96 2.515-2.941 2.222-3.882c-.292-.941-1.522-1.22-3.982-1.776l-.636-.144c-.699-.158-1.049-.237-1.33-.45c-.28-.213-.46-.536-.82-1.182l-.327-.588C13.58 3.136 12.947 2 12 2s-1.58 1.136-2.847 3.408"
-                    opacity="0.8"
-                    stroke-width="0.5"
-                    stroke="#cbd218"
-                  />
-                </svg>{" "}
-                Hình ảnh & video cập nhật mỗi ngày
+                <Star size={24} color="#cbbd25" strokeWidth={1.5} /> Hình ảnh &
+                video cập nhật mỗi ngày
               </li>
             </ul>
           </div>
@@ -297,83 +221,19 @@ const PetHotelPage = () => {
                 </p>
                 <ul className="space-y-3 text-slate-700">
                   <li className="flex items-start gap-3">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 48 48"
-                    >
-                      <path
-                        fill="#20ad5f"
-                        fill-rule="evenodd"
-                        stroke="#20ad5f"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="4"
-                        d="m4 24l5-5l10 10L39 9l5 5l-25 25z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
+                    <Check size={24} color="#25cb57" strokeWidth={1.5} />
                     Phòng nghỉ sạch sẽ, thoáng mát, tiện nghi đầy đủ.
                   </li>
                   <li className="flex items-start gap-3">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 48 48"
-                    >
-                      <path
-                        fill="#20ad5f"
-                        fill-rule="evenodd"
-                        stroke="#20ad5f"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="4"
-                        d="m4 24l5-5l10 10L39 9l5 5l-25 25z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
+                    <Check size={24} color="#25cb57" strokeWidth={1.5} />
                     Khu vui chơi vận động, giải trí và xã hội hóa thú cưng.
                   </li>
                   <li className="flex items-start gap-3">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 48 48"
-                    >
-                      <path
-                        fill="#20ad5f"
-                        fill-rule="evenodd"
-                        stroke="#20ad5f"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="4"
-                        d="m4 24l5-5l10 10L39 9l5 5l-25 25z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
+                    <Check size={24} color="#25cb57" strokeWidth={1.5} />
                     Chăm sóc 24/7, theo dõi sức khỏe, tiêm phòng định kỳ.
                   </li>
                   <li className="flex items-start gap-3">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 48 48"
-                    >
-                      <path
-                        fill="#20ad5f"
-                        fill-rule="evenodd"
-                        stroke="#20ad5f"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="4"
-                        d="m4 24l5-5l10 10L39 9l5 5l-25 25z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
+                    <Check size={24} color="#25cb57" strokeWidth={1.5} />
                     Spa & Grooming, dinh dưỡng khoa học, và cập nhật hình
                     ảnh/video hàng ngày.
                   </li>
