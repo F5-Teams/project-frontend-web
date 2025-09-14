@@ -1,9 +1,17 @@
-import React from 'react'
+// app/home/layout.tsx
+import Header from "@/components/shared/Header";
+import Footer from "@/components/shared/Footer";
 
-const layout = () => {
+export default function HomeLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <div>layout</div>
-  )
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <main className="flex-1">{children}</main>
+      <Footer />
+    </div>
+  );
 }
-
-export default layout
