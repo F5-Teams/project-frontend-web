@@ -6,7 +6,7 @@ import { ClockIcon, MapPinIcon, PhoneIcon } from "lucide-react";
 
 const InformationSection = () => {
   return (
-    <section className="flex flex-col w-full items-center px-6 md:px-12 lg:px-16 py-20 relative">
+    <section className="flex flex-col w-full items-center px-6 md:px-12 lg:px-16 pt-20 pb-12 relative">
       <Card className="w-full bg-white rounded-2xl border-0 shadow-none">
         <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-6 md:px-10 lg:px-12 py-8">
           <div className="flex items-start gap-4">

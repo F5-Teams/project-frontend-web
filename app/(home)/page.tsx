@@ -2,6 +2,7 @@
 
 import HeroSection from "@/components/home/HeroSection";
 import InformationSection from "@/components/home/InformationSection";
+import OurServicesSection from "@/components/home/OurServicesSection";
 
 export default function LandingPage() {
   return (
@@ -9,6 +10,7 @@ export default function LandingPage() {
       <div className="flex flex-col w-full">
         <HeroSection />
         <InformationSection />
+        <OurServicesSection />
       </div>
     </div>
   );
