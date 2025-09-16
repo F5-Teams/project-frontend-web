@@ -80,7 +80,8 @@
 
 :root {
   --radius: 0.5rem;
-  --background: linear-gradient(to right, #fbcfe8 #ffffff, #fef9c3);
+  --background: linear-gradient(to bottom, #fbcfe8, #ffffff, #fef9c3);
+  /* --background: #fbcfe8; */
   --foreground: oklch(0.145 0 0);
   --primary-card: #f6339a;
   --primary-card-foreground: oklch(0.985 0 0);
@@ -104,9 +105,9 @@
   --info-foreground: oklch(0.985 0 0);
   --error: oklch(0.577 0.245 27.325);
   --error-foreground: oklch(0.985 0 0);
-  --border: oklch(0.922 0 0);
+  --border: #f6339a;
   --input: oklch(4.22% 0.01732 29.223);
-  --ring: oklch(0.708 0 0);
+  --ring: #f9f4f1;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -162,5 +163,67 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply flex items-center justify-center w-fit
+           px-4 py-3
+           font-poppins-regular text-[14px]
+           rounded-lg
+           cursor-pointer
+           bg-primary text-primary-foreground       
+           transition-colors duration-200;
+  }
+
+  .btn-primary:hover {
+    @apply bg-primary/90;
+  }
+
+  .btn-primary:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply flex items-center justify-center w-fit
+           px-4 py-3
+           font-poppins-regular text-[14px]
+           rounded-lg
+           cursor-pointer
+           bg-secondary text-secondary-foreground       
+           transition-colors duration-200;
+  }
+
+  .btn-secondary:hover {
+    @apply bg-secondary/50;
+  }
+
+  .btn-secondary:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
+  .btn-default {
+    @apply flex items-center justify-center w-fit
+           px-4 py-3
+           font-poppins-regular text-[14px]
+           rounded-lg
+           bg-white text-primary   
+           border border-border
+           cursor-pointer
+           transition-colors duration-200;
+  }
+
+  .btn-default:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+}
+
+.animate-blink {
+  animation: blink 1s steps(2, start) infinite;
+}
+@keyframes blink {
+  to {
+    visibility: hidden;
   }
 }
