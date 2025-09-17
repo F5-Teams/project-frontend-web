@@ -1,8 +1,8 @@
-"use client";
-
-import HeroSection from "@/components/home/HeroSection";
-import InformationSection from "@/components/home/InformationSection";
-import OurServicesSection from "@/components/home/OurServicesSection";
+import {
+  HeroSection,
+  InformationSection,
+  OurServicesSection,
+} from "@/components/home";
 
 export default function LandingPage() {
   return (

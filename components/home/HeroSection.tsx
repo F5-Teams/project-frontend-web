@@ -1,15 +1,14 @@
 "use client";
-import React, { useRef } from "react";
+import { useRef } from "react";
 import Image from "next/image";
 import Image1 from "@/public/images/sections/pexels-lilen-diaz-1025474869-29319218.jpg";
 import Image2 from "@/public/images/sections/hayffield-l-ZVdZw2p08y4-unsplash.jpg";
 import Image3 from "@/public/images/sections/pexels-tranmautritam-2194261.jpg";
 import Image4 from "@/public/images/sections/sandy-millar-kKAaCeGf5wY-unsplash.jpg";
 import Image5 from "@/public/images/sections/anya-prygunova-u2H8mUzoF2Q-unsplash.jpg";
-import { useTypingEffect } from "@/hooks/useTypingEffect";
-import { highlightText } from "@/utils/highlightText";
-import { useFloatingCircles } from "@/hooks/useFloatingCircles";
 import Link from "next/link";
+import { useFloatingCircles, useTypingEffect } from "@/hooks";
+import { highlightText } from "@/utils";
 
 const typingTexts = [
   "Boss cực xấu\nSen nào cũng chê",
@@ -23,10 +22,10 @@ const HeroSection = () => {
   useFloatingCircles(circleRefs);
 
   return (
-    <section className="flex flex-col w-full items-center gap-[54px] px-0 py-[120px] relative">
+    <section className="flex flex-col w-full items-center gap-[54px] px-0 pb-[80px] pt-[160px] relative">
       <div className="inline-flex flex-col items-center justify-center gap-4 relative flex-[0_0_auto]">
         <h1
-          className="relative w-[1500px] mt-[-1.00px] font-poppins-regular text-[90px] text-foreground text-center leading-[100px] tracking-[-4px] whitespace-pre-line min-h-[200px]"
+          className="relative w-[1500px] mt-[-20px] font-poppins-regular text-[90px] text-foreground text-center leading-[100px] tracking-[-4px] whitespace-pre-line min-h-[200px]"
           dangerouslySetInnerHTML={{
             __html: `${highlightText(
               displayText
