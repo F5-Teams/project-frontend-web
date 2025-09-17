@@ -17,8 +17,6 @@ export default function Header() {
     setQuery("");
   }
 
-  // toggle dark class on body (simple demo)
-
   const nav = [
     { href: "/", label: "Home" },
     { href: "/adoption", label: "Adoption" },
@@ -28,8 +26,8 @@ export default function Header() {
   ];
 
   const handleNavigate = (path: string) => {
-    setOpen(false); // ẩn menu
-    router.push(path); // chuyển trang
+    setOpen(false);
+    router.push(path);
   };
 
   return (
@@ -180,9 +178,7 @@ export default function Header() {
                 aria-label="Search"
                 type="submit"
                 className="ml-1 text-sm text-pink-500"
-              >
-                Go
-              </button>
+              ></button>
             </form>
           </div>
 
