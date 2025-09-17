@@ -10,6 +10,31 @@ import {
   NavigationMenuList,
 } from "../ui/navigation-menu";
 export default function Header() {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const router = useRouter();
+  // Simple search handler (client-side demo)
+  function onSearch(e?: React.FormEvent) {
+    e?.preventDefault();
+    if (!query.trim()) return;
+    alert(`Tìm kiếm: ${query}`);
+    setQuery("");
+  }
+
+  const nav = [
+    { href: "/", label: "Home" },
+    { href: "/adoption", label: "Adoption" },
+    { href: "/", label: "Services" },
+    { href: "/about", label: "About" },
+    { href: "/contact", label: "Contact" },
+  ];
+
+  const handleNavigate = (path: string) => {
+    setOpen(false);
+    router.push(path);
+  };
+
   return (
     <nav
       className="flex w-full items-center justify-between px-16 py-4 relative"
