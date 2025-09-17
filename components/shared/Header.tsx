@@ -33,7 +33,7 @@ export default function Header() {
             <NavigationMenuItem>
               <NavigationMenuLink
                 href="#about"
-                className="relative w-fit mt-[-1.00px] font-poppins-light text-[16px] text-foreground text-center leading-[24px] tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
+                className="relative w-fit mt-[-1.00px] font-poppins-light text-[14px] sm:text-[15px] md:text-[16px] 2xl:text-[18px] text-foreground text-center leading-[24px] tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
               >
                 VỀ CHÚNG TÔI
               </NavigationMenuLink>
@@ -42,7 +42,7 @@ export default function Header() {
             <NavigationMenuItem>
               <NavigationMenuLink
                 href="#dịch-vụ"
-                className="relative w-fit mt-[-1.00px] font-poppins-light text-[16px] text-foreground text-center leading-[24px] tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
+                className="relative w-fit mt-[-1.00px] font-poppins-light text-[14px] sm:text-[15px] md:text-[16px] 2xl:text-[18px] text-foreground text-center leading-[24px] tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
               >
                 DỊCH VỤ
               </NavigationMenuLink>
@@ -51,7 +51,7 @@ export default function Header() {
             <NavigationMenuItem>
               <NavigationMenuLink
                 href="#nhận-nuôi"
-                className="relative w-fit mt-[-1.00px] font-poppins-light text-[16px] text-foreground text-center leading-[24px] tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
+                className="relative w-fit mt-[-1.00px] font-poppins-light text-[14px] sm:text-[15px] md:text-[16px] 2xl:text-[18px] text-foreground text-center leading-[24px] tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
               >
                 NHẬN NUÔI
               </NavigationMenuLink>
@@ -60,7 +60,7 @@ export default function Header() {
             <NavigationMenuItem>
               <NavigationMenuLink
                 href="#liên-hệ"
-                className="relative w-fit mt-[-1.00px] font-poppins-light text-[16px] text-foreground text-center leading-[24px] tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
+                className="relative w-fit mt-[-1.00px] font-poppins-light text-[14px] sm:text-[15px] md:text-[16px] 2xl:text-[18px] text-foreground text-center leading-[24px] tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
               >
                 LIÊN HỆ
               </NavigationMenuLink>

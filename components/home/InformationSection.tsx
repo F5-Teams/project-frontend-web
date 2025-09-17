@@ -17,10 +17,10 @@ const InformationSection = () => {
               <h3 className="font-poppins-medium text-[22px] lg:text-[28px] text-dark leading-[28px]">
                 Thời gian mở cửa
               </h3>
-              <p className="font-poppins-regular text-dark text-[16px] lg:text-[18px] leading-[28px]">
+              <p className="font-poppins-light text-dark text-[16px] lg:text-[18px] leading-[28px]">
                 T2 - T6: 8:00 AM đến 6:00 PM
               </p>
-              <p className="font-poppins-regular text-dark text-[16px] lg:text-[18px] leading-[18px]">
+              <p className="font-poppins-light text-dark text-[16px] lg:text-[18px] leading-[18px]">
                 T7 - CN: 8:00 AM đến 2:00 PM
               </p>
             </div>
@@ -34,7 +34,7 @@ const InformationSection = () => {
               <h3 className="font-poppins-medium text-[22px] lg:text-[28px] text-dark leading-[28px]">
                 Địa chỉ
               </h3>
-              <p className="font-poppins-regular text-dark text-[16px] lg:text-[18px] leading-[28px]">
+              <p className="font-poppins-light text-dark text-[16px] lg:text-[18px] leading-[28px]">
                 7 Đ. D1, Long Thạnh Mỹ,
                 <br /> Thủ Đức, Hồ Chí Minh
               </p>
@@ -57,10 +57,10 @@ const InformationSection = () => {
               <h3 className="font-poppins-medium text-[22px] lg:text-[28px] text-dark leading-[28px]">
                 Liên hệ
               </h3>
-              <p className="font-poppins-regular text-dark text-[16px] lg:text-[18px] leading-[28px]">
+              <p className="font-poppins-light text-dark text-[16px] lg:text-[18px] leading-[28px]">
                 037-4745872
               </p>
-              <p className="font-poppins-regular text-dark text-[15px] lg:text-[16px] leading-[16px] break-words">
+              <p className="font-poppins-light text-dark text-[15px] lg:text-[16px] leading-[16px] break-words">
                 cuonghkse182700.fpt.edu.vn
               </p>
             </div>

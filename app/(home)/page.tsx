@@ -1,5 +1,6 @@
 import {
   HeroSection,
+  HowItWorksSection,
   InformationSection,
   OurServicesSection,
 } from "@/components/home";
@@ -11,6 +12,7 @@ export default function LandingPage() {
         <HeroSection />
         <InformationSection />
         <OurServicesSection />
+        <HowItWorksSection />
       </div>
     </div>
   );

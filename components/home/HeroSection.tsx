@@ -12,7 +12,7 @@ import { highlightText } from "@/utils";
 
 const typingTexts = [
   "Boss cực xấu\nSen nào cũng chê",
-  "Tắm thơm sấy dịu\nAi gặp cũng iu",
+  "Tắm thơm sấy dịu\nAi gặp cũng mê",
 ];
 
 const HeroSection = () => {
@@ -50,7 +50,7 @@ const HeroSection = () => {
           ref={(el: HTMLDivElement | null) => {
             circleRefs.current[0] = el;
           }}
-          className="inline-flex items-start gap-[9.31px] absolute top-[5%] left-[0%] translate-y-[-10%]"
+          className="inline-flex items-start gap-[9.31px] absolute top-[0%] left-[6%]"
         >
           <div className="relative w-[240px] h-[240px] bg-secondary rounded-[135px]" />
           <div className="absolute top-3.5 left-[13px] w-[212px] h-[212px] rounded-full overflow-hidden">
@@ -104,7 +104,7 @@ const HeroSection = () => {
           ref={(el: HTMLDivElement | null) => {
             circleRefs.current[3] = el;
           }}
-          className="inline-flex items-start gap-[9.31px] absolute bottom-[20%] left-[3%]"
+          className="inline-flex items-start gap-[9.31px] absolute bottom-[20%] left-[0%]"
         >
           <div className="relative w-[309px] h-[309px] bg-success rounded-[154.5px]" />
           <div className="absolute w-[277px] h-[277px] top-4 left-[15px] rounded-full overflow-hidden">
