@@ -1,14 +1,14 @@
 "use client";
 
 import React from "react";
-import { Card, CardContent } from "../ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { ClockIcon, MapPinIcon, PhoneIcon } from "lucide-react";
 
 const InformationSection = () => {
   return (
     <section className="flex flex-col w-full items-center px-6 md:px-12 lg:px-16 pt-20 pb-12 relative">
-      <Card className="w-full bg-white rounded-2xl border-0 shadow-none">
-        <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-6 md:px-10 lg:px-12 py-8">
+      <Card className="w-full bg-white rounded-2xl border-0 drop-shadow-[3px_5px_8px_rgba(210,180,140,0.1)]">
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-6 md:px-10 lg:px-12 py-6 ">
           <div className="flex items-start gap-4">
             <div className="w-[72px] h-[72px] lg:w-[89px] lg:h-[89px] bg-ring rounded-full flex items-center justify-center flex-shrink-0">
               <ClockIcon className="w-10 h-10 lg:w-16 lg:h-16 text-dark" />
@@ -17,10 +17,10 @@ const InformationSection = () => {
               <h3 className="font-poppins-medium text-[22px] lg:text-[28px] text-dark leading-[28px]">
                 Thời gian mở cửa
               </h3>
-              <p className="font-poppins-regular text-dark text-[16px] lg:text-[18px] leading-[28px]">
+              <p className="font-poppins-light text-dark text-[16px] lg:text-[18px] leading-[28px]">
                 T2 - T6: 8:00 AM đến 6:00 PM
               </p>
-              <p className="font-poppins-regular text-dark text-[16px] lg:text-[18px] leading-[18px]">
+              <p className="font-poppins-light text-dark text-[16px] lg:text-[18px] leading-[18px]">
                 T7 - CN: 8:00 AM đến 2:00 PM
               </p>
             </div>
@@ -34,7 +34,7 @@ const InformationSection = () => {
               <h3 className="font-poppins-medium text-[22px] lg:text-[28px] text-dark leading-[28px]">
                 Địa chỉ
               </h3>
-              <p className="font-poppins-regular text-dark text-[16px] lg:text-[18px] leading-[28px]">
+              <p className="font-poppins-light text-dark text-[16px] lg:text-[18px] leading-[28px]">
                 7 Đ. D1, Long Thạnh Mỹ,
                 <br /> Thủ Đức, Hồ Chí Minh
               </p>
@@ -57,10 +57,10 @@ const InformationSection = () => {
               <h3 className="font-poppins-medium text-[22px] lg:text-[28px] text-dark leading-[28px]">
                 Liên hệ
               </h3>
-              <p className="font-poppins-regular text-dark text-[16px] lg:text-[18px] leading-[28px]">
+              <p className="font-poppins-light text-dark text-[16px] lg:text-[18px] leading-[28px]">
                 037-4745872
               </p>
-              <p className="font-poppins-regular text-dark text-[15px] lg:text-[16px] leading-[16px] break-words">
+              <p className="font-poppins-light text-dark text-[15px] lg:text-[16px] leading-[16px] break-words">
                 cuonghkse182700.fpt.edu.vn
               </p>
             </div>

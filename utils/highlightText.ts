@@ -9,7 +9,11 @@ export const highlightText = (text: string) => {
       '<span class="text-secondary font-poppins-regular">Sen</span>'
     )
     .replace(
-      /iu/g,
-      '<span class="text-primary font-poppins-regular italic">iu</span>'
+      /chê/g,
+      '<span class="text-primary font-poppins-regular italic">chê</span>'
+    )
+    .replace(
+      /mê/g,
+      '<span class="text-primary font-poppins-regular italic">mê</span>'
     );
 };

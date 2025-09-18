@@ -44,6 +44,10 @@
   --color-info-foreground: var(--info-foreground);
   --color-error: var(--error);
   --color-error-foreground: var(--error-foreground);
+  /* MÀU TERTIARY (màu phụ) */
+  --color-tertiary-1: var(--tertiary-1);
+  --color-tertiary-2: var(--tertiary-2);
+  --color-tertiary-3: var(--tertiary-3);
 
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
@@ -94,7 +98,7 @@
   --secondary: #fac547;
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  --muted-foreground: oklch(62.847% 0.00237 15.561);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --success: oklch(0.7 0.2 145);
@@ -105,6 +109,9 @@
   --info-foreground: oklch(0.985 0 0);
   --error: oklch(0.577 0.245 27.325);
   --error-foreground: oklch(0.985 0 0);
+  --tertiary-1: #8fb3f7;
+  --tertiary-2: #d291bc;
+  --tertiary-3: #a0df6d;
   --border: #f6339a;
   --input: oklch(4.22% 0.01732 29.223);
   --ring: #f9f4f1;
@@ -170,7 +177,7 @@
   .btn-primary {
     @apply flex items-center justify-center w-fit
            px-4 py-3
-           font-poppins-regular text-[14px]
+           font-poppins-regular text-[12px] sm:text-[14px] md:text-[15px] 2xl:text-[16px]
            rounded-lg
            cursor-pointer
            bg-primary text-primary-foreground       
@@ -188,7 +195,7 @@
   .btn-secondary {
     @apply flex items-center justify-center w-fit
            px-4 py-3
-           font-poppins-regular text-[14px]
+           font-poppins-regular text-[12px] sm:text-[14px] md:text-[15px] 2xl:text-[16px]
            rounded-lg
            cursor-pointer
            bg-secondary text-secondary-foreground       
@@ -206,7 +213,7 @@
   .btn-default {
     @apply flex items-center justify-center w-fit
            px-4 py-3
-           font-poppins-regular text-[14px]
+           font-poppins-regular text-[12px] sm:text-[14px] md:text-[15px] 2xl:text-[16px]
            rounded-lg
            bg-white text-primary   
            border border-border
@@ -225,5 +232,15 @@
 @keyframes blink {
   to {
     visibility: hidden;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
