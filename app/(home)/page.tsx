@@ -2,6 +2,7 @@ import {
   HeroSection,
   HowItWorksSection,
   InformationSection,
+  OurHappyClientsSection,
   OurServicesSection,
 } from "@/components/home";
 
@@ -13,6 +14,7 @@ export default function LandingPage() {
         <InformationSection />
         <OurServicesSection />
         <HowItWorksSection />
+        <OurHappyClientsSection />
       </div>
     </div>
   );
