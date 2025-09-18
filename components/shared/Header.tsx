@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import Image from "next/image";
 import Logo from "@/public/logo/HappyPaws Logo.svg";
@@ -8,35 +6,8 @@ import {
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-} from "../ui/navigation-menu";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+} from "@/components/ui/navigation-menu";
 export default function Header() {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-
-  const router = useRouter();
-  // Simple search handler (client-side demo)
-  function onSearch(e?: React.FormEvent) {
-    e?.preventDefault();
-    if (!query.trim()) return;
-    alert(`Tìm kiếm: ${query}`);
-    setQuery("");
-  }
-
-  const nav = [
-    { href: "/", label: "Home" },
-    { href: "/adoption", label: "Adoption" },
-    { href: "/", label: "Services" },
-    { href: "/about", label: "About" },
-    { href: "/contact", label: "Contact" },
-  ];
-
-  const handleNavigate = (path: string) => {
-    setOpen(false);
-    router.push(path);
-  };
-
   return (
     <nav
       className="flex w-full items-center justify-between px-16 py-4 relative"
@@ -60,7 +31,7 @@ export default function Header() {
             <NavigationMenuItem>
               <NavigationMenuLink
                 href="#about"
-                className="relative w-fit mt-[-1.00px] font-poppins-light text-[16px] text-foreground text-center leading-[24px] tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
+                className="relative w-fit mt-[-1.00px] font-poppins-light text-[14px] sm:text-[15px] md:text-[16px] 2xl:text-[18px] text-foreground text-center leading-[24px] tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
               >
                 VỀ CHÚNG TÔI
               </NavigationMenuLink>
@@ -69,7 +40,7 @@ export default function Header() {
             <NavigationMenuItem>
               <NavigationMenuLink
                 href="#dịch-vụ"
-                className="relative w-fit mt-[-1.00px] font-poppins-light text-[16px] text-foreground text-center leading-[24px] tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
+                className="relative w-fit mt-[-1.00px] font-poppins-light text-[14px] sm:text-[15px] md:text-[16px] 2xl:text-[18px] text-foreground text-center leading-[24px] tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
               >
                 DỊCH VỤ
               </NavigationMenuLink>
@@ -78,7 +49,7 @@ export default function Header() {
             <NavigationMenuItem>
               <NavigationMenuLink
                 href="#nhận-nuôi"
-                className="relative w-fit mt-[-1.00px] font-poppins-light text-[16px] text-foreground text-center leading-[24px] tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
+                className="relative w-fit mt-[-1.00px] font-poppins-light text-[14px] sm:text-[15px] md:text-[16px] 2xl:text-[18px] text-foreground text-center leading-[24px] tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
               >
                 NHẬN NUÔI
               </NavigationMenuLink>
@@ -87,7 +58,7 @@ export default function Header() {
             <NavigationMenuItem>
               <NavigationMenuLink
                 href="#liên-hệ"
-                className="relative w-fit mt-[-1.00px] font-poppins-light text-[16px] text-foreground text-center leading-[24px] tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
+                className="relative w-fit mt-[-1.00px] font-poppins-light text-[14px] sm:text-[15px] md:text-[16px] 2xl:text-[18px] text-foreground text-center leading-[24px] tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
               >
                 LIÊN HỆ
               </NavigationMenuLink>

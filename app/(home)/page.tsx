@@ -1,8 +1,10 @@
-"use client";
-
-import HeroSection from "@/components/home/HeroSection";
-import InformationSection from "@/components/home/InformationSection";
-import OurServicesSection from "@/components/home/OurServicesSection";
+import {
+  HeroSection,
+  HowItWorksSection,
+  InformationSection,
+  OurHappyClientsSection,
+  OurServicesSection,
+} from "@/components/home";
 
 export default function LandingPage() {
   return (
@@ -11,6 +13,8 @@ export default function LandingPage() {
         <HeroSection />
         <InformationSection />
         <OurServicesSection />
+        <HowItWorksSection />
+        <OurHappyClientsSection />
       </div>
     </div>
   );
