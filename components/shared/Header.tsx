@@ -9,6 +9,8 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
 } from "../ui/navigation-menu";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 export default function Header() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");

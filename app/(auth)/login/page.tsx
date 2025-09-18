@@ -47,7 +47,7 @@ export default function LoginPage() {
         localStorage.setItem("user", JSON.stringify(data.user));
       }
 
-      router.replace("/");
+      router.replace("/user");
     } catch (err: any) {
       const serverMsg =
         err.response?.data?.message ||
