@@ -6,7 +6,7 @@ import {
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-} from "../ui/navigation-menu";
+} from "@/components/ui/navigation-menu";
 export default function Header() {
   return (
     <nav
