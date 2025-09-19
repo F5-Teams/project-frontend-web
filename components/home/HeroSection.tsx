@@ -41,7 +41,7 @@ const HeroSection = () => {
           className="btn-primary text-[18px] cursor-pointer"
           style={{ zIndex: 50, position: "relative", marginTop: "18px" }}
         >
-          BẮT ĐẦU
+          ĐẶT LỊCH NGAY
         </Link>
       </div>
 
