@@ -37,14 +37,16 @@ export default function Header() {
       bg-white/70 backdrop-blur shadow-lg rounded-2xl"
         style={{ height: "72px" }}
       >
-        <Image
-          alt="Logo"
-          src={Logo}
-          className="object-contain"
-          width={100}
-          height={100}
-          style={{ maxHeight: "56px" }}
-        />
+        <Link href="/">
+          <Image
+            alt="Logo"
+            src={Logo}
+            className="object-contain cursor-pointer"
+            width={100}
+            height={100}
+            style={{ maxHeight: "56px" }}
+          />
+        </Link>
         <NavigationMenu>
           <NavigationMenuList className="inline-flex items-start gap-8 relative">
             <NavigationMenuItem>
