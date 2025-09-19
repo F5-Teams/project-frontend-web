@@ -1,3 +1,4 @@
+import { Footer, Header } from "@/components/shared";
 export default function HomeLayout({
   children,
 }: {
