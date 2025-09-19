@@ -1,4 +1,5 @@
 "use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import Logo from "@/public/logo/HappyPaws Logo.svg";
@@ -12,9 +13,25 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Bath, Hotel, PawPrint } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function Header() {
   const router = useRouter();
+  const [auth, setAuth] = useState<{ token: string | null; user: any | null }>({
+    token: null,
+    user: null,
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const token = localStorage.getItem("accessToken");
+    const userRaw = localStorage.getItem("user");
+    setAuth({
+      token,
+      user: userRaw ? JSON.parse(userRaw) : null,
+    });
+  }, []);
+
   return (
     <nav
       className="flex w-full items-center justify-between px-16 py-4 relative"
@@ -156,13 +173,39 @@ export default function Header() {
         </NavigationMenu>
       </div>
 
-      <div className="inline-flex items-start gap-[8px] p-4 ml-auto">
-        <Link href="/login">
-          <button className="btn-primary ">Đăng nhập</button>
-        </Link>
-        <Link href="/register">
-          <button className="btn-default">Đăng ký</button>
-        </Link>
+      <div className="inline-flex items-center gap-3 p-4 ml-auto">
+        {auth.token ? (
+          <Link
+            href="/profile"
+            className="flex items-center gap-2 group"
+            style={{ position: "relative", zIndex: 60 }}
+          >
+            <span className="hidden sm:inline-block font-poppins-light text-sm group-hover:text-primary transition-colors">
+              {auth.user?.userName || "thaoxinhdep"}
+            </span>
+            <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-pink-400 to-yellow-300 flex items-center justify-center text-white font-semibold uppercase">
+              {auth.user?.avatar ? (
+                <Image
+                  src={auth.user.avatar}
+                  alt="Avatar"
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                auth.user?.userName?.[0] || "T"
+              )}
+            </div>
+          </Link>
+        ) : (
+          <>
+            <Link href="/login" className="btn-primary cursor-pointer">
+              Đăng nhập
+            </Link>
+            <Link href="/register" className="btn-default cursor-pointer">
+              Đăng ký
+            </Link>
+          </>
+        )}
       </div>
     </nav>
   );

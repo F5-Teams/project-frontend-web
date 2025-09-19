@@ -67,7 +67,7 @@ export default function RegisterPage() {
       {/* Right side - form */}
       <div className="flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-pink-50 px-6 py-12">
         <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-6">
+          <h2 className="text-3xl font-poppins-medium text-center text-gray-900 mb-6">
             Đăng ký Tài khoản
           </h2>
 
@@ -80,7 +80,9 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Họ</label>
+                <label className="block text-sm font-poppins-medium mb-1">
+                  Họ
+                </label>
                 <input
                   type="text"
                   name="firstName"
@@ -93,7 +95,9 @@ export default function RegisterPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Tên</label>
+                <label className="block text-sm font-poppins-medium mb-1">
+                  Tên
+                </label>
                 <input
                   type="text"
                   name="lastName"
@@ -108,7 +112,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm font-poppins-medium mb-1">
                 Tên đăng nhập
               </label>
               <input
@@ -124,7 +128,9 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Mật khẩu</label>
+              <label className="block text-sm font-poppins-medium mb-1">
+                Mật khẩu
+              </label>
               <input
                 type="password"
                 name="password"
@@ -138,7 +144,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm font-poppins-medium mb-1">
                 Số điện thoại
               </label>
               <input
@@ -156,7 +162,9 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Địa chỉ</label>
+              <label className="block text-sm font-poppins-medium mb-1">
+                Địa chỉ
+              </label>
               <input
                 type="text"
                 name="address"
@@ -172,7 +180,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full py-2 rounded-lg text-white font-semibold ${
+              className={`w-full py-2 rounded-lg text-white font-poppins-semibold ${
                 isLoading ? "bg-primary" : "bg-pink-500 hover:bg-pink-600"
               }`}
             >
@@ -184,7 +192,7 @@ export default function RegisterPage() {
             Bạn đã có tài khoản?{" "}
             <Link
               href="/login"
-              className="text-primary font-semibold hover:underline"
+              className="text-primary font-poppins-semibold hover:underline"
             >
               Đăng nhập
             </Link>
