@@ -21,7 +21,7 @@ const services = [
     subtitle: "Tắm, cắt tỉa, vệ sinh móng, tạo kiểu lông.",
     icon: LucideBath,
     price: "Từ 250.000đ",
-    img: "/shower.jpg",
+    img: "/images/shower.jpg",
   },
   {
     id: "boarding",
@@ -29,7 +29,7 @@ const services = [
     subtitle: "Chỗ ở tiện nghi, giám sát 24/7, an toàn tuyệt đối.",
     icon: LucideHome,
     price: "Từ 300.000đ/đêm",
-    img: "/hotel.jpg",
+    img: "/images/hotel.jpg",
   },
   {
     id: "daycare",
@@ -37,7 +37,7 @@ const services = [
     subtitle: "Chăm sóc ban ngày, chơi & vận động cho thú cưng.",
     icon: LucideDog,
     price: "150.000đ/ngày",
-    img: "/care.jpg",
+    img: "/images/care.jpg",
   },
   {
     id: "training",
@@ -45,7 +45,7 @@ const services = [
     subtitle: "Hành vi, obedience, tricks cơ bản & nâng cao.",
     icon: LucideGraduationCap,
     price: "Từ 1.200.000đ/khóa",
-    img: "/train.jpg",
+    img: "/images/train.jpg",
   },
   {
     id: "vet",
@@ -53,7 +53,7 @@ const services = [
     subtitle: "Bác sĩ thú y tận tình, dịch vụ y tế toàn diện.",
     icon: LucideStethoscope,
     price: "Khám: 200.000đ",
-    img: "/medical.jpg",
+    img: "/images/medical.jpg",
   },
   {
     id: "pickup",
@@ -61,7 +61,7 @@ const services = [
     subtitle: "Đưa đón thú cưng tiện lợi, an toàn & nhanh chóng.",
     icon: LucideTruck,
     price: "50.000đ/chuyến",
-    img: "/travel.jpg",
+    img: "/images/travel.jpg",
   },
 ];
 // Animation
@@ -246,7 +246,7 @@ const PetCarePage = () => {
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1 }}
-        className="mb-20 text-center"
+        className="text-center"
       >
         <section className="py-20 bg-pink-50">
           <div className="max-w-5xl mx-auto px-6 text-left space-y-8">
@@ -292,7 +292,7 @@ const PetCarePage = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1 }}
-        className="py-5 bg-white mb-20"
+        className="py-5 bg-white "
       >
         <div className="max-w-6xl mx-auto px-6 space-y-12">
           <h2 className="text-3xl font-extrabold text-slate-800 text-center">
