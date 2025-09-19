@@ -1,64 +1,8 @@
 "use client";
-import React from "react";
 import { motion } from "framer-motion";
 import { Check, LucideHome, Star } from "lucide-react";
 import Image from "next/image";
-
-import hotel7 from "@/public/images/hotel7.jpg";
-
-const hotelServices = [
-  {
-    id: "room1",
-    title: "Luxury Suite",
-    subtitle: "Phòng rộng rãi, giường êm, view đẹp.",
-    price: "Từ 500.000đ/đêm",
-    img: "/images/hotel1.jpg",
-  },
-  {
-    id: "room2",
-    title: "Standard Room",
-    subtitle: "Tiện nghi đầy đủ, an toàn cho thú cưng.",
-    price: "Từ 300.000đ/đêm",
-    img: "/images/hotel2.jpg",
-  },
-  {
-    id: "room3",
-    title: "Family Room",
-    subtitle: "Không gian cho nhiều bé cùng lúc, vui chơi thoải mái.",
-    price: "Từ 700.000đ/đêm",
-    img: "/images/hotel3.jpg",
-  },
-  {
-    id: "room4",
-    title: "Family Room",
-    subtitle: "Không gian cho nhiều bé cùng lúc, vui chơi thoải mái.",
-    price: "Từ 700.000đ/đêm",
-    img: "/images/hotel4.jpg",
-  },
-  {
-    id: "room5",
-    title: "Family Room",
-    subtitle: "Không gian cho nhiều bé cùng lúc, vui chơi thoải mái.",
-    price: "Từ 700.000đ/đêm",
-    img: "/images/hotel5.jpg",
-  },
-  {
-    id: "room6",
-    title: "Family Room",
-    subtitle: "Không gian cho nhiều bé cùng lúc, vui chơi thoải mái.",
-    price: "Từ 700.000đ/đêm",
-    img: "/images/hotel6.jpg",
-  },
-];
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 40 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.15, duration: 0.8, ease: "easeOut" },
-  }),
-};
+import { cardVariants, hotelServices } from "@/constants";
 
 const PetHotelPage = () => {
   return (
@@ -200,7 +144,7 @@ const PetHotelPage = () => {
               <div className="flex-1 relative h-80 md:h-96 rounded-2xl overflow-hidden shadow-lg">
                 <div className="relative w-full h-100 md:h-100 rounded-2xl overflow-hidden mb-4">
                   <Image
-                    src={hotel7}
+                    src={"/images/hotel7.jpg"}
                     alt="Dịch vụ Pet Hotel"
                     fill
                     className="object-cover"

@@ -1,7 +1,4 @@
-// app/home/layout.tsx
-import Header from "@/components/shared/Header";
-import Footer from "@/components/shared/Footer";
-
+import { Footer, Header } from "@/components/shared";
 export default function HomeLayout({
   children,
 }: {

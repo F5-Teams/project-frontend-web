@@ -1,83 +1,16 @@
 "use client";
-import React from "react";
 import { motion } from "framer-motion";
 
-import {
-  LucideBath,
-  LucideHome,
-  LucideDog,
-  LucideGraduationCap,
-  LucideStethoscope,
-  LucideTruck,
-  Check,
-} from "lucide-react";
+import { Check } from "lucide-react";
 import Image from "next/image";
 import dog from "@/public/images/dog.jpg";
 import cat from "@/public/images/cat.jpg";
-const services = [
-  {
-    id: "spa",
-    title: "Spa & Grooming",
-    subtitle: "Tắm, cắt tỉa, vệ sinh móng, tạo kiểu lông.",
-    icon: LucideBath,
-    price: "Từ 250.000đ",
-    img: "/images/shower.jpg",
-  },
-  {
-    id: "boarding",
-    title: "Boarding (Khách sạn)",
-    subtitle: "Chỗ ở tiện nghi, giám sát 24/7, an toàn tuyệt đối.",
-    icon: LucideHome,
-    price: "Từ 300.000đ/đêm",
-    img: "/images/hotel.jpg",
-  },
-  {
-    id: "daycare",
-    title: "Chăm sóc",
-    subtitle: "Chăm sóc ban ngày, chơi & vận động cho thú cưng.",
-    icon: LucideDog,
-    price: "150.000đ/ngày",
-    img: "/images/care.jpg",
-  },
-  {
-    id: "training",
-    title: "Huấn luyện",
-    subtitle: "Hành vi, obedience, tricks cơ bản & nâng cao.",
-    icon: LucideGraduationCap,
-    price: "Từ 1.200.000đ/khóa",
-    img: "/images/train.jpg",
-  },
-  {
-    id: "vet",
-    title: "Khám & Tiêm chủng",
-    subtitle: "Bác sĩ thú y tận tình, dịch vụ y tế toàn diện.",
-    icon: LucideStethoscope,
-    price: "Khám: 200.000đ",
-    img: "/images/medical.jpg",
-  },
-  {
-    id: "pickup",
-    title: "Đón & Trả tận nơi",
-    subtitle: "Đưa đón thú cưng tiện lợi, an toàn & nhanh chóng.",
-    icon: LucideTruck,
-    price: "50.000đ/chuyến",
-    img: "/images/travel.jpg",
-  },
-];
-// Animation
-const cardVariants = {
-  hidden: { opacity: 0, y: 40 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.15, duration: 0.8, ease: "easeOut" },
-  }),
-};
+import { cardVariants, servicesSpa } from "@/constants";
 
 const PetCarePage = () => {
   return (
     <main className="min-h-screen ">
-      <section className="py-10 py-20">
+      <section className="py-10 ">
         <div className="max-w-6xl mx-auto px-6 text-center">
           <motion.section
             initial={{ opacity: 0, y: -30 }}
@@ -154,7 +87,7 @@ const PetCarePage = () => {
               viewport={{ once: true, amount: 0.2 }}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10"
             >
-              {services.map((s, idx) => {
+              {servicesSpa.map((s, idx) => {
                 const Icon = s.icon;
                 return (
                   <motion.div
