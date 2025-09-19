@@ -2,6 +2,12 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import Logo from "@/public/logo/HappyPaws Logo.svg";
 import {
   NavigationMenu,
@@ -10,6 +16,7 @@ import {
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
 import { useEffect, useState } from "react";
+import { Router } from "next/router";
 
 export default function Header() {
   const [auth, setAuth] = useState<{ token: string | null; user: any | null }>({
@@ -26,6 +33,13 @@ export default function Header() {
       user: userRaw ? JSON.parse(userRaw) : null,
     });
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("user");
+    setAuth({ token: null, user: null });
+    Router.push("/");
+  };
 
   return (
     <nav
@@ -88,27 +102,38 @@ export default function Header() {
 
       <div className="inline-flex items-center gap-3 p-4 ml-auto">
         {auth.token ? (
-          <Link
-            href="/profile"
-            className="flex items-center gap-2 group"
-            style={{ position: "relative", zIndex: 60 }}
-          >
-            <span className="hidden sm:inline-block font-poppins-light text-sm group-hover:text-primary transition-colors">
-              {auth.user?.userName || "thaoxinhdep"}
-            </span>
-            <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-pink-400 to-yellow-300 flex items-center justify-center text-white font-semibold uppercase">
-              {auth.user?.avatar ? (
-                <Image
-                  src={auth.user.avatar}
-                  alt="Avatar"
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                auth.user?.userName?.[0] || "T"
-              )}
-            </div>
-          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-2 group cursor-pointer">
+                <span className="hidden sm:inline-block font-poppins-light text-sm group-hover:text-primary transition-colors">
+                  {auth.user?.userName || "thaoxinhdep"}
+                </span>
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-pink-400 to-yellow-300 flex items-center justify-center text-white font-semibold uppercase">
+                  {auth.user?.avatar ? (
+                    <Image
+                      src={auth.user.avatar}
+                      alt="Avatar"
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    auth.user?.userName?.[0] || "T"
+                  )}
+                </div>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem className="font-poppins-light">
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="font-poppins-light text-error"
+              >
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         ) : (
           <>
             <Link href="/login" className="btn-primary cursor-pointer">
