@@ -1,5 +1,4 @@
 /* eslint-disable @next/next/no-img-element */
-/* app/dashboard/page.tsx */
 "use client";
 
 import Link from "next/link";
@@ -12,8 +11,18 @@ import {
   ArrowRight,
   Home,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { RegisterFormData } from "@/components/models/register";
 
 export default function DashboardPage() {
+  const [user, setUser] = useState<RegisterFormData | null>(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
   const recentBookings = [
     {
       id: 1,
@@ -87,8 +96,12 @@ export default function DashboardPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome */}
         <div className="mb-8">
-          <h1 className="text-3xl font-extrabold text-slate-900">
-            Xin chào, <span className="text-pink-500">Trần Hoàng Nam</span>!
+          <h1 className="text-3xl font-poppins-medium text-slate-900">
+            Xin chào,{" "}
+            <span className="text-pink-500">
+              {user && `${user.firstName} ${user.lastName}`}
+            </span>
+            !
           </h1>
           <p className="text-slate-500 mt-1">
             Quản lý các dịch vụ thú cưng, đặt chỗ và yêu cầu nhận nuôi của bạn
@@ -103,7 +116,9 @@ export default function DashboardPage() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold">Book Pet Services</h3>
+                <h3 className="text-lg font-poppins-semibold">
+                  Book Pet Services
+                </h3>
                 <p className="text-sm opacity-90 mt-1">
                   Find professional pet care services
                 </p>
@@ -118,7 +133,7 @@ export default function DashboardPage() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold">Pet Hotels</h3>
+                <h3 className="text-lg font-poppins-semibold">Pet Hotels</h3>
                 <p className="text-sm opacity-90 mt-1">
                   Luxury boarding for your pets
                 </p>
@@ -133,7 +148,7 @@ export default function DashboardPage() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold">Adopt a Pet</h3>
+                <h3 className="text-lg font-poppins-semibold">Adopt a Pet</h3>
                 <p className="text-sm opacity-90 mt-1">
                   Find your perfect furry companion
                 </p>
@@ -149,7 +164,7 @@ export default function DashboardPage() {
           <div className="lg:col-span-2 bg-white rounded-lg shadow">
             <div className="p-6 border-b">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-900">
+                <h2 className="text-lg font-poppins-semibold text-slate-900">
                   Recent Bookings
                 </h2>
                 <Link
@@ -171,7 +186,7 @@ export default function DashboardPage() {
                       <Calendar className="w-5 h-5 text-slate-600" />
                     </div>
                     <div>
-                      <div className="font-medium text-slate-800">
+                      <div className="font-poppins-medium text-slate-800">
                         {b.service}
                       </div>
                       <div className="text-sm text-slate-500">{b.provider}</div>
@@ -180,7 +195,7 @@ export default function DashboardPage() {
                   <div className="text-right">
                     <div className="text-sm text-slate-500">{b.date}</div>
                     <div
-                      className={`mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                      className={`mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-poppins-medium ${
                         b.status === "Completed"
                           ? "bg-green-100 text-green-800"
                           : "bg-blue-100 text-blue-800"
@@ -196,7 +211,7 @@ export default function DashboardPage() {
 
           {/* Adoption Requests */}
           <aside className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-slate-900 mb-4">
+            <h3 className="text-lg font-poppins-semibold text-slate-900 mb-4">
               Adoption Requests
             </h3>
             <div className="space-y-3">
@@ -204,7 +219,7 @@ export default function DashboardPage() {
                 <div key={r.id} className="bg-slate-50 rounded-md p-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="font-medium text-slate-800">
+                      <div className="font-poppins-medium text-slate-800">
                         {r.petName}
                       </div>
                       <div className="text-sm text-slate-500">{r.breed}</div>
@@ -233,7 +248,7 @@ export default function DashboardPage() {
         {/* Featured Services */}
         <section className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-900">
+            <h2 className="text-lg font-poppins-semibold text-slate-900">
               Featured Services
             </h2>
             <Link href="#" className="text-indigo-600 hover:underline text-sm">
@@ -253,10 +268,10 @@ export default function DashboardPage() {
                 />
                 <div className="p-3">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-medium text-sm text-slate-900">
+                    <h3 className="font-poppins-medium text-sm text-slate-900">
                       {s.name}
                     </h3>
-                    <div className="text-pink-500 font-semibold text-sm">
+                    <div className="text-pink-500 font-poppins-semibold text-sm">
                       {s.price}
                     </div>
                   </div>

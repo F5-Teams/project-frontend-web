@@ -33,18 +33,21 @@ export default function LoginPage() {
 
     try {
       const res = await api.post<AuthResponse>("auth/sign-in", formData);
-      const data = res.data;
-
-      const token = data.access_token || data.accessToken || data.token || null;
+      const token = res.data.access_token;
 
       if (!token) {
-        setError("Đăng nhập thất bại: server không trả token.");
+        setError("Đăng nhập thất bại: không nhận được token.");
         return;
       }
 
       localStorage.setItem("accessToken", token);
-      if (data.user) {
-        localStorage.setItem("user", JSON.stringify(data.user));
+
+      const meRes = await api.get("user/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (meRes.data) {
+        localStorage.setItem("user", JSON.stringify(meRes.data));
       }
 
       router.replace("/user");
@@ -54,8 +57,6 @@ export default function LoginPage() {
         err.response?.data?.error ||
         "Đăng nhập thất bại. Vui lòng thử lại.";
       setError(serverMsg);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -85,7 +86,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             <div>
-              <label className="block text-sm font-medium mb-1 text-foreground">
+              <label className="block text-sm font-poppins-medium mb-1 text-foreground">
                 Tên đăng nhập
               </label>
               <input
@@ -101,7 +102,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1 text-foreground">
+              <label className="block text-sm font-poppins-medium mb-1 text-foreground">
                 Mật khẩu
               </label>
               <div className="relative">
@@ -132,7 +133,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full py-2 rounded-lg text-white font-semibold ${
+              className={`w-full py-2 rounded-lg text-white font-poppins-semibold ${
                 isLoading ? "bg-primary" : "bg-pink-500 hover:bg-pink-600"
               }`}
             >
@@ -144,7 +145,7 @@ export default function LoginPage() {
             Bạn chưa có tài khoản?{" "}
             <Link
               href="/register"
-              className="text-primary font-semibold hover:underline"
+              className="text-primary font-poppins-semibold hover:underline"
             >
               Đăng ký ngay
             </Link>
