@@ -358,7 +358,6 @@ const PetStorePage = () => {
                   variants={productVariants}
                   className="group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-500 overflow-hidden cursor-pointer hover:-translate-y-2"
                 >
-                  {/* Product Image */}
                   <div className="relative h-64 overflow-hidden">
                     <Image
                       src={product.image || "/placeholder.svg"}
@@ -366,11 +365,7 @@ const PetStorePage = () => {
                       fill
                       className="object-cover group-hover:scale-110 transition-transform duration-500"
                     />
-                    <div className="absolute top-4 right-4">
-                      <button className="w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-pink-500 hover:text-white transition-colors">
-                        <Heart className="w-5 h-5" />
-                      </button>
-                    </div>
+
                     {product.originalPrice && (
                       <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
                         -

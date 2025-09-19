@@ -1,3 +1,4 @@
+"use client";
 import Link from "next/link";
 import Image from "next/image";
 import Logo from "@/public/logo/HappyPaws Logo.svg";
@@ -10,8 +11,10 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { Bath, Hotel, PawPrint } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
+  const router = useRouter();
   return (
     <nav
       className="flex w-full items-center justify-between px-16 py-4 relative"
@@ -41,8 +44,8 @@ export default function Header() {
                 <p
                   className="cursor-pointer
                 "
+                  onClick={() => router.push("/")}
                 >
-                  {" "}
                   DỊCH VỤ
                 </p>
               </NavigationMenuTrigger>
