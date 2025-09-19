@@ -246,7 +246,7 @@ const PetCarePage = () => {
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1 }}
-        className="mb-20 text-center"
+        className="text-center"
       >
         <section className="py-20 bg-pink-50">
           <div className="max-w-5xl mx-auto px-6 text-left space-y-8">
@@ -292,7 +292,7 @@ const PetCarePage = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1 }}
-        className="py-5 bg-white mb-20"
+        className="py-5 bg-white "
       >
         <div className="max-w-6xl mx-auto px-6 space-y-12">
           <h2 className="text-3xl font-extrabold text-slate-800 text-center">
