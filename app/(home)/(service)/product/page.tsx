@@ -8,256 +8,11 @@ import {
   Package,
   Truck,
   Shield,
-  Utensils,
-  Bath,
-  Shirt,
   Stethoscope,
-  Gamepad2,
-  LucideBath,
-  LucideHome,
-  LucideDog,
-  LucideGraduationCap,
-  LucideStethoscope,
-  LucideTruck,
 } from "lucide-react";
 import Image from "next/image";
 import bg from "@/public/images/care.jpg";
-import pr1 from "@/public/images/product_1.jpg";
-import pr2 from "@/public/images/product_2.jpg";
-import pr3 from "@/public/images/product_3.jpg";
-import pr4 from "@/public/images/product_4.jpg";
-import pr5 from "@/public/images/product_5.jpg";
-import pr6 from "@/public/images/product_6.jpg";
-import pr7 from "@/public/images/product_7.jpg";
-import pr8 from "@/public/images/product_8.jpg";
-import pr9 from "@/public/images/product_9.jpg";
-import pr10 from "@/public/images/product_10.jpg";
-import pr11 from "@/public/images/product_11.jpg";
-import pr12 from "@/public/images/product_12.jpg";
-const productCategories = [
-  {
-    id: "food",
-    title: "Thức ăn & Dinh dưỡng",
-    subtitle: "Thức ăn cao cấp, snack, vitamin cho thú cưng",
-    icon: Utensils,
-    products: [
-      {
-        name: "Royal Canin Adult Dog Food",
-        price: "850.000đ",
-        originalPrice: "950.000đ",
-        rating: 4.8,
-        reviews: 245,
-        image: pr1,
-        description:
-          "Thức ăn cao cấp cho chó trưởng thành, cân bằng dinh dưỡng",
-        features: [
-          "Protein cao",
-          "Omega 3&6",
-          "Hỗ trợ tiêu hóa",
-          "Made in France",
-        ],
-      },
-      {
-        name: "Whiskas Cat Food Tuna",
-        price: "320.000đ",
-        originalPrice: "380.000đ",
-        rating: 4.6,
-        reviews: 189,
-        image: pr2,
-        description: "Thức ăn ướt cho mèo vị cá ngừ, bổ sung nước",
-        features: [
-          "Cá ngừ tươi",
-          "Vitamin E",
-          "Taurine",
-          "Không chất bảo quản",
-        ],
-      },
-      {
-        name: "Pedigree Dentastix",
-        price: "180.000đ",
-        originalPrice: "220.000đ",
-        rating: 4.7,
-        reviews: 156,
-        image: pr3,
-        description: "Snack chăm sóc răng miệng cho chó",
-        features: [
-          "Làm sạch răng",
-          "Giảm cao răng",
-          "Hương vị thịt",
-          "Dễ tiêu hóa",
-        ],
-      },
-    ],
-  },
-  {
-    id: "grooming",
-    title: "Vệ sinh & Làm đẹp",
-    subtitle: "Sản phẩm tắm gội, cắt tỉa, chăm sóc lông",
-    icon: Bath,
-    products: [
-      {
-        name: "Bio-Groom Protein Lanolin Shampoo",
-        price: "450.000đ",
-        originalPrice: "520.000đ",
-        rating: 4.9,
-        reviews: 98,
-        image: pr4,
-        description: "Dầu gội cao cấp với protein và lanolin",
-        features: [
-          "Protein tự nhiên",
-          "Làm mềm lông",
-          "pH cân bằng",
-          "Không gây kích ứng",
-        ],
-      },
-      {
-        name: "Kìm cắt móng Millers Forge",
-        price: "280.000đ",
-        originalPrice: "350.000đ",
-        rating: 4.8,
-        reviews: 134,
-        image: pr5,
-        description: "Kìm cắt móng chuyên nghiệp, an toàn",
-        features: [
-          "Thép không gỉ",
-          "Tay cầm chống trượt",
-          "Cắt sạch sẽ",
-          "Bảo hành 2 năm",
-        ],
-      },
-      {
-        name: "Lược chải lông FURminator",
-        price: "680.000đ",
-        originalPrice: "780.000đ",
-        rating: 4.9,
-        reviews: 267,
-        image: pr6,
-        description: "Lược chải lông chuyên nghiệp, giảm rụng lông",
-        features: [
-          "Công nghệ đặc biệt",
-          "Giảm 90% rụng lông",
-          "Tay cầm ergonomic",
-          "Phù hợp mọi giống",
-        ],
-      },
-    ],
-  },
-  {
-    id: "toys",
-    title: "Đồ chơi & Giải trí",
-    subtitle: "Đồ chơi thông minh, bóng, dây thừng cho thú cưng",
-    icon: Gamepad2,
-    products: [
-      {
-        name: "Kong Classic Dog Toy",
-        price: "320.000đ",
-        originalPrice: "380.000đ",
-        rating: 4.8,
-        reviews: 445,
-        image: pr7,
-        description: "Đồ chơi cao su tự nhiên, kích thích trí tuệ",
-        features: [
-          "Cao su tự nhiên",
-          "Nhồi snack được",
-          "Kích thích IQ",
-          "Siêu bền",
-        ],
-      },
-      {
-        name: "Feather Wand Cat Toy",
-        price: "150.000đ",
-        originalPrice: "200.000đ",
-        rating: 4.7,
-        reviews: 189,
-        image: pr8,
-        description: "Đồ chơi lông vũ tương tác cho mèo",
-        features: [
-          "Lông vũ tự nhiên",
-          "Cần câu linh hoạt",
-          "Kích thích săn mồi",
-          "An toàn",
-        ],
-      },
-      {
-        name: "Puzzle Feeder Bowl",
-        price: "280.000đ",
-        originalPrice: "340.000đ",
-        rating: 4.6,
-        reviews: 123,
-        image: pr9,
-        description: "Bát ăn thông minh, chậm tiêu hóa",
-        features: [
-          "Ăn chậm",
-          "Kích thích tư duy",
-          "Chống đầy hơi",
-          "Dễ vệ sinh",
-        ],
-      },
-    ],
-  },
-  {
-    id: "accessories",
-    title: "Phụ kiện & Trang phục",
-    subtitle: "Vòng cổ, dây dắt, quần áo, giường nằm",
-    icon: Shirt,
-    products: [
-      {
-        name: "Leather Collar Premium",
-        price: "420.000đ",
-        originalPrice: "500.000đ",
-        rating: 4.8,
-        reviews: 156,
-        image: pr10,
-        description: "Vòng cổ da thật cao cấp, khắc tên miễn phí",
-        features: [
-          "Da thật 100%",
-          "Khắc tên miễn phí",
-          "Khóa inox",
-          "Nhiều size",
-        ],
-      },
-      {
-        name: "Retractable Leash 5m",
-        price: "380.000đ",
-        originalPrice: "450.000đ",
-        rating: 4.7,
-        reviews: 234,
-        image: pr11,
-        description: "Dây dắt tự động 5m, chịu lực 50kg",
-        features: [
-          "Tự động thu dây",
-          "Chịu lực 50kg",
-          "Tay cầm chống trượt",
-          "Khóa an toàn",
-        ],
-      },
-      {
-        name: "Orthopedic Pet Bed",
-        price: "1.200.000đ",
-        originalPrice: "1.450.000đ",
-        rating: 4.9,
-        reviews: 89,
-        image: pr12,
-        description: "Giường nệm memory foam, hỗ trợ xương khớp",
-        features: [
-          "Memory foam",
-          "Hỗ trợ xương khớp",
-          "Vỏ tháo rời",
-          "Chống nước",
-        ],
-      },
-    ],
-  },
-];
-
-const productVariants = {
-  hidden: { opacity: 0, scale: 0.9 },
-  visible: (i: number) => ({
-    opacity: 1,
-    scale: 1,
-    transition: { delay: i * 0.05, duration: 0.4, ease: "easeOut" },
-  }),
-};
+import { productCategories, productVariants } from "@/constants";
 
 const PetStorePage = () => {
   return (
@@ -539,10 +294,10 @@ const PetStorePage = () => {
                 ))}
               </div>
               <p className="text-slate-700 leading-relaxed mb-4">
-                "Sản phẩm chất lượng tuyệt vời! Thức ăn Royal Canin mà tôi mua
-                cho bé Golden rất ngon, bé ăn rất khỏe. Dịch vụ spa cũng rất
+                &quot;Sản phẩm chất lượng tuyệt vời! Thức ăn Royal Canin mà tôi
+                mua cho bé Golden rất ngon, bé ăn rất khỏe. Dịch vụ spa cũng rất
                 chuyên nghiệp. Giao hàng nhanh, đóng gói cẩn thận. Sẽ tiếp tục
-                ủng hộ shop!"
+                ủng hộ shop&quot;
               </p>
               <div className="font-semibold text-pink-600">
                 – Chị Lan, Hà Nội 🐕
@@ -565,10 +320,10 @@ const PetStorePage = () => {
                 ))}
               </div>
               <p className="text-slate-700 leading-relaxed mb-4">
-                "Lược FURminator thật sự hiệu quả! Lông rụng của bé Husky giảm
-                đáng kể. Dịch vụ boarding cũng tuyệt vời, bé được chăm sóc như ở
-                nhà. Nhân viên tư vấn rất nhiệt tình và chuyên nghiệp. Highly
-                recommended!"
+                &quot;Lược FURminator thật sự hiệu quả! Lông rụng của bé Husky
+                giảm đáng kể. Dịch vụ boarding cũng tuyệt vời, bé được chăm sóc
+                như ở nhà. Nhân viên tư vấn rất nhiệt tình và chuyên nghiệp.
+                Highly recommended!&quot;
               </p>
               <div className="font-semibold text-pink-600">
                 – Anh Minh, TP.HCM 🐺
