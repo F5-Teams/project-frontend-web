@@ -171,7 +171,7 @@ const PetStorePage = () => {
                           </span>
                         )}
                       </div>
-                      <button className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-4 py-2 rounded-full hover:shadow-lg transition-all duration-300 flex items-center gap-2 group-hover:scale-105">
+                      <button className="bg-gradient-to-r from-pink-500 to-purple-500 cursor-pointer text-white px-4 py-2 rounded-full hover:shadow-lg transition-all duration-300 flex items-center gap-2 group-hover:scale-105">
                         <ShoppingCart className="w-4 h-4" />
                         <span className="text-sm font-medium">Thêm</span>
                       </button>
