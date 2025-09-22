@@ -6,8 +6,11 @@ import Image from "next/image";
 import dog from "@/public/images/dog.jpg";
 import cat from "@/public/images/cat.jpg";
 import { cardVariants, servicesSpa } from "@/constants";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const PetCarePage = () => {
+  const route = useRouter();
   return (
     <main className="min-h-screen ">
       <section className="py-10 ">
@@ -91,6 +94,7 @@ const PetCarePage = () => {
                 const Icon = s.icon;
                 return (
                   <motion.div
+                    onClick={() => route.push(`/spa/${s.id}`)}
                     key={s.id}
                     custom={idx}
                     variants={cardVariants}
