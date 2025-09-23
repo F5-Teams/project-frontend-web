@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +20,7 @@ import {
 import { Bath, Hotel, PawPrint } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 export default function Header() {
   const router = useRouter();
@@ -55,14 +56,16 @@ export default function Header() {
       bg-white/70 backdrop-blur shadow-lg rounded-2xl"
         style={{ height: "72px" }}
       >
-        <Image
-          alt="Logo"
-          src={Logo}
-          className="object-contain"
-          width={100}
-          height={100}
-          style={{ maxHeight: "56px" }}
-        />
+        <Link href="/" className="cursor-pointer">
+          <Image
+            alt="Logo"
+            src={Logo}
+            className="object-contain"
+            width={100}
+            height={100}
+            style={{ maxHeight: "56px" }}
+          />
+        </Link>
         <NavigationMenu>
           <NavigationMenuList className="inline-flex items-start gap-8 relative">
             <NavigationMenuItem>
@@ -192,8 +195,9 @@ export default function Header() {
                     <Image
                       src={auth.user.avatar}
                       alt="Avatar"
-                      fill
-                      className="object-cover"
+                      width={48}
+                      height={48}
+                      className="w-14 h-14 object-cover rounded-full"
                     />
                   ) : (
                     auth.user?.userName?.[0] || "T"
@@ -204,14 +208,14 @@ export default function Header() {
             <DropdownMenuContent align="end" className="w-48 pr-2">
               <Link href="/profile">
                 <DropdownMenuItem className="font-poppins-light text-[14px] focus:text-primary transition-all duration-200 hover:translate-x-1">
-                  Profile
+                  Thông tin cá nhân
                 </DropdownMenuItem>
               </Link>
               <DropdownMenuItem
                 onClick={handleLogout}
                 className="font-poppins-regular text-error text-[14px] transition-all duration-200 hover:translate-x-1 hover:text-error"
               >
-                Log out
+                Đăng xuất
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
