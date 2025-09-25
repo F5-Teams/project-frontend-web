@@ -42,8 +42,19 @@ export default function RegisterPage() {
     e.preventDefault();
     setIsLoading(true);
 
+    // Chuyển đổi gender sang boolean
+    let genderBoolean: boolean = false;
+    if (formData.gender === "MALE") genderBoolean = true;
+    else if (formData.gender === "FEMALE" || formData.gender === "OTHER")
+      genderBoolean = false;
+
+    const submitData = {
+      ...formData,
+      gender: genderBoolean,
+    };
+
     try {
-      const response = await api.post("auth/sign-up", formData);
+      const response = await api.post("auth/sign-up", submitData);
 
       if (response.status === 200 || response.status === 201) {
         alert("Đăng ký thành công!");
