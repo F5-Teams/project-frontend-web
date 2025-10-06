@@ -3,7 +3,7 @@ import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { servicesSpa } from "@/constants";
-import { ArrowLeftFromLine } from "lucide-react";
+import { ArrowLeftFromLine, ShoppingCart } from "lucide-react";
 
 const PetCareCategoryPage = () => {
   const { id } = useParams();
@@ -47,7 +47,7 @@ const PetCareCategoryPage = () => {
               />
             </div>
 
-            <div className="p-5 text-center">
+            <div className="p-5 text-center ">
               <h2 className="text-xl font-bold text-slate-800 group-hover:text-pink-600 transition-colors">
                 {detail.name}
               </h2>
@@ -57,12 +57,15 @@ const PetCareCategoryPage = () => {
               <div className="mt-4 space-y-1">
                 <p className="text-pink-600 font-bold">{detail.price}</p>
                 <p className="text-xs text-gray-500">
-                  ⏳ Thời gian: {detail.duration}
+                  Thời gian: {detail.duration}
                 </p>
               </div>
-              <button className="mt-4 px-4 py-2 cursor-pointer rounded-lg bg-pink-500 text-white font-medium hover:bg-pink-600 transition">
-                Đặt ngay
-              </button>
+              <div className="flex justify-center">
+                <button className="flex items-center justify-center gap-2 mt-4 px-4 py-2 cursor-pointer rounded-lg bg-pink-500 text-white font-medium hover:bg-pink-600 transition">
+                  <ShoppingCart className="w-5 h-5" />
+                  Đặt ngay
+                </button>
+              </div>
             </div>
           </div>
         ))}

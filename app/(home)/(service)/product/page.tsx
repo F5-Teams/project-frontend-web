@@ -171,9 +171,9 @@ const PetStorePage = () => {
                           </span>
                         )}
                       </div>
-                      <button className="bg-gradient-to-r from-pink-500 to-purple-500 cursor-pointer text-white px-4 py-2 rounded-full hover:shadow-lg transition-all duration-300 flex items-center gap-2 group-hover:scale-105">
-                        <ShoppingCart className="w-4 h-4" />
-                        <span className="text-sm font-medium">Thêm</span>
+                      <button className="flex items-center gap-2 mt-4 px-4 py-2 cursor-pointer rounded-lg bg-pink-500 text-white font-medium hover:bg-pink-600 transition">
+                        <ShoppingCart className="w-5 h-5" />
+                        <p>Đặt ngay</p>
                       </button>
                     </div>
                   </div>
