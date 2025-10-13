@@ -42,7 +42,6 @@ export default function RegisterPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Chuyển đổi gender sang boolean
     let genderBoolean: boolean = false;
     if (formData.gender === "MALE") genderBoolean = true;
     else if (formData.gender === "FEMALE" || formData.gender === "OTHER")
