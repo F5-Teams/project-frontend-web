@@ -1,209 +1,240 @@
-// components/shared/Header.tsx
 "use client";
 
-import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Search, Menu, X, Heart, UserPlus, SunMoon } from "lucide-react";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import Logo from "@/public/logo/HappyPaws Logo.svg";
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuContent,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import { Bath, Hotel, PawPrint } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import Image from "next/image";
 
 export default function Header() {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const [dark, setDark] = useState(false);
-  const mobileMenuRef = useRef<HTMLDivElement | null>(null);
+  const router = useRouter();
+  const [auth, setAuth] = useState<{ token: string | null; user: any | null }>({
+    token: null,
+    user: null,
+  });
 
-  // Close mobile menu on outside click
   useEffect(() => {
-    function onDoc(e: MouseEvent) {
-      if (
-        open &&
-        mobileMenuRef.current &&
-        !mobileMenuRef.current.contains(e.target as Node)
-      ) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("click", onDoc);
-    return () => document.removeEventListener("click", onDoc);
-  }, [open]);
+    if (typeof window === "undefined") return;
+    const token = localStorage.getItem("accessToken");
+    const userRaw = localStorage.getItem("user");
+    setAuth({
+      token,
+      user: userRaw ? JSON.parse(userRaw) : null,
+    });
+  }, []);
 
-  // Simple search handler (client-side demo)
-  function onSearch(e?: React.FormEvent) {
-    e?.preventDefault();
-    if (!query.trim()) return;
-    // for now navigate to /adoption with query param or call a search function
-    // router.push(`/search?q=${encodeURIComponent(query)}`)
-    alert(`Tìm kiếm: ${query}`);
-    setQuery("");
-  }
-
-  // toggle dark class on body (simple demo)
-  useEffect(() => {
-    if (dark) document.documentElement.classList.add("dark");
-    else document.documentElement.classList.remove("dark");
-  }, [dark]);
-
-  const nav = [
-    { href: "/home", label: "Home" },
-    { href: "/adoption", label: "Adoption" },
-    { href: "/services", label: "Services" },
-    { href: "/about", label: "About" },
-    { href: "/contact", label: "Contact" },
-  ];
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("user");
+    setAuth({ token: null, user: null });
+    router.push("/");
+  };
 
   return (
-    <header className="w-full bg-white dark:bg-slate-900 border-b dark:border-slate-800 z-40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Left: Logo */}
-          <div className="flex items-center gap-4">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-pink-500 to-indigo-500 flex items-center justify-center text-white font-bold shadow-md">
-                P
-              </div>
-              <div className="hidden sm:block">
-                <div className="text-lg font-bold text-slate-900 dark:text-white leading-tight">
-                  PetHub
-                </div>
-                <div className="text-xs text-slate-500 dark:text-slate-300 -mt-0.5">
-                  Find your furry friend
-                </div>
-              </div>
-            </Link>
-          </div>
-
-          {/* Middle: Nav (desktop) + Search */}
-          <div className="hidden lg:flex lg:items-center lg:gap-8">
-            <nav className="flex items-center gap-6">
-              {nav.map((n) => (
-                <Link
-                  key={n.href}
-                  href={n.href}
-                  className="text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-pink-500 dark:hover:text-pink-400 transition"
-                >
-                  {n.label}
-                </Link>
-              ))}
-            </nav>
-
-            <form
-              onSubmit={onSearch}
-              className="ml-6 flex items-center bg-slate-100 dark:bg-slate-800 rounded-full px-3 py-1.5 shadow-sm"
-            >
-              <Search className="w-4 h-4 text-slate-500 dark:text-slate-300" />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search pets, services..."
-                className="bg-transparent placeholder:text-slate-400 text-sm pl-2 pr-3 outline-none text-slate-900 dark:text-slate-100 w-64"
-                aria-label="Search"
-              />
-              <button
-                aria-label="Search"
-                type="submit"
-                className="ml-1 text-sm text-pink-500"
-              >
-                Go
-              </button>
-            </form>
-          </div>
-
-          {/* Right: Actions */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setDark((d) => !d)}
-              aria-label="Toggle theme"
-              className="hidden sm:inline-flex items-center justify-center p-2 rounded-md border dark:border-slate-700"
-            >
-              <SunMoon className="w-4 h-4 text-slate-700 dark:text-slate-200" />
-            </button>
-
-            <Link
-              href="/adoption"
-              className="hidden sm:inline-flex items-center gap-2 bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow"
-            >
-              <Heart className="w-4 h-4" />
-              Adopt
-            </Link>
-
-            <Link
-              href="/register"
-              className="hidden md:inline-flex items-center gap-2 border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-md text-sm hover:shadow"
-            >
-              <UserPlus className="w-4 h-4 text-slate-700 dark:text-slate-200" />
-              Join
-            </Link>
-
-            {/* Mobile menu button */}
-            <button
-              aria-label="Toggle menu"
-              onClick={() => setOpen((v) => !v)}
-              className="inline-flex items-center justify-center p-2 rounded-md border lg:hidden"
-            >
-              {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile panel */}
+    <nav
+      className="flex w-full items-center justify-between px-16 py-4 relative"
+      style={{ zIndex: 50, position: "relative" }}
+    >
       <div
-        ref={mobileMenuRef}
-        className={`lg:hidden transition-max-height duration-300 overflow-hidden ${
-          open ? "max-h-[480px]" : "max-h-0"
-        }`}
+        className="absolute left-16 top-4 z-50 inline-flex items-center gap-[60px] px-6 py-2
+      bg-white/70 backdrop-blur shadow-lg rounded-2xl"
+        style={{ height: "72px" }}
       >
-        <div className="px-4 pt-4 pb-6 space-y-4 bg-white dark:bg-slate-900 border-t dark:border-slate-800">
-          <form onSubmit={onSearch} className="flex items-center gap-2">
-            <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-full px-3 py-2 w-full">
-              <Search className="w-4 h-4 text-slate-500 dark:text-slate-300" />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search pets or services"
-                className="bg-transparent placeholder:text-slate-400 text-sm pl-2 pr-3 outline-none w-full text-slate-900 dark:text-slate-100"
-              />
-            </div>
-            <button
-              type="submit"
-              className="px-3 py-2 rounded-md bg-pink-500 text-white"
-            >
-              Go
-            </button>
-          </form>
-
-          <nav className="grid gap-2">
-            {nav.map((n) => (
-              <Link
-                key={n.href}
-                href={n.href}
-                onClick={() => setOpen(false)}
-                className="block px-3 py-2 rounded-md text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+        <Link href="/" className="cursor-pointer">
+          <Image
+            alt="Logo"
+            src={Logo}
+            className="object-contain"
+            width={100}
+            height={100}
+            style={{ maxHeight: "56px" }}
+          />
+        </Link>
+        <NavigationMenu>
+          <NavigationMenuList className="inline-flex items-start gap-8 relative">
+            <NavigationMenuItem>
+              <NavigationMenuTrigger
+                className="font-poppins-light font-light text-[14px] sm:text-[15px] md:text-[16px] 
+                2xl:text-[18px] text-center leading-[24px] 
+                tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors cursor-pointer"
               >
-                {n.label}
-              </Link>
-            ))}
-          </nav>
+                <p className="cursor-pointer ">DỊCH VỤ</p>
+              </NavigationMenuTrigger>
+              <NavigationMenuContent className="p-3 absolute left-1/2 -translate-x-1/2 border-none min-w-[280px]">
+                <ul className=" font-light grid gap-4">
+                  <li>
+                    <Link
+                      className="cursor-pointer"
+                      href="/spa"
+                      legacyBehavior
+                      passHref
+                    >
+                      <NavigationMenuLink className="flex items-start gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition-all duration-200 hover:translate-x-1">
+                        <div>
+                          <div className="flex gap-2 items-center text-primary">
+                            <Bath className="w-5 h-5 text-primary " />
+                            <p className="font-poppins-regular">
+                              Spa & Grooming
+                            </p>
+                          </div>
+                          <p className="font-poppins-light text-[14px] mt-1 text-muted-foreground">
+                            Tắm rửa, cắt tỉa lông và chăm sóc sắc đẹp cho thú
+                            cưng
+                          </p>
+                        </div>
+                      </NavigationMenuLink>
+                    </Link>
+                  </li>
 
-          <div className="flex items-center gap-3 pt-2">
-            <Link
-              href="/adoption"
-              className="flex-1 inline-flex items-center justify-center gap-2 bg-pink-500 text-white px-4 py-2 rounded-lg"
-              onClick={() => setOpen(false)}
-            >
-              <Heart className="w-4 h-4" />
-              Adopt
-            </Link>
-            <Link
-              href="/register"
-              className="flex-1 inline-flex items-center justify-center gap-2 border rounded-lg px-4 py-2"
-              onClick={() => setOpen(false)}
-            >
-              <UserPlus className="w-4 h-4" />
-              Join
-            </Link>
-          </div>
-        </div>
+                  <li>
+                    <Link
+                      className="cursor-pointer"
+                      href="/hotel"
+                      legacyBehavior
+                      passHref
+                    >
+                      <NavigationMenuLink className="flex items-start gap-3 p-3 rounded-lg hover:bg-primary/10 transition-all duration-200 hover:translate-x-1">
+                        <div>
+                          <div className="flex gap-2 items-center text-primary">
+                            <Hotel className="w-5 h-5 text-primary" />
+                            <p className="font-poppins-regular">
+                              Khách sạn thú cưng
+                            </p>
+                          </div>
+                          <p className="font-poppins-light text-[14px] mt-1 text-muted-foreground">
+                            Dịch vụ lưu trú tiện nghi và an toàn cho thú cưng
+                            của bạn
+                          </p>
+                        </div>
+                      </NavigationMenuLink>
+                    </Link>
+                  </li>
+
+                  <li>
+                    <Link
+                      className="cursor-pointer"
+                      href="/product"
+                      legacyBehavior
+                      passHref
+                    >
+                      <NavigationMenuLink className="flex items-start gap-3 p-3 rounded-lg hover:bg-primary/10 transition-all duration-200 hover:translate-x-1">
+                        <div>
+                          <div className="flex gap-2 items-center text-primary">
+                            <PawPrint className="w-5 h-5 text-primary" />
+                            <p className="font-poppins-regular">
+                              Sản phẩm cho thú cưng
+                            </p>
+                          </div>
+                          <p className="font-poppins-light text-[14px] mt-1 text-muted-foreground">
+                            Thức ăn, phụ kiện và đồ chơi chất lượng cho thú cưng
+                          </p>
+                        </div>
+                      </NavigationMenuLink>
+                    </Link>
+                  </li>
+                </ul>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+
+            <NavigationMenuItem>
+              <NavigationMenuLink
+                href="/about-us"
+                className="relative w-fit mt-[-1.00px] font-poppins-light text-[14px] sm:text-[15px] md:text-[16px] 2xl:text-[18px] text-foreground text-center leading-[24px] tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
+              >
+                VỀ CHÚNG TÔI
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+
+            <NavigationMenuItem>
+              <NavigationMenuLink
+                href="#nhận-nuôi"
+                className="relative w-fit mt-[-1.00px] font-poppins-light text-[14px] sm:text-[15px] md:text-[16px] 2xl:text-[18px] text-foreground text-center leading-[24px] tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
+              >
+                NHẬN NUÔI
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+
+            <NavigationMenuItem>
+              <NavigationMenuLink
+                href="#liên-hệ"
+                className="relative w-fit mt-[-1.00px] font-poppins-light text-[14px] sm:text-[15px] md:text-[16px] 2xl:text-[18px] text-foreground text-center leading-[24px] tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
+              >
+                LIÊN HỆ
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
       </div>
-    </header>
+
+      <div className="inline-flex items-center gap-3 p-4 ml-auto">
+        {auth.token ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-2 group cursor-pointer">
+                <span className="hidden sm:inline-block font-poppins-light text-sm group-hover:text-primary transition-colors">
+                  {auth.user?.userName || "thaoxinhdep"}
+                </span>
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-pink-400 to-yellow-300 flex items-center justify-center text-white font-semibold uppercase">
+                  {auth.user?.avatar ? (
+                    <Image
+                      src={auth.user.avatar}
+                      alt="Avatar"
+                      width={48}
+                      height={48}
+                      className="w-14 h-14 object-cover rounded-full"
+                    />
+                  ) : (
+                    auth.user?.userName?.[0] || "T"
+                  )}
+                </div>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 pr-2">
+              <Link href="/profile">
+                <DropdownMenuItem className="font-poppins-light text-[14px] focus:text-primary transition-all duration-200 hover:translate-x-1">
+                  Thông tin cá nhân
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/profile-pet">
+                <DropdownMenuItem className="font-poppins-light text-[14px] focus:text-primary transition-all duration-200 hover:translate-x-1">
+                  Thông tin thú cưng
+                </DropdownMenuItem>
+              </Link>
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="font-poppins-regular text-error text-[14px] transition-all duration-200 hover:translate-x-1 hover:text-error"
+              >
+                Đăng xuất
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <>
+            <Link href="/login" className="btn-primary cursor-pointer">
+              Đăng nhập
+            </Link>
+            <Link href="/register" className="btn-default cursor-pointer">
+              Đăng ký
+            </Link>
+          </>
+        )}
+      </div>
+    </nav>
   );
 }
