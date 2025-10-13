@@ -92,17 +92,16 @@ export default function InfoPage() {
               icon={<AtSign className="h-5 w-5" />}
               label="Username"
               value={display(user.userName)}
-              highlight
             />
             <InfoRow
               icon={<UserIcon className="h-5 w-5" />}
               label="Họ"
-              value={display(user.lastName)}
+              value={display(user.firstName)}
             />
             <InfoRow
               icon={<UserIcon className="h-5 w-5" />}
               label="Tên"
-              value={display(user.firstName)}
+              value={display(user.lastName)}
             />
             <InfoRow
               icon={<Phone className="h-5 w-5" />}

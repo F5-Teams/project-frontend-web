@@ -5,4 +5,6 @@ export interface RegisterFormData {
   password: string;
   phoneNumber: string;
   address: string;
+  gender: string;
+  avatar: string;
 }

@@ -18,7 +18,6 @@ export default function LoginPage() {
   });
   const [error, setError] = useState<string>("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -29,7 +28,6 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
-    setIsLoading(true);
 
     try {
       const res = await api.post<AuthResponse>("auth/sign-in", formData);
@@ -50,7 +48,7 @@ export default function LoginPage() {
         localStorage.setItem("user", JSON.stringify(meRes.data));
       }
 
-      router.replace("/user");
+      router.replace("/");
     } catch (err: any) {
       const serverMsg =
         err.response?.data?.message ||
@@ -97,7 +95,6 @@ export default function LoginPage() {
                 className="w-full px-3 py-2 rounded-lg border border-border bg-popover text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none"
                 placeholder="Nhập tên đăng nhập"
                 autoComplete="username"
-                disabled={isLoading}
               />
             </div>
 
@@ -114,7 +111,6 @@ export default function LoginPage() {
                   className="w-full px-3 py-2 pr-10 rounded-lg border border-border bg-popover text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none"
                   placeholder="Nhập mật khẩu"
                   autoComplete="current-password"
-                  disabled={isLoading}
                 />
                 <button
                   type="button"
@@ -132,12 +128,9 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              disabled={isLoading}
-              className={`w-full py-2 rounded-lg text-white font-poppins-semibold ${
-                isLoading ? "bg-primary" : "bg-pink-500 hover:bg-pink-600"
-              }`}
+              className="w-full py-2 rounded-lg text-white font-poppins-semibold bg-pink-500 hover:bg-pink-600"
             >
-              {isLoading ? "Đăng nhập..." : "Đăng nhập"}
+              Đăng nhập
             </button>
           </form>
 
