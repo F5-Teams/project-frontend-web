@@ -155,7 +155,7 @@ export function UserInfoCard({ user }: Props) {
                 </div>
                 {!isEditing ? (
                   <div className="font-light text-lg">
-                    {user?.gender ? "Nữ" : "Nam"}
+                    {user?.gender ? "Nam" : "Nữ"}
                   </div>
                 ) : (
                   <div className="flex gap-2">
@@ -168,7 +168,7 @@ export function UserInfoCard({ user }: Props) {
                           : "bg-white/10 text-black border-white/30"
                       }`}
                     >
-                      Nam
+                      Nữ
                     </button>
                     <button
                       type="button"
@@ -179,7 +179,7 @@ export function UserInfoCard({ user }: Props) {
                           : "bg-white/10 text-black border-white/30"
                       }`}
                     >
-                      Nữ
+                      Nam
                     </button>
                   </div>
                 )}
