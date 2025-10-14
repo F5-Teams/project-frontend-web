@@ -6,6 +6,8 @@ import "./globals.css";
 import { poppins } from "../fonts/font";
 import { Providers } from "./_providers";
 
+import ReduxProvider from "./ReduxProvider";
+
 const getPoppins = Poppins({
   variable: "--font-google-poppins",
   subsets: ["latin"],
@@ -30,7 +32,9 @@ export default function RootLayout({
       <body
         className={`${poppins.variable} ${getPoppins.variable} antialiased`}
       >
-        <Providers>{children}</Providers>
+        <ReduxProvider>
+          <Providers>{children}</Providers>
+        </ReduxProvider>
       </body>
     </html>
   );
