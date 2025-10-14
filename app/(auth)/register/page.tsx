@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { RegisterFormData } from "@/components/models/register";
 import api from "@/config/axios";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -18,12 +19,17 @@ export default function RegisterPage() {
     password: "",
     phoneNumber: "",
     address: "",
+    gender: "",
+    avatar: "",
   });
 
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -36,8 +42,18 @@ export default function RegisterPage() {
     e.preventDefault();
     setIsLoading(true);
 
+    let genderBoolean: boolean = false;
+    if (formData.gender === "MALE") genderBoolean = true;
+    else if (formData.gender === "FEMALE" || formData.gender === "OTHER")
+      genderBoolean = false;
+
+    const submitData = {
+      ...formData,
+      gender: genderBoolean,
+    };
+
     try {
-      const response = await api.post("auth/sign-up", formData);
+      const response = await api.post("auth/sign-up", submitData);
 
       if (response.status === 200 || response.status === 201) {
         alert("Đăng ký thành công!");
@@ -128,19 +144,51 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-poppins-medium mb-1">
+              <label className="block text-sm font-poppins-medium mb-1 text-foreground">
                 Mật khẩu
               </label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 pr-10 rounded-lg border border-border bg-popover text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none"
+                  placeholder="Nhập mật khẩu"
+                  autoComplete="current-password"
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((p) => !p)}
+                  className="absolute inset-y-0 right-3 flex items-center text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-poppins-medium mb-1">
+                Giới tính
+              </label>
+              <select
+                name="gender"
+                value={formData.gender}
                 onChange={handleChange}
                 className="w-full border rounded-lg px-3 py-2"
                 disabled={isLoading}
                 required
-                placeholder="••••••••"
-              />
+              >
+                <option value="">-- Chọn giới tính --</option>
+                <option value="MALE">Nam</option>
+                <option value="FEMALE">Nữ</option>
+                <option value="OTHER">Khác</option>
+              </select>
             </div>
 
             <div>

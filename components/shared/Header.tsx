@@ -154,7 +154,7 @@ export default function Header() {
 
             <NavigationMenuItem>
               <NavigationMenuLink
-                href="#about"
+                href="/about-us"
                 className="relative w-fit mt-[-1.00px] font-poppins-light text-[14px] sm:text-[15px] md:text-[16px] 2xl:text-[18px] text-foreground text-center leading-[24px] tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
               >
                 VỀ CHÚNG TÔI
@@ -209,6 +209,11 @@ export default function Header() {
               <Link href="/profile">
                 <DropdownMenuItem className="font-poppins-light text-[14px] focus:text-primary transition-all duration-200 hover:translate-x-1">
                   Thông tin cá nhân
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/profile-pet">
+                <DropdownMenuItem className="font-poppins-light text-[14px] focus:text-primary transition-all duration-200 hover:translate-x-1">
+                  Thông tin thú cưng
                 </DropdownMenuItem>
               </Link>
               <DropdownMenuItem

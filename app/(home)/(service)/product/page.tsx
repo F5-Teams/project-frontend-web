@@ -1,31 +1,23 @@
 "use client";
 import { motion } from "framer-motion";
-import { ShoppingCart, Package, Truck, Shield, Search } from "lucide-react";
+import { ShoppingCart, Package, Truck, Shield } from "lucide-react";
 import Image from "next/image";
 import bg from "@/public/images/care.jpg";
 import { useEffect, useState } from "react";
-import { useAppDispatch, useAppSelector } from "@/hooks/hooks";
-import { RootState } from "@/redux/store";
-import { productPublic } from "@/redux/product/public/getPublic";
-import { getProductPublic } from "@/redux/product/public/getPublicSlice";
-import { Input } from "antd";
-import { parse } from "path";
+import { Input, Spin } from "antd";
+import { Product } from "@/services/product/types";
+import { useAllProduct } from "@/services/product/hooks";
 
-interface ProductCardProps {
-  product: productPublic;
-}
-
-const ProductCard = ({ product }: ProductCardProps) => {
+const ProductCard = ({ product }: { product: Product }) => {
   const [currentImage, setCurrentImage] = useState(0);
-
-  const nextImage = () => {
+  console.log("PRO", product);
+  const nextImage = () =>
     setCurrentImage((prev) => (prev + 1) % product.images.length);
-  };
-  const prevImage = () => {
+
+  const prevImage = () =>
     setCurrentImage((prev) =>
       prev === 0 ? product.images.length - 1 : prev - 1
     );
-  };
 
   return (
     <div className="group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-500 overflow-hidden cursor-pointer hover:-translate-y-2">
@@ -68,8 +60,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
             }).format(Number(product.price))}
           </span>
           <button className="flex items-center gap-2 mt-4 px-4 py-2 cursor-pointer rounded-lg bg-pink-500 text-white font-medium hover:bg-pink-600 transition">
-            {" "}
-            <ShoppingCart className="w-5 h-5" /> <p>Đặt ngay</p>{" "}
+            <ShoppingCart className="w-5 h-5" /> <p>Đặt ngay</p>
           </button>
         </div>
       </div>
@@ -78,45 +69,39 @@ const ProductCard = ({ product }: ProductCardProps) => {
 };
 
 const PetStorePage = () => {
-  const dispatch = useAppDispatch();
-  const { productPublic = [] } = useAppSelector(
-    (state: RootState) => state.getProductPublic
-  );
-  const [user, setUser] = useState([]);
-  const [product, setProduct] = useState<productPublic[]>([]);
+  const { data: products = [], isLoading, error } = useAllProduct();
   const [type, setType] = useState<string[]>([]);
   const [select, setSelect] = useState<string>("All");
   const [search, setSearch] = useState<string>("");
 
   useEffect(() => {
-    const auth = localStorage.getItem("user");
-    if (auth) {
-      const parse = JSON.parse(auth);
-      setUser(parse);
-    }
-    console.log(parse);
-  }, []);
-
-  useEffect(() => {
-    dispatch(getProductPublic());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (productPublic.length > 0) {
-      setProduct(productPublic);
-      const filterType = Array.from(
-        new Set(productPublic.map((item) => item.type))
-      );
+    if (products.length > 0) {
+      const filterType = Array.from(new Set(products.map((item) => item.type)));
       setType(filterType);
     }
-  }, [productPublic]);
+  }, [products]);
 
-  const filteredProduct = product
+  if (isLoading)
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Spin size="large" />
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="h-screen flex items-center justify-center text-red-500">
+        Lỗi tải sản phẩm
+      </div>
+    );
+
+  const filteredProduct = products
     .filter((p) => (select === "All" ? true : p.type === select))
     .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <main className="min-h-screen bg-gray-50">
+      {/* Banner */}
       <section className="bg-gradient-to-br">
         <div
           className="px-6 py-30 text-center"
@@ -139,19 +124,7 @@ const PetStorePage = () => {
             </h1>
             <p className="text-gray-300 max-w-3xl mx-auto text-lg leading-relaxed">
               Khám phá bộ sưu tập sản phẩm cao cấp và dịch vụ chăm sóc toàn diện
-              dành cho thú cưng của bạn. Từ{" "}
-              <span className="text-pink-500 font-semibold">
-                thức ăn dinh dưỡng
-              </span>
-              ,{" "}
-              <span className="text-purple-500 font-semibold">
-                đồ chơi thông minh
-              </span>{" "}
-              đến{" "}
-              <span className="text-blue-300 font-semibold">
-                dịch vụ spa & khách sạn
-              </span>
-              .
+              dành cho thú cưng của bạn.
             </p>
           </motion.div>
 
