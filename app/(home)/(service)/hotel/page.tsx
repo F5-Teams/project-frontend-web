@@ -3,8 +3,10 @@ import { motion } from "framer-motion";
 import { Check, LucideHome, Star } from "lucide-react";
 import Image from "next/image";
 import { cardVariants, hotelServices } from "@/constants";
+import { useRouter } from "next/navigation";
 
 const PetHotelPage = () => {
+  const router = useRouter();
   return (
     <main className="min-h-screen ">
       <section className="py-10 ">
@@ -68,6 +70,7 @@ const PetHotelPage = () => {
                 key={s.id}
                 custom={idx}
                 variants={cardVariants}
+                onClick={() => router.push(`/hotel/${s.id}`)}
                 className="group relative rounded-2xl border bg-white shadow-md p-6 cursor-pointer overflow-hidden hover:-translate-y-2 hover:shadow-xl transition duration-500"
               >
                 <div className="relative w-full h-48 md:h-56 rounded-2xl overflow-hidden mb-4">
