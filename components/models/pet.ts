@@ -4,7 +4,7 @@ export interface PetImage {
 }
 
 export interface Pet {
-  id?: string; 
+  id: string; 
   name: string;
   age: number;
   species: "Dog" | "Cat" | "Other";
