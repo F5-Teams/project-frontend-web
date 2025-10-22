@@ -5,8 +5,8 @@ import Image from "next/image";
 import bg from "@/public/images/care.jpg";
 import { useEffect, useState } from "react";
 import { Input, Spin } from "antd";
-import { Product } from "@/services/product/types";
-import { useAllProduct } from "@/services/product/hooks";
+import { Product } from "@/services/product/getProduct/type";
+import { useAllProduct } from "@/services/product/getProduct/hooks";
 
 const ProductCard = ({ product }: { product: Product }) => {
   const [currentImage, setCurrentImage] = useState(0);
