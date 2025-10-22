@@ -1,18 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { User } from "@/components/models/register";
-import api from "@/config/axios";
-import Image from "next/image";
 import { useEffect, useState, useMemo } from "react";
-import { UserRound, Phone, MapPin, CircleDot, Search } from "lucide-react";
+import Image from "next/image";
+import api from "@/config/axios";
+import { User } from "@/components/models/register";
+import { UserRound, Phone, MapPin, Search, VenusAndMars } from "lucide-react";
 
 export default function Customers() {
   const [data, setData] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [formError, setFormError] = useState<string>("");
+
   const perPage = 5;
 
   const fullName = (u: User) =>
@@ -25,26 +27,22 @@ export default function Customers() {
     return (parts[0]?.[0] + (parts[1]?.[0] || "")).toUpperCase() || "U";
   };
 
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get<User[]>("/user/all");
+      setData(res.data || []);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Không thể tải người dùng");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const controller = new AbortController();
-    (async () => {
-      try {
-        setLoading(true);
-        setError("");
-        const response = await api.get<User[]>("/user/all");
-        setData(response.data || []);
-      } catch (err: any) {
-        if (err.name !== "CanceledError") {
-          setError(err?.response?.data?.message || "Không thể tải người dùng");
-        }
-      } finally {
-        setLoading(false);
-      }
-    })();
-    return () => controller.abort();
+    fetchUsers();
   }, []);
 
-  // Filter search
   const filteredData = useMemo(() => {
     return data.filter((u) => {
       const name = fullName(u).toLowerCase();
@@ -87,23 +85,33 @@ export default function Customers() {
           Danh sách người dùng
         </h1>
 
-        {/* Search box */}
-        <div className="relative">
-          <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Tìm kiếm người dùng..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            className="border border-gray-300 text-sm rounded-full pl-9 pr-4 py-2.5 
+        <div className="flex items-center gap-3">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Tìm kiếm người dùng..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              className="border border-gray-300 text-sm rounded-full pl-9 pr-4 py-2.5 
                        focus:outline-none focus:ring-2 focus:ring-pink-400 w-64"
-          />
+            />
+          </div>
         </div>
       </div>
 
+      {/* Banner lỗi từ server (nếu có) */}
+      {formError && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+          {formError}
+        </div>
+      )}
+
+      {/* Table */}
       <div className="overflow-hidden rounded-3xl border border-gray-300 bg-white shadow-sm">
         <table className="w-full border-collapse">
           <thead className="bg-gray-50 text-gray-600 text-sm font-medium border-b">
@@ -121,7 +129,7 @@ export default function Customers() {
                 Địa chỉ
               </th>
               <th className="px-6 py-3 text-left font-semibold">
-                <CircleDot className="inline-block w-4 h-4 mr-2 text-pink-500" />
+                <VenusAndMars className="inline-block w-4 h-4 mr-2 text-pink-500" />
                 Giới tính
               </th>
             </tr>
@@ -170,12 +178,11 @@ export default function Customers() {
                       </div>
                     </div>
                   </td>
-
                   <td className="px-6 py-4 text-gray-700 text-sm">
-                    {u.phoneNumber?.trim() || "—"}
+                    {u.phoneNumber || "—"}
                   </td>
                   <td className="px-6 py-4 text-gray-700 text-sm">
-                    {u.address?.trim() || "—"}
+                    {u.address || "—"}
                   </td>
                   <td className="px-6 py-4">
                     <span
@@ -204,6 +211,7 @@ export default function Customers() {
         </table>
       </div>
 
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center items-center gap-6 pt-4">
           <button

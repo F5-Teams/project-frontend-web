@@ -8,7 +8,7 @@ export function Topbar() {
   return (
     <header className="h-16 border-b bg-white sticky top-0 z-40">
       <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
-        <h1 className="text-lg font-semibold">Dashboard</h1>
+        <h1 className="text-lg font-semibold"></h1>
         <div className="flex items-center gap-3">
           <div className="relative"></div>
           <button className="relative rounded-full p-2 border">

@@ -4,6 +4,14 @@ import { SidebarItem } from "@/components/dashboard/sidebar";
 const adminItems: SidebarItem[] = [
   { href: "/admin", label: "Dashboard", icon: "dashboard", exact: true },
   { href: "/admin/customers", label: "Người dùng", icon: "customers" },
+  {
+    label: "Dịch vụ",
+    icon: "services",
+    children: [
+      { href: "/admin/services/hotel", label: "Hotel", icon: "hotel" },
+      { href: "/admin/services/spa", label: "Spa", icon: "spa" },
+    ],
+  },
 ];
 
 export default function AdminLayout({
