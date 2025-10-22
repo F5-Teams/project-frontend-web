@@ -14,6 +14,9 @@ import {
   MessageSquare,
   Bell,
   LucideIcon,
+  SquareBottomDashedScissors,
+  Bath,
+  Hotel,
 } from "lucide-react";
 
 export type IconKey =
@@ -29,6 +32,9 @@ export type IconKey =
   | "profile"
   | "logout"
   | "messages"
+  | "services"
+  | "spa"
+  | "hotel"
   | "bell";
 
 export const ICONS: Record<IconKey, LucideIcon> = {
@@ -45,4 +51,7 @@ export const ICONS: Record<IconKey, LucideIcon> = {
   logout: LogOut,
   messages: MessageSquare,
   bell: Bell,
+  services: SquareBottomDashedScissors,
+  spa: Bath,
+  hotel: Hotel,
 };
