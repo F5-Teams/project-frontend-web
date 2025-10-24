@@ -1,4 +1,5 @@
-import { Sidebar, SidebarItem } from "./sidebar";
+import { SidebarItem } from "./sidebar";
+import { Sidebar } from "./Sidebar";
 import { Topbar } from "./topbar";
 
 export function DashboardShell({
