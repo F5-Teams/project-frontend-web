@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { GetAllProductResponse } from "./type";
-import { getAllProduct } from "./api";
+import { GetAllProductAdminResponse } from "./type";
+import { getAllProductAdmin } from "./api";
 
-export const ALL_PRODUCT_QUERY_KEY = ["allProduct"] as const;
+export const ALL_PRODUCT_ADMIN_QUERY_KEY = ["allProductAdmin"];
 
-export function useAllProduct() {
-  return useQuery<GetAllProductResponse>({
-    queryKey: ALL_PRODUCT_QUERY_KEY,
-    queryFn: getAllProduct,
+export function useAllProductAdmin() {
+  return useQuery<GetAllProductAdminResponse>({
+    queryKey: ALL_PRODUCT_ADMIN_QUERY_KEY,
+    queryFn: getAllProductAdmin,
   });
 }

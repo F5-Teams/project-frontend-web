@@ -13,17 +13,17 @@ export interface Order {
   };
 }
 
-export interface ProductAdmin {
+export interface Product {
   id: number;
   name: string;
   description: string;
   price: number;
-  stocks: number;
+  stock: number;
   type: string;
   createAt: string;
   note: string;
-  images: Images[];
-  orderDetails: Order[];
+  images: Images;
+  orderDetails: Order;
 }
 
-export type GetAllProductAdminResponse = ProductAdmin[];
+export type GetAllProductResponse = Product[];
