@@ -130,13 +130,11 @@ export default function CreatePetPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* --- Thông tin cơ bản --- */}
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-slate-800">
             Thông tin cơ bản
           </h2>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {/* name */}
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Tên thú cưng <span className="text-pink-600">*</span>
@@ -151,7 +149,6 @@ export default function CreatePetPage() {
               />
             </div>
 
-            {/* age */}
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Tuổi <span className="text-pink-600">*</span>
@@ -168,7 +165,6 @@ export default function CreatePetPage() {
               />
             </div>
 
-            {/* species */}
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Loài
@@ -186,7 +182,6 @@ export default function CreatePetPage() {
               </select>
             </div>
 
-            {/* gender */}
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Giới tính
@@ -202,7 +197,6 @@ export default function CreatePetPage() {
               </select>
             </div>
 
-            {/* breed */}
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Giống loài
@@ -216,7 +210,6 @@ export default function CreatePetPage() {
               />
             </div>
 
-            {/* height & weight */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-700">
@@ -264,7 +257,6 @@ export default function CreatePetPage() {
           </div>
         </section>
 
-        {/* --- Upload Ảnh --- */}
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="mb-4 flex items-center justify-between gap-4">
             <h2 className="text-lg font-semibold text-slate-800">
@@ -273,7 +265,6 @@ export default function CreatePetPage() {
           </div>
 
           <div className="space-y-4">
-            {/* ✅ Nút upload trong suốt có icon */}
             <label className="flex cursor-pointer items-center gap-2 w-fit rounded-lg border border-dashed border-pink-300 bg-pink-50/30 px-4 py-2 text-pink-600 text-sm font-medium hover:bg-pink-100 transition">
               <UploadCloud className="w-4 h-4" />
               <span>Chọn ảnh</span>
@@ -286,7 +277,6 @@ export default function CreatePetPage() {
               />
             </label>
 
-            {/* Preview ảnh */}
             <div className="flex flex-wrap gap-3">
               {previewUrls.map((url, idx) => (
                 <div
