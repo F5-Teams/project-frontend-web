@@ -60,8 +60,8 @@ export const SingleServiceBookingModal: React.FC<
           return;
         }
 
-        // Try to get service from spa combos API first
-        const response = await api.get("/bookings/combos/available");
+        // Try to get combo from spa combos API first
+        const response = await api.get("/combos/available");
         const combos = response.data || [];
         const foundService = combos.find(
           (combo: any) => combo.id.toString() === serviceId
@@ -139,13 +139,15 @@ export const SingleServiceBookingModal: React.FC<
     // selectedTime giờ đã là period (MORNING/AFTERNOON/EVENING)
     const dropDownSlot = selectedTime as "MORNING" | "AFTERNOON" | "EVENING";
 
+    // Tạo booking draft với comboId (vì trang spa đang truyền combo.id vào)
     const bookingDraft: BookingDraft = {
       tempId: generateTempId(),
       petId: parseInt(selectedPetIds[0]), // Assuming single pet for now
       bookingDate: format(selectedDate!, "yyyy-MM-dd"),
       dropDownSlot,
       note: notes.trim() || undefined,
-      serviceIds: [parseInt(serviceId)],
+      comboId: parseInt(serviceId), // Đây là combo ID, không phải service ID
+      customName: serviceData?.name, // Lưu tên combo để hiển thị
     };
 
     onConfirm(bookingDraft);

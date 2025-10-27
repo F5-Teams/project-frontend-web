@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { spaApi, SpaCombo } from "./api";
 
+/**
+ * @deprecated Use `useCombos` from @/hooks/useCombos instead for better caching
+ * This hook doesn't cache results and may cause duplicate API calls
+ */
 export const useSpaCombos = () => {
   const [combos, setCombos] = useState<SpaCombo[]>([]);
   const [loading, setLoading] = useState(true);

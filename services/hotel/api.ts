@@ -35,7 +35,7 @@ export const hotelApi = {
   // Get available hotel rooms
   getAvailableRooms: async (): Promise<HotelRoom[]> => {
     try {
-      const response = await api.get("/bookings/rooms/available");
+      const response = await api.get("/rooms/available");
       // API returns array directly, not wrapped in response.data
       return response.data || [];
     } catch (error: any) {
@@ -47,16 +47,22 @@ export const hotelApi = {
     }
   },
 
-  // Get hotel room by ID
+  // Get hotel room by ID from available rooms
   getRoomById: async (id: string): Promise<HotelRoom> => {
     try {
-      const response = await api.get(`/bookings/rooms/${id}`);
-      return response.data.data;
+      // Get all available rooms and find the one with matching ID
+      const rooms = await hotelApi.getAvailableRooms();
+      const room = rooms.find((room) => room.id.toString() === id);
+
+      if (!room) {
+        throw new Error(`Phòng với ID ${id} không tồn tại hoặc không khả dụng`);
+      }
+
+      return room;
     } catch (error: any) {
       console.error("Error fetching hotel room:", error);
       throw new Error(
-        error?.response?.data?.message ||
-          "Không thể tải thông tin phòng khách sạn"
+        error?.message || "Không thể tải thông tin phòng khách sạn"
       );
     }
   },

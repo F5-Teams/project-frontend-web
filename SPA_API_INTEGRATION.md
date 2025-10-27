@@ -107,5 +107,3 @@ const { combo, loading, error, refetch } = useSpaCombo(id);
 - Cần đảm bảo API server đang chạy trên port 8080
 - Token authentication được tự động thêm vào request headers
 - Dữ liệu được cache trong localStorage thông qua Zustand store
-
-

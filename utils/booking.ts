@@ -25,9 +25,9 @@ export const validateBookingDraft = (draft: BookingDraft): string[] => {
     errors.push("Time slot is required");
   }
 
-  // Kiểm tra có ít nhất một trong serviceIds hoặc roomId
-  if (!draft.serviceIds?.length && !draft.roomId) {
-    errors.push("Either service IDs or room ID is required");
+  // Kiểm tra có ít nhất một trong comboId, serviceIds, hoặc roomId
+  if (!draft.comboId && !draft.serviceIds?.length && !draft.roomId) {
+    errors.push("Either combo ID, service IDs, or room ID is required");
   }
 
   // Nếu có roomId thì cần startDate và endDate

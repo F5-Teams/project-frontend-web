@@ -284,7 +284,7 @@ const createBooking = async (bookingData) => {
     today.setHours(0, 0, 0, 0);
 
     if (bookingDate < today) {
-      alert('Booking date cannot be in the past');
+      alert("Booking date cannot be in the past");
       return;
     }
 
@@ -294,21 +294,21 @@ const createBooking = async (bookingData) => {
       const endDate = new Date(bookingData.endDate);
 
       if (startDate < today) {
-        alert('Start date cannot be in the past');
+        alert("Start date cannot be in the past");
         return;
       }
 
       if (endDate <= startDate) {
-        alert('End date must be after start date');
+        alert("End date must be after start date");
         return;
       }
     }
 
-    const response = await fetch('/bookings/bulk', {
-      method: 'POST',
+    const response = await fetch("/bookings/bulk", {
+      method: "POST",
       headers: {
         Authorization: `Bearer ${customerToken}`,
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ bookings: [bookingData] }),
     });
@@ -321,12 +321,12 @@ const createBooking = async (bookingData) => {
     return await response.json();
   } catch (error) {
     // Handle specific errors
-    if (error.message.includes('already has an active booking')) {
-      alert('This pet already has a booking during this time period');
-    } else if (error.message.includes('Room is not available')) {
-      alert('This room is not available during the selected dates');
-    } else if (error.message.includes('cannot be in the past')) {
-      alert('Please select a future date');
+    if (error.message.includes("already has an active booking")) {
+      alert("This pet already has a booking during this time period");
+    } else if (error.message.includes("Room is not available")) {
+      alert("This room is not available during the selected dates");
+    } else if (error.message.includes("cannot be in the past")) {
+      alert("Please select a future date");
     } else {
       alert(`Booking failed: ${error.message}`);
     }
@@ -341,10 +341,10 @@ const createBooking = async (bookingData) => {
 const cancelBooking = async (bookingId) => {
   try {
     const response = await fetch(`/bookings/${bookingId}/cancel`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
         Authorization: `Bearer ${customerToken}`,
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
@@ -353,17 +353,17 @@ const cancelBooking = async (bookingId) => {
 
       // Handle specific cancellation errors
       if (error.statusCode === 400) {
-        if (error.message.includes('completed')) {
-          alert('Cannot cancel a completed booking');
-        } else if (error.message.includes('already cancelled')) {
-          alert('This booking has already been cancelled');
+        if (error.message.includes("completed")) {
+          alert("Cannot cancel a completed booking");
+        } else if (error.message.includes("already cancelled")) {
+          alert("This booking has already been cancelled");
         } else {
           alert(error.message);
         }
       } else if (error.statusCode === 404) {
-        alert('Booking not found');
+        alert("Booking not found");
       } else if (error.statusCode === 403) {
-        alert('You can only cancel your own bookings');
+        alert("You can only cancel your own bookings");
       }
 
       throw new Error(error.message);
@@ -371,7 +371,7 @@ const cancelBooking = async (bookingId) => {
 
     return await response.json();
   } catch (error) {
-    console.error('Cancel booking error:', error);
+    console.error("Cancel booking error:", error);
     throw error;
   }
 };
@@ -383,10 +383,10 @@ const cancelBooking = async (bookingId) => {
 const updateBookingStatus = async (bookingId, newStatus) => {
   try {
     const response = await fetch(`/bookings/${bookingId}/status`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
         Authorization: `Bearer ${staffToken}`,
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ status: newStatus }),
     });
@@ -395,7 +395,7 @@ const updateBookingStatus = async (bookingId, newStatus) => {
       const error = await response.json();
 
       // Handle status transition errors
-      if (error.message.includes('Cannot transition')) {
+      if (error.message.includes("Cannot transition")) {
         alert(`Invalid status change: ${error.message}`);
       } else {
         alert(`Status update failed: ${error.message}`);
@@ -406,7 +406,7 @@ const updateBookingStatus = async (bookingId, newStatus) => {
 
     return await response.json();
   } catch (error) {
-    console.error('Update status error:', error);
+    console.error("Update status error:", error);
     throw error;
   }
 };
@@ -416,15 +416,15 @@ const updateBookingStatus = async (bookingId, newStatus) => {
 
 ```javascript
 const getMyBookings = async () => {
-  const response = await fetch('/bookings', {
+  const response = await fetch("/bookings", {
     headers: {
       Authorization: `Bearer ${customerToken}`,
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
-    throw new Error('Failed to fetch bookings');
+    throw new Error("Failed to fetch bookings");
   }
 
   return response.json();
@@ -444,12 +444,12 @@ const checkPetAvailability = async (petId, startDate, endDate) => {
         headers: {
           Authorization: `Bearer ${customerToken}`,
         },
-      },
+      }
     );
 
     return await response.json();
   } catch (error) {
-    console.error('Availability check failed:', error);
+    console.error("Availability check failed:", error);
     return { available: false };
   }
 };

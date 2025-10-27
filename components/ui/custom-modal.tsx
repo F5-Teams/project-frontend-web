@@ -23,16 +23,47 @@ export const CustomModal = ({
 
   useEffect(() => {
     if (open) {
+      // Save original styles
+      const originalOverflow = document.body.style.overflow;
+      const originalPosition = document.body.style.position;
+      const originalTop = document.body.style.top;
+      const originalWidth = document.body.style.width;
+      const scrollY = window.scrollY;
+
+      // Lock scroll - use multiple methods for better compatibility
       document.body.style.overflow = "hidden";
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
+
       const handleKeyDown = (event: KeyboardEvent) => {
         if (event.key === "Escape") {
           onClose();
         }
       };
+
+      // Prevent wheel/touch events on background
+      const preventScroll = (e: Event) => {
+        e.preventDefault();
+      };
+
       document.addEventListener("keydown", handleKeyDown);
+      document.addEventListener("wheel", preventScroll, { passive: false });
+      document.addEventListener("touchmove", preventScroll, { passive: false });
+
       return () => {
-        document.body.style.overflow = "";
+        // Restore original styles
+        document.body.style.overflow = originalOverflow;
+        document.body.style.position = originalPosition;
+        document.body.style.top = originalTop;
+        document.body.style.width = originalWidth;
+
+        // Restore scroll position
+        window.scrollTo(0, scrollY);
+
         document.removeEventListener("keydown", handleKeyDown);
+        document.removeEventListener("wheel", preventScroll);
+        document.removeEventListener("touchmove", preventScroll);
       };
     }
   }, [open, onClose]);
@@ -73,22 +104,30 @@ export const CustomModal = ({
   if (!open) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] bg-black/40 backdrop-blur-sm">
-      <div className="absolute inset-0" onClick={onClose} />
+    <div className="fixed inset-0 z-[9999] bg-black/40 backdrop-blur-sm overflow-hidden">
+      <div
+        className="absolute inset-0"
+        onClick={onClose}
+        onWheel={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+      />
       <div
         ref={modalRef}
         role="dialog"
         aria-modal="true"
-        className="absolute inset-0 flex items-center justify-center p-4"
+        className="absolute inset-0 flex items-center justify-center p-4 overflow-hidden"
       >
         <div
           className={cn(
-            "w-full max-w-2xl rounded-xl bg-white shadow-xl",
+            "w-full max-w-2xl rounded-xl bg-white shadow-xl max-h-[90vh] flex flex-col",
             className
           )}
+          onClick={(e) => e.stopPropagation()}
+          onWheel={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
         >
           {title && (
-            <div className="flex items-center justify-between border-b px-6 py-4">
+            <div className="flex items-center justify-between border-b px-6 py-4 flex-shrink-0">
               <span className="text-lg font-semibold">{title}</span>
               <button
                 onClick={onClose}
@@ -99,7 +138,7 @@ export const CustomModal = ({
               </button>
             </div>
           )}
-          <div className="px-6 py-5">{children}</div>
+          <div className="px-6 py-5 overflow-y-auto">{children}</div>
         </div>
       </div>
     </div>,

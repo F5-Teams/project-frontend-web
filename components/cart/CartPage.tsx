@@ -46,7 +46,7 @@ import {
   getComboById,
   getRoomById,
   getGroomerById,
-};
+} from "@/mock/api";
 
 // Helper functions to replace mock data functions
 const calculateItemPrice = (item: any): number => {
@@ -54,7 +54,10 @@ const calculateItemPrice = (item: any): number => {
   return item.price || 0;
 };
 
-const calculateDeposit = (totalPrice: number, percentage: number = 0.5): number => {
+const calculateDeposit = (
+  totalPrice: number,
+  percentage: number = 0.5
+): number => {
   return Math.round(totalPrice * percentage);
 };
 

@@ -22,12 +22,16 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { CartDrawer } from "@/components/cart/CartDrawer";
-import { useCartSummary } from "@/stores/cart.store";
+import { useCartSummary, useIsCartOpen } from "@/stores/cart.store";
 
 export default function Header() {
   const router = useRouter();
   const cartSummary = useCartSummary();
-  const [auth, setAuth] = useState<{ token: string | null; user: any | null }>({
+  const isCartOpen = useIsCartOpen();
+  const [auth, setAuth] = useState<{
+    token: string | null;
+    user: { userName?: string; avatar?: string } | null;
+  }>({
     token: null,
     user: null,
   });
@@ -50,10 +54,13 @@ export default function Header() {
   };
 
   return (
-    <nav className="flex w-full items-center justify-between px-16 py-4 relative z-[60]">
+    <nav
+      className={`fixed top-0 left-0 flex items-center justify-between px-16 py-4 z-[100] transition-all duration-300 ease-in-out ${
+        isCartOpen ? "w-full lg:w-[calc(100%-384px)]" : "w-full"
+      }`}
+    >
       <div
-        className="absolute left-16 top-4 z-[70] inline-flex items-center gap-[60px] px-6 py-2
-      bg-white/70 backdrop-blur shadow-lg rounded-2xl"
+        className="inline-flex items-center gap-[60px] px-6 py-2 bg-white/70 backdrop-blur shadow-lg rounded-2xl"
         style={{ height: "72px" }}
       >
         <Link href="/" className="cursor-pointer">

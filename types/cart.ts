@@ -9,6 +9,7 @@ export interface BookingDraft {
   note?: string;
   customName?: string;
   serviceIds?: number[];
+  comboId?: number; // ID của combo spa (nếu đặt combo)
   groomerId?: number;
   roomId?: number;
   startDate?: string;
@@ -148,7 +149,7 @@ export interface CartSummary {
   totalItems: number;
   totalPrice: number;
   totalDeposit: number;
-  items: CartItem[];
+  items: BookingDraft[];
 }
 
 export interface PaymentMethod {
@@ -159,7 +160,7 @@ export interface PaymentMethod {
 }
 
 export interface CheckoutData {
-  cartItems: CartItem[];
+  cartItems: BookingDraft[];
   paymentMethod: PaymentMethod;
   customerNotes?: string;
   totalPrice: number;
@@ -169,7 +170,7 @@ export interface CheckoutData {
 export interface BookingConfirmation {
   bookingId: string;
   status: "pending" | "confirmed" | "cancelled";
-  items: CartItem[];
+  items: BookingDraft[];
   totalPrice: number;
   depositAmount: number;
   createdAt: string;

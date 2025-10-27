@@ -1,20 +1,18 @@
 import { Footer, Header } from "@/components/shared";
+import { PushLayout } from "@/components/cart/PushLayout";
+
 export default function HomeLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-gradient-to-b from-pink-100 via-white to-yellow-100 min-h-screen flex flex-col w-full transition-all duration-300 ease-in-out">
-      <div className="transition-all duration-300 ease-in-out">
+    <PushLayout>
+      <div className="bg-gradient-to-b from-pink-100 via-white to-yellow-100 min-h-screen flex flex-col overflow-x-hidden">
         <Header />
-      </div>
-      <main className="flex-1 transition-all duration-300 ease-in-out">
-        {children}
-      </main>
-      <div className="transition-all duration-300 ease-in-out">
+        <main className="flex-1 overflow-x-hidden pt-24">{children}</main>
         <Footer />
       </div>
-    </div>
+    </PushLayout>
   );
 }
