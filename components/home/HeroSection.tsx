@@ -22,8 +22,8 @@ const HeroSection = () => {
   useFloatingCircles(circleRefs);
 
   return (
-    <section className="flex flex-col w-full items-center gap-[54px] px-0 pb-[80px] pt-[160px] relative">
-      <div className="inline-flex flex-col items-center justify-center gap-4 relative flex-[0_0_auto]">
+    <section className="flex flex-col w-full items-center gap-[54px] px-0 pb-[80px] pt-[80px] relative">
+      <div className="inline-flex flex-col items-center justify-center gap-4 relative flex-[0_0_auto] top-24">
         <h1
           className="relative w-[1500px] mt-[-20px] font-poppins-regular text-[90px] text-foreground text-center leading-[100px] tracking-[-4px] whitespace-pre-line min-h-[200px]"
           dangerouslySetInnerHTML={{
