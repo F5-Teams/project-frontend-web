@@ -5,6 +5,9 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import { poppins } from "../fonts/font";
 import { Providers } from "./_providers";
+import { Toaster } from "@/components/ui/sonner";
+
+import ReduxProvider from "./ReduxProvider";
 
 const getPoppins = Poppins({
   variable: "--font-google-poppins",
@@ -26,11 +29,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi">
-      <body
-        className={`${poppins.variable} ${getPoppins.variable} antialiased`}
-      >
-        <Providers>{children}</Providers>
+    <html lang="vi" className={`${poppins.variable} ${getPoppins.variable}`}>
+      <body className="antialiased">
+        <Providers>
+          {children}
+          <Toaster
+            toastOptions={{
+              duration: 5000,
+            }}
+          />
+        </Providers>
       </body>
     </html>
   );

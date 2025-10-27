@@ -2,12 +2,12 @@
 import { motion } from "framer-motion";
 import { Check, LucideHome, Star, Loader2, AlertCircle } from "lucide-react";
 import Image from "next/image";
-import { cardVariants, hotelServices } from "@/constants";
+import { cardVariants } from "@/constants";
 import { useState } from "react";
 import { SelectPetsModal } from "@/components/modals/SelectPetsModal";
 import { RoomBookingModal } from "@/components/modals/RoomBookingModal";
 import { useCartStore } from "@/stores/cart.store";
-import { RoomCartItem, BookingDraft } from "@/types/cart";
+import { BookingDraft } from "@/types/cart";
 import { useHotelRooms } from "@/services/hotel";
 
 const PetHotelPage = () => {
@@ -43,7 +43,6 @@ const PetHotelPage = () => {
       // Optionally show success message or redirect
     }
   };
-
   return (
     <main className="min-h-screen ">
       <section className="py-10 ">

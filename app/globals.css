@@ -260,3 +260,9 @@ body {
     @apply mr-96;
   }
 }
+
+/* Force Poppins cho Sonner */
+.toaster [data-sonner-toast],
+.toaster [data-sonner-toast] * {
+  font-family: var(--font-poppins), var(--font-google-poppins), sans-serif !important;
+}
