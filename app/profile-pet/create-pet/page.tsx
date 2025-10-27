@@ -5,6 +5,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Pet, PetImage } from "@/components/models/pet";
 import api from "@/config/axios";
+import { uploadFile } from "@/utils/uploadFIle";
+import { UploadCloud } from "lucide-react"; // ✅ icon upload
 
 export default function CreatePetPage() {
   const router = useRouter();
@@ -15,7 +17,7 @@ export default function CreatePetPage() {
       : "";
 
   const [form, setForm] = useState<
-    Omit<Pet, "id" | "images"> & { images: string[] }
+    Omit<Pet, "id" | "images"> & { images: File[] }
   >({
     name: "",
     age: 0,
@@ -25,9 +27,10 @@ export default function CreatePetPage() {
     height: 0,
     weight: 0,
     note: "",
-    images: [""],
+    images: [],
   });
 
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -45,20 +48,20 @@ export default function CreatePetPage() {
     }));
   };
 
-  const handleImageChange = (index: number, value: string) => {
-    const updated = [...form.images];
-    updated[index] = value;
-    setForm((prev) => ({ ...prev, images: updated }));
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setForm((prev) => ({ ...prev, images: [...prev.images, ...files] }));
+
+    const newPreviews = files.map((file) => URL.createObjectURL(file));
+    setPreviewUrls((prev) => [...prev, ...newPreviews]);
   };
 
-  const addImageField = () => {
-    setForm((prev) => ({ ...prev, images: [...prev.images, ""] }));
-  };
-
-  const removeImageField = (index: number) => {
-    const updated = [...form.images];
-    updated.splice(index, 1);
-    setForm((prev) => ({ ...prev, images: updated }));
+  const removeImage = (index: number) => {
+    setForm((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
+    setPreviewUrls((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -67,20 +70,30 @@ export default function CreatePetPage() {
     setLoading(true);
 
     try {
-      const images: PetImage[] = form.images
-        .filter((url) => url.trim() !== "")
-        .map((url) => ({ imageUrl: url.trim(), type: "cover" }));
+      const uploadedImages: PetImage[] = await Promise.all(
+        form.images.map(async (file) => {
+          const uploaded = await uploadFile(file);
+          return { imageUrl: uploaded.url, type: "cover" };
+        })
+      );
 
-      const genderBool = form.gender === "MALE" ? true : false;
+      const genderBool = form.gender === "MALE";
 
       const payload = {
-        ...form,
+        name: form.name,
+        age: form.age,
+        species: form.species,
+        breed: form.breed,
         gender: genderBool,
-        images,
+        height: form.height,
+        weight: form.weight,
+        note: form.note,
+        images: uploadedImages,
       };
 
       await api.post(`/pet/user/${userId}`, payload);
-      alert("Thêm thú cưng thành công!");
+
+      alert("🐾 Thêm thú cưng thành công!");
       router.push("/profile-pet/information-pets");
     } catch (err: unknown) {
       console.error("Error:", err);
@@ -101,8 +114,7 @@ export default function CreatePetPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
-      {/* Header */}
-      <div className="mb-8 ">
+      <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight text-slate-800">
           Thêm thú cưng mới
         </h1>
@@ -111,7 +123,6 @@ export default function CreatePetPage() {
         </p>
       </div>
 
-      {/* Error */}
       {error && (
         <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {error}
@@ -119,7 +130,6 @@ export default function CreatePetPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Section: Info */}
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-slate-800">
             Thông tin cơ bản
@@ -247,7 +257,6 @@ export default function CreatePetPage() {
           </div>
         </section>
 
-        {/* Section: Images */}
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="mb-4 flex items-center justify-between gap-4">
             <h2 className="text-lg font-semibold text-slate-800">
@@ -255,49 +264,53 @@ export default function CreatePetPage() {
             </h2>
           </div>
 
-          <div className="space-y-3">
-            {form.images.map((url, idx) => (
-              <div key={idx} className="flex items-center gap-2">
-                <input
-                  type="url"
-                  value={url}
-                  onChange={(e) => handleImageChange(idx, e.target.value)}
-                  placeholder={`Dán link ảnh ${idx + 1}`}
-                  className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-inner outline-none transition focus:border-pink-300 focus:ring-2 focus:ring-pink-200"
-                />
-                {form.images.length > 1 && (
+          <div className="space-y-4">
+            <label className="flex cursor-pointer items-center gap-2 w-fit rounded-lg border border-dashed border-pink-300 bg-pink-50/30 px-4 py-2 text-pink-600 text-sm font-medium hover:bg-pink-100 transition">
+              <UploadCloud className="w-4 h-4" />
+              <span>Chọn ảnh</span>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </label>
+
+            <div className="flex flex-wrap gap-3">
+              {previewUrls.map((url, idx) => (
+                <div
+                  key={idx}
+                  className="relative w-24 h-24 rounded-lg overflow-hidden border border-slate-200"
+                >
+                  <img
+                    src={url}
+                    alt={`preview-${idx}`}
+                    className="w-full h-full object-cover"
+                  />
                   <button
                     type="button"
-                    onClick={() => removeImageField(idx)}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100"
+                    onClick={() => removeImage(idx)}
+                    className="absolute top-1 right-1 rounded-full bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center"
                     title="Xóa ảnh"
                   >
                     ✕
                   </button>
-                )}
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={addImageField}
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-            >
-              + Thêm ảnh
-            </button>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
         {/* Actions */}
-        <div className="sticky bottom-4 z-10 -mx-4 px-4 py-3 shadow-none backdrop-blur md:static md:mx-0 md:rounded-xl md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-0">
-          <div className="flex flex-col items-stretch gap-3 md:flex-row md:items-center md:justify-end">
-            <button
-              type="submit"
-              disabled={loading}
-              className="inline-flex items-center justify-center rounded-lg bg-pink-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 disabled:opacity-60"
-            >
-              {loading ? "Đang lưu..." : "Lưu thú cưng"}
-            </button>
-          </div>
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            disabled={loading}
+            className="inline-flex items-center justify-center rounded-lg bg-pink-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 disabled:opacity-60"
+          >
+            {loading ? "Đang lưu..." : "Lưu thú cưng"}
+          </button>
         </div>
       </form>
     </div>
