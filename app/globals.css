@@ -3,6 +3,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Prevent horizontal overflow */
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -242,5 +249,14 @@
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  /* Cart Layout Adjustments */
+  .cart-drawer-open > div > div {
+    @apply mr-96;
+  }
+
+  .cart-drawer-open > div > main {
+    @apply mr-96;
   }
 }

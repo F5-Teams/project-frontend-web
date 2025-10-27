@@ -1,30 +1,63 @@
 "use client";
 import { motion } from "framer-motion";
-
-import { Check } from "lucide-react";
+import { Check, Loader2, AlertCircle } from "lucide-react";
 import Image from "next/image";
 import dog from "@/public/images/dog.jpg";
 import cat from "@/public/images/cat.jpg";
-import { cardVariants, servicesSpa } from "@/constants";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { SelectPetsModal } from "@/components/modals/SelectPetsModal";
+import { SingleServiceBookingModal } from "@/components/modals/SingleServiceBookingModal";
+import { useCartStore } from "@/stores/cart.store";
+import { BookingDraft } from "@/types/cart";
+import { useCombos } from "@/hooks/useCombos";
 
 const PetCarePage = () => {
-  const route = useRouter();
+  const { addItem } = useCartStore();
+  const { combos, loading, error, refetch } = useCombos();
+
+  // Modal states
+  const [isSelectPetsOpen, setIsSelectPetsOpen] = useState(false);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [selectedServiceId, setSelectedServiceId] = useState<string>("");
+  const [selectedPetIds, setSelectedPetIds] = useState<string[]>([]);
+
+  const handleBookService = (serviceId: string) => {
+    setSelectedServiceId(serviceId);
+    setIsSelectPetsOpen(true);
+  };
+
+  // Find selected service from combos for passing to modal
+  const selectedService = combos.find(
+    (combo) => combo.id.toString() === selectedServiceId
+  );
+
+  const handlePetsSelected = (petIds: string[]) => {
+    setSelectedPetIds(petIds);
+    setIsSelectPetsOpen(false);
+    setIsBookingModalOpen(true);
+  };
+
+  const handleBookingConfirm = async (bookingDraft: BookingDraft) => {
+    const result = await addItem(bookingDraft);
+    if (result.success) {
+      setIsBookingModalOpen(false);
+      // Optionally show success message
+    }
+  };
   return (
-    <main className="min-h-screen ">
-      <section className="py-10 ">
-        <div className="max-w-6xl mx-auto px-6 text-center">
+    <main className="min-h-screen overflow-x-hidden">
+      <section className="py-6 sm:py-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
           <motion.section
             initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1 }}
-            className="mb-20 text-center "
+            className="mb-10 sm:mb-16 md:mb-20 text-center"
           >
-            <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900">
               Dịch vụ <span className="text-pink-500">Chăm sóc Thú Cưng</span>
             </h1>
-            <p className="mt-6 text-slate-600 max-w-2xl mx-auto text-lg leading-relaxed">
+            <p className="mt-4 sm:mt-6 text-slate-600 max-w-2xl mx-auto text-base sm:text-lg leading-relaxed px-4">
               Chúng tôi mang đến cho thú cưng của bạn sự chăm sóc toàn diện, từ{" "}
               <span className="text-pink-500 font-semibold">
                 làm đẹp, khách sạn, huấn luyện
@@ -42,21 +75,19 @@ const PetCarePage = () => {
             initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1 }}
-            className="mb-20 text-center"
+            className="mb-10 sm:mb-16 md:mb-20 text-center"
           >
-            <div className="flex flex-col  md:flex-row items-center gap-10">
-              <div className="flex-1 ">
+            <div className="flex flex-col md:flex-row items-center gap-6 sm:gap-8 md:gap-10">
+              <div className="flex-1 w-full">
                 <iframe
-                  className="rounded-2xl"
-                  width="664"
-                  height="372"
+                  className="rounded-xl sm:rounded-2xl w-full aspect-video"
                   src="https://www.youtube.com/embed/oOJEJCxx_n0"
                   title="Discover the Ultimate Guide to Home-Boarding for Dogs | What is Home-Boarding? | TailZ"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 ></iframe>
               </div>
 
-              <div className="flex-1 text-slate-600 text-lg leading-relaxed">
+              <div className="flex-1 text-slate-600 text-base sm:text-lg leading-relaxed px-4">
                 <p>
                   Chúng tôi mang đến một trải nghiệm boarding khác biệt cho thú
                   cưng, nơi các boss được ở trong môi trường gia đình ấm cúng
@@ -75,60 +106,163 @@ const PetCarePage = () => {
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1 }}
-        className="mb-10 text-center"
+        className="mb-6 sm:mb-10 text-center"
       >
-        <section className="py-10 bg-[#fbedf6]">
-          <div className="flex gap-2 justify-center">
-            <h1 className="text-4xl mb-10 font-bold">Lựa chọn</h1>
-            <h1 className="text-4xl mb-10 font-bold text-pink-600">Của Bạn</h1>
+        <section className="py-6 sm:py-10 bg-[#fbedf6]">
+          <div className="flex gap-1.5 sm:gap-2 justify-center px-4">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl mb-6 sm:mb-8 md:mb-10 font-bold">
+              Lựa chọn
+            </h1>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl mb-6 sm:mb-8 md:mb-10 font-bold text-pink-600">
+              Của Bạn
+            </h1>
           </div>
 
-          <div className="max-w-7xl mx-auto px-6 ">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.2 }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10"
-            >
-              {servicesSpa.map((s, idx) => {
-                const Icon = s.icon;
-                return (
-                  <motion.div
-                    onClick={() => route.push(`/spa/${s.id}`)}
-                    key={s.id}
-                    custom={idx}
-                    variants={cardVariants}
-                    className="group relative rounded-2xl border bg-white shadow-md p-6 cursor-pointer overflow-hidden hover:-translate-y-2 hover:shadow-xl transition duration-500"
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            {loading ? (
+              <div className="flex justify-center items-center py-20">
+                <div className="flex flex-col items-center gap-4">
+                  <Loader2 className="w-8 h-8 animate-spin text-pink-500" />
+                  <p className="text-slate-600">
+                    Đang tải danh sách dịch vụ...
+                  </p>
+                </div>
+              </div>
+            ) : error ? (
+              <div className="flex justify-center items-center py-20">
+                <div className="flex flex-col items-center gap-4 text-center">
+                  <AlertCircle className="w-12 h-12 text-red-500" />
+                  <p className="text-red-600 font-medium">{error}</p>
+                  <button
+                    onClick={refetch}
+                    className="px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition"
                   >
-                    <div className="relative w-full h-48 md:h-56">
+                    Thử lại
+                  </button>
+                </div>
+              </div>
+            ) : combos.length === 0 ? (
+              <div className="flex justify-center items-center py-20">
+                <div className="text-center">
+                  <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">Không có dịch vụ nào có sẵn</p>
+                  <button
+                    onClick={refetch}
+                    className="mt-4 px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition"
+                  >
+                    Tải lại
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-10"
+              >
+                {combos.map((combo, idx) => (
+                  <motion.div
+                    key={combo.id}
+                    initial={{ opacity: 0, y: 40 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.2 }}
+                    transition={{
+                      delay: idx * 0.15,
+                      duration: 0.8,
+                      ease: "easeOut",
+                    }}
+                    className="group relative rounded-xl sm:rounded-2xl border bg-white shadow-md p-4 sm:p-6 cursor-pointer overflow-hidden hover:-translate-y-2 hover:shadow-xl transition duration-500"
+                  >
+                    <div className="relative w-full h-40 sm:h-48 md:h-56">
                       <Image
-                        src={s.img}
-                        alt={s.title}
+                        src={
+                          combo.serviceLinks?.[0]?.service?.images?.[0]
+                            ?.imageUrl || "/images/spa1.jpg"
+                        }
+                        alt={combo.name}
                         fill
                         className="object-cover rounded-2xl"
                       />
                       <div className="absolute top-4 left-4 w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-tr from-pink-400 to-purple-500 text-white shadow-lg">
-                        <Icon className="w-6 h-6" />
+                        <Check className="w-6 h-6" />
                       </div>
+                      {combo.isActive ? (
+                        <div className="absolute top-4 right-4 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                          Có sẵn
+                        </div>
+                      ) : (
+                        <div className="absolute top-4 right-4 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                          Hết chỗ
+                        </div>
+                      )}
                     </div>
 
-                    <h3 className="mt-4 text-xl font-bold text-slate-800 group-hover:text-pink-600 transition-colors">
-                      {s.title}
+                    <h3 className="mt-3 sm:mt-4 text-base sm:text-lg md:text-xl font-bold text-slate-800 group-hover:text-pink-600 transition-colors line-clamp-2">
+                      {combo.name}
                     </h3>
-                    <p className="text-slate-600 mt-2 text-sm leading-relaxed">
-                      {s.subtitle}
-                    </p>
-                    <p className="mt-4 font-semibold text-pink-600">
-                      {s.price}
+                    <p className="text-slate-600 mt-1.5 sm:mt-2 text-xs sm:text-sm leading-relaxed line-clamp-2">
+                      {combo.description}
                     </p>
 
-                    <span className="inline-block mt-4 text-sm text-pink-600 font-semibold opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
+                    {/* Display included services */}
+                    {combo.serviceLinks && combo.serviceLinks.length > 0 && (
+                      <div className="mt-2 sm:mt-3">
+                        <p className="text-[10px] sm:text-xs font-semibold text-gray-700 mb-1.5 sm:mb-2">
+                          Bao gồm:
+                        </p>
+                        <div className="space-y-0.5 sm:space-y-1">
+                          {combo.serviceLinks.slice(0, 3).map((serviceLink) => (
+                            <div
+                              key={serviceLink.id}
+                              className="flex items-center gap-1.5 sm:gap-2"
+                            >
+                              <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-green-500 flex-shrink-0" />
+                              <span className="text-[10px] sm:text-xs text-gray-600 truncate">
+                                {serviceLink.service.name}
+                              </span>
+                            </div>
+                          ))}
+                          {combo.serviceLinks.length > 3 && (
+                            <p className="text-[10px] sm:text-xs text-gray-500 pl-4 sm:pl-5">
+                              +{combo.serviceLinks.length - 3} dịch vụ khác
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="mt-3 sm:mt-4 space-y-0.5 sm:space-y-1">
+                      <p className="font-semibold text-sm sm:text-base text-pink-600">
+                        {parseInt(combo.price).toLocaleString("vi-VN")}đ
+                      </p>
+                      <p className="text-[10px] sm:text-xs text-gray-500">
+                        ⏳ Thời gian: {combo.duration} phút
+                      </p>
+                    </div>
+
+                    <button
+                      className={`mt-3 sm:mt-4 w-full px-3 sm:px-4 py-1.5 sm:py-2 cursor-pointer rounded-lg text-sm sm:text-base font-medium transition ${
+                        combo.isActive
+                          ? "bg-pink-500 text-white hover:bg-pink-600"
+                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      }`}
+                      onClick={() =>
+                        combo.isActive && handleBookService(combo.id.toString())
+                      }
+                      disabled={!combo.isActive}
+                    >
+                      {combo.isActive ? "Đặt ngay" : "Hết chỗ"}
+                    </button>
+
+                    <span className="hidden sm:inline-block mt-3 sm:mt-4 text-xs sm:text-sm text-pink-600 font-semibold opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
                       Xem chi tiết →
                     </span>
                   </motion.div>
-                );
-              })}
-            </motion.div>
+                ))}
+              </motion.div>
+            )}
           </div>
         </section>
       </motion.section>
@@ -296,6 +430,25 @@ const PetCarePage = () => {
           </div>
         </div>
       </motion.section>
+
+      {/* Modals */}
+      <SelectPetsModal
+        isOpen={isSelectPetsOpen}
+        onClose={() => setIsSelectPetsOpen(false)}
+        onConfirm={handlePetsSelected}
+        serviceId={selectedServiceId}
+        title="Chọn thú cưng"
+        description="Chọn thú cưng để đặt dịch vụ spa"
+      />
+
+      <SingleServiceBookingModal
+        isOpen={isBookingModalOpen}
+        onClose={() => setIsBookingModalOpen(false)}
+        onConfirm={handleBookingConfirm}
+        serviceId={selectedServiceId}
+        selectedPetIds={selectedPetIds}
+        service={selectedService}
+      />
     </main>
   );
 };
