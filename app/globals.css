@@ -243,4 +243,13 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  /* Cart Layout Adjustments */
+  .cart-drawer-open > div > div {
+    @apply mr-96;
+  }
+
+  .cart-drawer-open > div > main {
+    @apply mr-96;
+  }
 }
