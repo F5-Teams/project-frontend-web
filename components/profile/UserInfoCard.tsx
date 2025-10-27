@@ -51,9 +51,17 @@ export function UserInfoCard({ user }: Props) {
       gender: form.gender,
     });
     setIsEditing(false);
-    toast("Thông tin đã được cập nhật", {
-      description: "Thông tin người dùng đã được cập nhật.",
-    });
+    toast.promise<{ name: string }>(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(() => resolve({ name: "Thông tin" }), 2000)
+        ),
+      {
+        loading: "Loading...",
+        success: (data) => `${data.name} đã được cập nhật`,
+        error: "Error",
+      }
+    );
   }
 
   function handleCancel() {
