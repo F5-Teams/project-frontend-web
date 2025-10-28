@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import Logo from "@/public/logo/HappyPaws Logo.svg";
+import Logo from "@/public/logo/HappyPaws only Logo.svg";
 
 export type SidebarProps = {
   open: boolean;

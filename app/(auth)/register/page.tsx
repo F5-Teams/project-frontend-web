@@ -9,6 +9,9 @@ import { RegisterFormData } from "@/components/models/register";
 import api from "@/config/axios";
 import { Eye, EyeOff } from "lucide-react";
 
+import Image1 from "@/public/images/login_image.svg";
+import Image from "next/image";
+
 export default function RegisterPage() {
   const router = useRouter();
 
@@ -73,17 +76,17 @@ export default function RegisterPage() {
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
       {/* Left side - image */}
       <div className="relative hidden lg:block">
-        <img
-          src="https://i.pinimg.com/736x/3e/aa/78/3eaa7833921c825e33569b47da38a37e.jpg"
-          alt="Pet background"
+        <Image
+          src={Image1}
+          alt="Image1"
           className="absolute inset-0 h-full w-full object-cover"
         />
       </div>
 
       {/* Right side - form */}
-      <div className="flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-pink-50 px-6 py-12">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
-          <h2 className="text-3xl font-poppins-medium text-center text-gray-900 mb-6">
+      <div className="flex items-center justify-center bg-linear-to-br from-blue-50 via-white to-pink-50 p-8">
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl shadow-pink-300 py-2 md:py-4 px-4 md:px-8">
+          <h2 className="text-2xl font-poppins-regular text-center text-gray-900 mb-6">
             Đăng ký Tài khoản
           </h2>
 
@@ -96,7 +99,7 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-poppins-medium mb-1">
+                <label className="block text-md font-poppins-regular mb-1">
                   Họ
                 </label>
                 <input
@@ -104,14 +107,14 @@ export default function RegisterPage() {
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleChange}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full text-sm font-poppins-light border border-ring rounded-lg px-3 py-2"
                   disabled={isLoading}
                   required
                   placeholder="Họ"
                 />
               </div>
               <div>
-                <label className="block text-sm font-poppins-medium mb-1">
+                <label className="block text-md font-poppins-regular mb-1">
                   Tên
                 </label>
                 <input
@@ -119,7 +122,7 @@ export default function RegisterPage() {
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleChange}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border border-ring text-sm font-poppins-light rounded-lg px-3 py-2"
                   disabled={isLoading}
                   required
                   placeholder="Tên"
@@ -128,7 +131,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-poppins-medium mb-1">
+              <label className="block text-md font-poppins-regular mb-1">
                 Tên đăng nhập
               </label>
               <input
@@ -136,7 +139,7 @@ export default function RegisterPage() {
                 name="username"
                 value={formData.username}
                 onChange={handleChange}
-                className="w-full border rounded-lg px-3 py-2"
+                className="w-full text-sm font-poppins-light border border-ring rounded-lg px-3 py-2"
                 disabled={isLoading}
                 required
                 placeholder="Tên đăng nhập"
@@ -144,7 +147,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-poppins-medium mb-1 text-foreground">
+              <label className="block text-md font-poppins-regular mb-1 text-foreground">
                 Mật khẩu
               </label>
               <div className="relative">
@@ -153,7 +156,7 @@ export default function RegisterPage() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 pr-10 rounded-lg border border-border bg-popover text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none"
+                  className="w-full px-3 py-2 pr-10 text-sm font-poppins-light rounded-lg border border-ring bg-popover text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none"
                   placeholder="Nhập mật khẩu"
                   autoComplete="current-password"
                   disabled={isLoading}
@@ -173,14 +176,14 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-poppins-medium mb-1">
+              <label className="block text-md font-poppins-regular mb-1">
                 Giới tính
               </label>
               <select
                 name="gender"
                 value={formData.gender}
                 onChange={handleChange}
-                className="w-full border rounded-lg px-3 py-2"
+                className="w-full border text-sm font-poppins-light border-ring rounded-lg px-3 py-2"
                 disabled={isLoading}
                 required
               >
@@ -192,7 +195,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-poppins-medium mb-1">
+              <label className="block text-md font-poppins-regular mb-1">
                 Số điện thoại
               </label>
               <input
@@ -202,15 +205,15 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 pattern="[0-9]{10,11}"
                 maxLength={11}
-                className="w-full border rounded-lg px-3 py-2"
+                className="w-full text-sm font-poppins-light border border-ring rounded-lg px-3 py-2"
                 disabled={isLoading}
                 required
-                placeholder="0123456789"
+                placeholder="vd: 0912345678"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-poppins-medium mb-1">
+              <label className="block text-md font-poppins-regular mb-1">
                 Địa chỉ
               </label>
               <input
@@ -218,17 +221,17 @@ export default function RegisterPage() {
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
-                className="w-full border rounded-lg px-3 py-2"
+                className="w-full text-sm font-poppins-light border border-ring rounded-lg px-3 py-2"
                 disabled={isLoading}
                 required
-                placeholder="Địa chỉ"
+                placeholder="vd: 123 Đường ABC, Quận XYZ, TP.HCM"
               />
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full py-2 rounded-lg text-white font-poppins-semibold ${
+              className={`w-full py-2 rounded-lg text-white font-poppins-regular ${
                 isLoading ? "bg-primary" : "bg-pink-500 hover:bg-pink-600"
               }`}
             >
@@ -236,7 +239,7 @@ export default function RegisterPage() {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-gray-600">
+          <p className="mt-4 text-center font-poppins-light text-sm text-gray-600">
             Bạn đã có tài khoản?{" "}
             <Link
               href="/login"

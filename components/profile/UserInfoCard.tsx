@@ -51,9 +51,17 @@ export function UserInfoCard({ user }: Props) {
       gender: form.gender,
     });
     setIsEditing(false);
-    toast("Thông tin đã được cập nhật", {
-      description: "Thông tin người dùng đã được cập nhật.",
-    });
+    toast.promise<{ name: string }>(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(() => resolve({ name: "Thông tin" }), 2000)
+        ),
+      {
+        loading: "Loading...",
+        success: (data) => `${data.name} đã được cập nhật`,
+        error: "Error",
+      }
+    );
   }
 
   function handleCancel() {
@@ -104,7 +112,7 @@ export function UserInfoCard({ user }: Props) {
       </div>
 
       <div className="flex items-center gap-8">
-        <div className="flex items-center gap-4 flex-shrink-0">
+        <div className="flex items-center gap-4">
           <Avatar className="w-24 h-24 lg:w-32 lg:h-32 border-2 lg:border-4 border-primary/30">
             <AvatarImage src="/placeholder-patient.jpg" />
             <AvatarFallback className="bg-primary text-primary-foreground text-base lg:text-xl">
@@ -112,7 +120,7 @@ export function UserInfoCard({ user }: Props) {
             </AvatarFallback>
           </Avatar>
 
-          <div className="font-poppins-regular">
+          <div className="font-poppins-regular min-w-0">
             {!isEditing ? (
               <>
                 <h2 className="text-xl mb-1">
@@ -148,7 +156,7 @@ export function UserInfoCard({ user }: Props) {
               </div>
             )}
 
-            <div className="flex gap-10 mt-4">
+            <div className="flex gap-10 mt-4 items-start">
               <div>
                 <div className="text-gray-500 font-light text-[12px] mb-1.5">
                   Giới tính
@@ -203,14 +211,14 @@ export function UserInfoCard({ user }: Props) {
                   />
                 )}
               </div>
-              <div>
-                <div className="text-gray-500  font-light text-[12px] mb-1.5">
+              <div className="flex-1 min-w-0">
+                <div className="text-gray-500 font-light text-[12px] mb-1.5">
                   Địa chỉ
                 </div>
                 {!isEditing ? (
-                  <div className="font-light text-lg">
+                  <p className="font-poppins-light text-lg break-words overflow-hidden">
                     {user?.address || "Chưa cập nhật"}
-                  </div>
+                  </p>
                 ) : (
                   <input
                     className="w-full font-light max-w-md px-3 py-2 rounded-lg bg-white border border-white/30 placeholder-white/70 text-black outline-none focus:ring-2 focus:ring-white/40"
