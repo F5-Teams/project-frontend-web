@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -35,11 +36,6 @@ export default function LoginPage() {
       const res = await api.post<AuthResponse>("auth/sign-in", formData);
       const token = res.data.access_token;
 
-      if (!token) {
-        setError("Đăng nhập thất bại: không nhận được token.");
-        return;
-      }
-
       localStorage.setItem("accessToken", token);
 
       const meRes = await api.get("user/me", {
@@ -52,10 +48,7 @@ export default function LoginPage() {
 
       router.replace("/");
     } catch (err: any) {
-      const serverMsg =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        "Đăng nhập thất bại. Vui lòng thử lại.";
+      const serverMsg = "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.";
       setError(serverMsg);
     }
   };
