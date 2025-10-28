@@ -161,7 +161,7 @@ const ProductIdPage = () => {
           <div className="flex gap-2">
             <button
               disabled={maxStock === 0}
-              className={`mt-8 py-3 rounded-xl w-[100%] cursor-pointer font-medium transition px-2 border-1 border-pink-600 ${
+              className={`mt-8 py-3 rounded-xl w-[100%] cursor-pointer font-medium transition px-2 border-1 ${
                 maxStock === 0
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                   : "bg-[#f8daef] hover:bg-[#f5bee4] text-pink-600"

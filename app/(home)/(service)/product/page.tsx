@@ -63,10 +63,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
         </p>
         <div className="flex items-center justify-between">
           <span className="text-2xl font-poppins-regular text-pink-600">
-            {new Intl.NumberFormat("vi-VN", {
-              style: "currency",
-              currency: "VND",
-            }).format(Number(product.price))}
+            {new Intl.NumberFormat("vi-VN").format(Number(product.price))} đ
           </span>
 
           <button
@@ -94,6 +91,8 @@ const PetStorePage = () => {
       setType(filterType);
     }
   }, [products]);
+
+  console.log("PRODUCT", products);
 
   if (isLoading)
     return (
@@ -131,7 +130,7 @@ const PetStorePage = () => {
             transition={{ duration: 1 }}
             className="mb-12"
           >
-            <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6">
+            <h1 className="text-4xl md:text-5xl font-medium font-poppins-medium text-white mb-6">
               Cửa hàng <span className="text-pink-500">Thú Cưng</span> Chuyên
               Nghiệp
             </h1>
@@ -163,7 +162,7 @@ const PetStorePage = () => {
         </div>
       </section>
 
-      <div className="flex justify-end gap-2.5 px-10 mt-5">
+      <div className="flex justify-end gap-2.5 px-35 mt-5 ">
         <Input
           style={{ width: 250 }}
           placeholder="Tìm sản phẩm ..."

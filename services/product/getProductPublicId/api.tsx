@@ -8,6 +8,6 @@ export interface getProductByIdParams {
 export async function getProductPublicId({
   id,
 }: getProductByIdParams): Promise<ProductById> {
-  const { data } = await api.get(`/products/public/${id}`);
+  const { data } = await api.get(`/products/${id}`);
   return data;
 }
