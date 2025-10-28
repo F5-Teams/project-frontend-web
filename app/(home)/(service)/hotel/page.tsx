@@ -1,12 +1,48 @@
 "use client";
 import { motion } from "framer-motion";
-import { Check, LucideHome, Star } from "lucide-react";
+import { Check, LucideHome, Star, Loader2, AlertCircle } from "lucide-react";
 import Image from "next/image";
-import { cardVariants, hotelServices } from "@/constants";
-import { useRouter } from "next/navigation";
+import { cardVariants } from "@/constants";
+import { useState } from "react";
+import { SelectPetsModal } from "@/components/modals/SelectPetsModal";
+import { RoomBookingModal } from "@/components/modals/RoomBookingModal";
+import { useCartStore } from "@/stores/cart.store";
+import { BookingDraft } from "@/types/cart";
+import { useHotelRooms } from "@/services/hotel";
 
 const PetHotelPage = () => {
-  const router = useRouter();
+  const { addItem } = useCartStore();
+  const { rooms, loading, error, refetch } = useHotelRooms();
+
+  // Modal states
+  const [isSelectPetsOpen, setIsSelectPetsOpen] = useState(false);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [selectedRoomId, setSelectedRoomId] = useState<string>("");
+  const [selectedPetIds, setSelectedPetIds] = useState<string[]>([]);
+
+  const handleBookRoom = (roomId: string) => {
+    setSelectedRoomId(roomId);
+    setIsSelectPetsOpen(true);
+  };
+
+  const handlePetsSelected = (petIds: string[]) => {
+    setSelectedPetIds(petIds);
+    setIsSelectPetsOpen(false);
+    setIsBookingModalOpen(true);
+  };
+
+  // Find selected room from available rooms for passing to modal
+  const selectedRoom = rooms.find(
+    (room) => room.id.toString() === selectedRoomId
+  );
+
+  const handleBookingConfirm = async (bookingDraft: BookingDraft) => {
+    const result = await addItem(bookingDraft);
+    if (result.success) {
+      setIsBookingModalOpen(false);
+      // Optionally show success message or redirect
+    }
+  };
   return (
     <main className="min-h-screen ">
       <section className="py-10 ">
@@ -59,44 +95,128 @@ const PetHotelPage = () => {
           <h1 className="text-4xl mb-10 font-bold text-pink-600">Của Bạn</h1>
         </div>
         <div className="max-w-7xl mx-auto px-6">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10"
-          >
-            {hotelServices.map((s, idx) => (
-              <motion.div
-                key={s.id}
-                custom={idx}
-                variants={cardVariants}
-                onClick={() => router.push(`/hotel/${s.id}`)}
-                className="group relative rounded-2xl border bg-white shadow-md p-6 cursor-pointer overflow-hidden hover:-translate-y-2 hover:shadow-xl transition duration-500"
-              >
-                <div className="relative w-full h-48 md:h-56 rounded-2xl overflow-hidden mb-4">
-                  <Image
-                    src={s.img}
-                    alt={s.title}
-                    fill
-                    className="object-cover"
-                  />
-                  <div className="absolute top-4 left-4 w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-tr from-pink-400 to-purple-500 text-white shadow-lg">
-                    <LucideHome className="w-6 h-6" />
-                  </div>
-                </div>
-                <h3 className="mt-4 text-xl font-bold text-slate-800 group-hover:text-pink-600 transition-colors">
-                  {s.title}
-                </h3>
-                <p className="text-slate-600 mt-2 text-sm leading-relaxed">
-                  {s.subtitle}
-                </p>
-                <p className="mt-4 font-semibold text-pink-600">{s.price}</p>
-                <span className="inline-block mt-4 text-sm text-pink-600 font-semibold opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
-                  Xem chi tiết →
-                </span>
-              </motion.div>
-            ))}
-          </motion.div>
+          {loading ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="flex flex-col items-center gap-4">
+                <Loader2 className="w-8 h-8 animate-spin text-pink-500" />
+                <p className="text-slate-600">Đang tải danh sách phòng...</p>
+              </div>
+            </div>
+          ) : error ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="flex flex-col items-center gap-4 text-center">
+                <AlertCircle className="w-12 h-12 text-red-500" />
+                <p className="text-red-600 font-medium">{error}</p>
+                <button
+                  onClick={refetch}
+                  className="px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition"
+                >
+                  Thử lại
+                </button>
+              </div>
+            </div>
+          ) : rooms.length === 0 ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="text-center">
+                <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">Không có phòng nào có sẵn</p>
+                <button
+                  onClick={refetch}
+                  className="mt-4 px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition"
+                >
+                  Tải lại
+                </button>
+              </div>
+            </div>
+          ) : (
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10"
+            >
+              {rooms.map((room, idx) => {
+                const roomData = {
+                  id: room.id.toString(),
+                  name: room.name,
+                  description:
+                    room.description ||
+                    `Phòng ${room.class} tiện nghi và an toàn`,
+                  price: parseInt(room.price),
+                  image: room.images?.[0]?.imageUrl || "/images/hotel1.jpg",
+                  isAvailable: room.isAvailable ?? true, // Use API value or default to true
+                  totalAvailableRooms: 1,
+                };
+
+                return (
+                  <motion.div
+                    key={roomData.id}
+                    custom={idx}
+                    variants={cardVariants}
+                    className="group relative rounded-2xl border bg-white shadow-md p-6 cursor-pointer overflow-hidden hover:-translate-y-2 hover:shadow-xl transition duration-500"
+                  >
+                    <div className="relative w-full h-48 md:h-56 rounded-2xl overflow-hidden mb-4">
+                      <Image
+                        src={roomData.image || "/images/hotel1.jpg"}
+                        alt={roomData.name}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute top-4 left-4 w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-tr from-pink-400 to-purple-500 text-white shadow-lg">
+                        <LucideHome className="w-6 h-6" />
+                      </div>
+                      {roomData.isAvailable &&
+                        roomData.totalAvailableRooms > 0 && (
+                          <div className="absolute top-4 right-4 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                            Có sẵn
+                          </div>
+                        )}
+                      {(!roomData.isAvailable ||
+                        roomData.totalAvailableRooms === 0) && (
+                        <div className="absolute top-4 right-4 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                          Hết chỗ
+                        </div>
+                      )}
+                    </div>
+                    <h3 className="mt-4 text-xl font-bold text-slate-800 group-hover:text-pink-600 transition-colors">
+                      {roomData.name}
+                    </h3>
+                    <p className="text-slate-600 mt-2 text-sm leading-relaxed">
+                      {roomData.description}
+                    </p>
+                    <p className="mt-4 font-semibold text-pink-600">
+                      {roomData.price > 0
+                        ? `${roomData.price.toLocaleString()}đ/đêm`
+                        : "Liên hệ"}
+                    </p>
+                    <button
+                      className={`mt-4 px-4 py-2 cursor-pointer rounded-lg font-medium transition ${
+                        roomData.isAvailable && roomData.totalAvailableRooms > 0
+                          ? "bg-pink-500 text-white hover:bg-pink-600"
+                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      }`}
+                      onClick={() =>
+                        roomData.isAvailable &&
+                        roomData.totalAvailableRooms > 0 &&
+                        handleBookRoom(roomData.id)
+                      }
+                      disabled={
+                        !roomData.isAvailable ||
+                        roomData.totalAvailableRooms === 0
+                      }
+                    >
+                      {roomData.isAvailable && roomData.totalAvailableRooms > 0
+                        ? "Đặt ngay"
+                        : "Hết chỗ"}
+                    </button>
+                    <span className="inline-block mt-4 text-sm text-pink-600 font-semibold opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
+                      Xem chi tiết →
+                    </span>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          )}
         </div>
       </section>
 
@@ -241,6 +361,25 @@ const PetHotelPage = () => {
           </div>
         </motion.section>
       </section>
+
+      {/* Modals */}
+      <SelectPetsModal
+        isOpen={isSelectPetsOpen}
+        onClose={() => setIsSelectPetsOpen(false)}
+        onConfirm={handlePetsSelected}
+        serviceId={selectedRoomId}
+        title="Chọn thú cưng"
+        description="Chọn thú cưng để đặt phòng khách sạn"
+      />
+
+      <RoomBookingModal
+        isOpen={isBookingModalOpen}
+        onClose={() => setIsBookingModalOpen(false)}
+        onConfirm={handleBookingConfirm}
+        roomId={selectedRoomId}
+        selectedPetIds={selectedPetIds}
+        room={selectedRoom}
+      />
     </main>
   );
 };
