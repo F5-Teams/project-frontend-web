@@ -1,15 +1,24 @@
 "use client";
 import { motion } from "framer-motion";
-import { ShoppingCart, Package, Truck, Shield } from "lucide-react";
+import {
+  ShoppingCart,
+  Package,
+  Truck,
+  Shield,
+  TriangleAlert,
+  Eye,
+} from "lucide-react";
 import Image from "next/image";
 import bg from "@/public/images/care.jpg";
 import { useEffect, useState } from "react";
 import { Input, Spin } from "antd";
-import { Product } from "@/services/product/types";
-import { useAllProduct } from "@/services/product/hooks";
+import { Product } from "@/services/product/getProductPublic/type";
+import { useAllProduct } from "@/services/product/getProductPublic/hooks";
+import { useRouter } from "next/navigation";
 
-const ProductCard = ({ product }: { product: Product }) => {
+export const ProductCard = ({ product }: { product: Product }) => {
   const [currentImage, setCurrentImage] = useState(0);
+  const route = useRouter();
   console.log("PRO", product);
   const nextImage = () =>
     setCurrentImage((prev) => (prev + 1) % product.images.length);
@@ -53,14 +62,16 @@ const ProductCard = ({ product }: { product: Product }) => {
           {product.description}
         </p>
         <div className="flex items-center justify-between">
-          <span className="text-2xl font-bold text-pink-600">
-            {new Intl.NumberFormat("vi-VN", {
-              style: "currency",
-              currency: "VND",
-            }).format(Number(product.price))}
+          <span className="text-2xl font-poppins-regular text-pink-600">
+            {new Intl.NumberFormat("vi-VN").format(Number(product.price))} đ
           </span>
-          <button className="flex items-center gap-2 mt-4 px-4 py-2 cursor-pointer rounded-lg bg-pink-500 text-white font-medium hover:bg-pink-600 transition">
-            <ShoppingCart className="w-5 h-5" /> <p>Đặt ngay</p>
+
+          <button
+            onClick={() => route.push(`/product/${product?.id}`)}
+            className="flex items-center gap-2 mt-4 px-4 py-2 cursor-pointer rounded-lg bg-pink-500 text-white font-medium hover:bg-pink-600 transition"
+          >
+            <Eye color="white" />
+            <p>Xem chi tiết</p>
           </button>
         </div>
       </div>
@@ -80,6 +91,8 @@ const PetStorePage = () => {
       setType(filterType);
     }
   }, [products]);
+
+  console.log("PRODUCT", products);
 
   if (isLoading)
     return (
@@ -101,7 +114,6 @@ const PetStorePage = () => {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      {/* Banner */}
       <section className="bg-gradient-to-br">
         <div
           className="px-6 py-30 text-center"
@@ -118,7 +130,7 @@ const PetStorePage = () => {
             transition={{ duration: 1 }}
             className="mb-12"
           >
-            <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6">
+            <h1 className="text-4xl md:text-5xl font-medium font-poppins-medium text-white mb-6">
               Cửa hàng <span className="text-pink-500">Thú Cưng</span> Chuyên
               Nghiệp
             </h1>
@@ -150,7 +162,7 @@ const PetStorePage = () => {
         </div>
       </section>
 
-      <div className="flex justify-end gap-2.5 px-10 mt-5">
+      <div className="flex justify-end gap-2.5 px-35 mt-5 ">
         <Input
           style={{ width: 250 }}
           placeholder="Tìm sản phẩm ..."
@@ -159,7 +171,7 @@ const PetStorePage = () => {
         />
       </div>
 
-      <div className="flex gap-2 mt-5 px-10">
+      <div className="flex gap-2 mt-5 px-37">
         <p
           onClick={() => setSelect("All")}
           className={`px-2 py-1 rounded-xl font-medium cursor-pointer transition

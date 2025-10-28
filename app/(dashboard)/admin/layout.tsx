@@ -4,6 +4,8 @@ import { SidebarItem } from "@/components/dashboard/sidebar";
 const adminItems: SidebarItem[] = [
   { href: "/admin", label: "Dashboard", icon: "dashboard", exact: true },
   { href: "/admin/customers", label: "Người dùng", icon: "customers" },
+  { href: "/admin/products", label: "Sản phẩm", icon: "product" },
+
   {
     label: "Dịch vụ",
     icon: "services",

@@ -17,14 +17,21 @@ import {
   NavigationMenuContent,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import { Bath, Hotel, PawPrint } from "lucide-react";
+import { Bath, Hotel, PawPrint, ShoppingCart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { CartDrawer } from "@/components/cart/CartDrawer";
+import { useCartSummary, useIsCartOpen } from "@/stores/cart.store";
 
 export default function Header() {
   const router = useRouter();
-  const [auth, setAuth] = useState<{ token: string | null; user: any | null }>({
+  const cartSummary = useCartSummary();
+  const isCartOpen = useIsCartOpen();
+  const [auth, setAuth] = useState<{
+    token: string | null;
+    user: { userName?: string; avatar?: string } | null;
+  }>({
     token: null,
     user: null,
   });
@@ -48,12 +55,12 @@ export default function Header() {
 
   return (
     <nav
-      className="flex w-full items-center justify-between px-16 py-4 relative"
-      style={{ zIndex: 50, position: "relative" }}
+      className={`fixed top-0 left-0 flex items-center justify-between px-16 py-4 z-[100] transition-all duration-300 ease-in-out ${
+        isCartOpen ? "w-full lg:w-[calc(100%-384px)]" : "w-full"
+      }`}
     >
       <div
-        className="absolute left-16 top-4 z-50 inline-flex items-center gap-[60px] px-6 py-2
-      bg-white/70 backdrop-blur shadow-lg rounded-2xl"
+        className="inline-flex items-center gap-[60px] px-6 py-2 bg-white/70 backdrop-blur shadow-lg rounded-2xl"
         style={{ height: "72px" }}
       >
         <Link href="/" className="cursor-pointer">
@@ -76,7 +83,7 @@ export default function Header() {
               >
                 <p className="cursor-pointer ">DỊCH VỤ</p>
               </NavigationMenuTrigger>
-              <NavigationMenuContent className="p-3 absolute left-1/2 -translate-x-1/2 border-none min-w-[280px]">
+              <NavigationMenuContent className="p-3 absolute left-1/2 -translate-x-1/2 border-none min-w-[280px] z-[100] bg-white/90 backdrop-blur shadow-lg rounded-xl">
                 <ul className=" font-light grid gap-4">
                   <li>
                     <Link
@@ -183,6 +190,18 @@ export default function Header() {
       </div>
 
       <div className="inline-flex items-center gap-3 p-4 ml-auto">
+        {/* Cart Icon */}
+        <CartDrawer>
+          <button className="relative p-2 rounded-full hover:bg-gray-100 transition-colors group">
+            <ShoppingCart className="h-6 w-6 text-gray-600 group-hover:text-primary transition-colors" />
+            {cartSummary.totalItems > 0 && (
+              <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                {cartSummary.totalItems}
+              </span>
+            )}
+          </button>
+        </CartDrawer>
+
         {auth.token ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
