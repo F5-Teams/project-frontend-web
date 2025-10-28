@@ -5,7 +5,17 @@ import { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import api from "@/config/axios";
 import { User } from "@/components/models/register";
-import { UserRound, Phone, MapPin, Search, VenusAndMars } from "lucide-react";
+import { CreateUser } from "@/components/models/create-staff";
+import {
+  UserRound,
+  Phone,
+  MapPin,
+  Search,
+  VenusAndMars,
+  X,
+  UserCog,
+} from "lucide-react";
+import { toast } from "sonner";
 
 export default function Customers() {
   const [data, setData] = useState<User[]>([]);
@@ -14,6 +24,22 @@ export default function Customers() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [formError, setFormError] = useState<string>("");
+  const [openModal, setOpenModal] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [filterGender, setFilterGender] = useState("all");
+  const [filterRole, setFilterRole] = useState("all");
+
+  const defaultUser: CreateUser = {
+    role: "staff",
+    userName: "",
+    password: "",
+    firstName: "",
+    lastName: "",
+    phoneNumber: "",
+    address: "",
+    gender: true,
+  };
+  const [newUser, setNewUser] = useState<CreateUser>(defaultUser);
 
   const perPage = 5;
 
@@ -26,6 +52,16 @@ export default function Customers() {
     const parts = name.split(" ").filter(Boolean);
     return (parts[0]?.[0] + (parts[1]?.[0] || "")).toUpperCase() || "U";
   };
+
+  const roleMeta: Record<number, { label: string; cls: string }> = {
+    1: { label: "Admin", cls: "text-purple-700 bg-purple-50" },
+    2: { label: "Staff", cls: "text-emerald-700 bg-emerald-50" },
+    3: { label: "Groomer", cls: "text-amber-700 bg-amber-50" },
+    4: { label: "Customer", cls: "text-gray-700 bg-gray-100" },
+  };
+
+  const roleDisplay = (roleId?: number) =>
+    roleMeta[roleId ?? 0] ?? { label: "—", cls: "text-gray-500 bg-gray-50" };
 
   const fetchUsers = async () => {
     try {
@@ -43,16 +79,54 @@ export default function Customers() {
     fetchUsers();
   }, []);
 
+  const handleCreateUser = async () => {
+    try {
+      setCreating(true);
+      setFormError("");
+      const res = await api.post("/user", newUser);
+      if (res.status === 201 || res.status === 200) {
+        toast("Tạo thành công", {
+          description: `${
+            newUser.role === "staff" ? "Nhân viên" : "Thợ"
+          } đã được thêm.`,
+        });
+        setNewUser(defaultUser);
+        setOpenModal(false);
+        fetchUsers();
+      }
+    } catch (err: any) {
+      toast("Lỗi khi tạo người dùng", {
+        description: err.response?.data?.message || "Vui lòng thử lại.",
+      });
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const filteredData = useMemo(() => {
     return data.filter((u) => {
       const name = fullName(u).toLowerCase();
       const username = (u.userName || "").toLowerCase();
-      return (
+
+      const matchesSearch =
         name.includes(search.toLowerCase()) ||
-        username.includes(search.toLowerCase())
-      );
+        username.includes(search.toLowerCase());
+
+      const matchesGender =
+        filterGender === "all" ||
+        (filterGender === "male" && u.gender === true) ||
+        (filterGender === "female" && u.gender === false);
+
+      const matchesRole =
+        filterRole === "all" ||
+        (filterRole === "admin" && u.roleId === 1) ||
+        (filterRole === "staff" && u.roleId === 2) ||
+        (filterRole === "groomer" && u.roleId === 3) ||
+        (filterRole === "customer" && u.roleId === 4);
+
+      return matchesSearch && matchesGender && matchesRole;
     });
-  }, [data, search]);
+  }, [data, search, filterGender, filterRole]);
 
   const totalPages = Math.ceil(filteredData.length / perPage);
   const paginatedData = filteredData.slice(
@@ -62,6 +136,12 @@ export default function Customers() {
 
   const handlePrev = () => setPage((p) => Math.max(p - 1, 1));
   const handleNext = () => setPage((p) => Math.min(p + 1, totalPages));
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setNewUser(defaultUser);
+    setFormError("");
+  };
 
   if (loading)
     return (
@@ -86,6 +166,56 @@ export default function Customers() {
         </h1>
 
         <div className="flex items-center gap-3">
+          {/* Button tạo mới */}
+          <button
+            onClick={() => setOpenModal(true)}
+            className="bg-pink-500 hover:bg-pink-600 text-white text-sm font-medium px-4 py-2.5 rounded-full shadow-sm transition"
+          >
+            + Tạo mới
+          </button>
+
+          {/* Bộ lọc */}
+          <div className="relative">
+            <details className="group">
+              <summary className="cursor-pointer bg-pink-100 hover:bg-pink-200 text-pink-700 font-medium px-4 py-2 rounded-full text-sm shadow-sm">
+                Bộ lọc
+              </summary>
+              <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg p-4 space-y-3 z-10">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">
+                    Giới tính
+                  </label>
+                  <select
+                    value={filterGender}
+                    onChange={(e) => setFilterGender(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-pink-400"
+                  >
+                    <option value="all">Tất cả</option>
+                    <option value="male">Nam</option>
+                    <option value="female">Nữ</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">
+                    Vai trò
+                  </label>
+                  <select
+                    value={filterRole}
+                    onChange={(e) => setFilterRole(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-pink-400"
+                  >
+                    <option value="all">Tất cả</option>
+                    <option value="admin">Admin</option>
+                    <option value="staff">Staff</option>
+                    <option value="groomer">Groomer</option>
+                    <option value="customer">Customer</option>
+                  </select>
+                </div>
+              </div>
+            </details>
+          </div>
+
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
@@ -103,13 +233,6 @@ export default function Customers() {
           </div>
         </div>
       </div>
-
-      {/* Banner lỗi từ server (nếu có) */}
-      {formError && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
-          {formError}
-        </div>
-      )}
 
       {/* Table */}
       <div className="overflow-hidden rounded-3xl border border-gray-300 bg-white shadow-sm">
@@ -131,6 +254,10 @@ export default function Customers() {
               <th className="px-6 py-3 text-left font-semibold">
                 <VenusAndMars className="inline-block w-4 h-4 mr-2 text-pink-500" />
                 Giới tính
+              </th>
+              <th className="px-6 py-3 text-left font-semibold">
+                <UserCog className="inline-block w-4 h-4 mr-2 text-pink-500" />
+                Vai trò
               </th>
             </tr>
           </thead>
@@ -191,6 +318,18 @@ export default function Customers() {
                       {genderLabel}
                     </span>
                   </td>
+                  <td className="px-6 py-4">
+                    {(() => {
+                      const { label, cls } = roleDisplay(u.roleId);
+                      return (
+                        <span
+                          className={`text-xs px-3 py-1 rounded-full font-medium ${cls}`}
+                        >
+                          {label}
+                        </span>
+                      );
+                    })()}
+                  </td>
                 </tr>
               );
             })}
@@ -198,7 +337,7 @@ export default function Customers() {
             {paginatedData.length === 0 && (
               <tr>
                 <td
-                  colSpan={4}
+                  colSpan={5}
                   className="px-6 py-10 text-center text-sm text-gray-500"
                 >
                   {search
@@ -235,6 +374,135 @@ export default function Customers() {
           >
             Sau
           </button>
+        </div>
+      )}
+
+      {/* Modal tạo mới */}
+      {openModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white w-[420px] rounded-2xl shadow-lg p-6 relative">
+            <button
+              onClick={handleCloseModal}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <h2 className="text-lg font-semibold mb-4 text-gray-800">
+              Tạo mới nhân viên
+            </h2>
+
+            <div className="space-y-3">
+              <input
+                type="text"
+                placeholder="Tên đăng nhập"
+                value={newUser.userName}
+                required
+                onChange={(e) =>
+                  setNewUser({ ...newUser, userName: e.target.value })
+                }
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-pink-400"
+              />
+              <input
+                type="password"
+                placeholder="Mật khẩu"
+                value={newUser.password}
+                required
+                onChange={(e) =>
+                  setNewUser({ ...newUser, password: e.target.value })
+                }
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-pink-400"
+              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Họ"
+                  value={newUser.firstName}
+                  required
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, firstName: e.target.value })
+                  }
+                  className="w-1/2 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-pink-400"
+                />
+                <input
+                  type="text"
+                  placeholder="Tên"
+                  value={newUser.lastName}
+                  required
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, lastName: e.target.value })
+                  }
+                  className="w-1/2 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-pink-400"
+                />
+              </div>
+              <input
+                type="text"
+                placeholder="Số điện thoại"
+                value={newUser.phoneNumber}
+                required
+                onChange={(e) =>
+                  setNewUser({ ...newUser, phoneNumber: e.target.value })
+                }
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-pink-400"
+              />
+              <input
+                type="text"
+                placeholder="Địa chỉ"
+                value={newUser.address}
+                required
+                onChange={(e) =>
+                  setNewUser({ ...newUser, address: e.target.value })
+                }
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-pink-400"
+              />
+
+              <div className="flex items-center justify-between">
+                <label className="text-sm text-gray-600">Giới tính:</label>
+                <select
+                  value={newUser.gender ? "true" : "false"}
+                  required
+                  onChange={(e) =>
+                    setNewUser({
+                      ...newUser,
+                      gender: e.target.value === "true",
+                    })
+                  }
+                  className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-pink-400"
+                >
+                  <option value="true">Nam</option>
+                  <option value="false">Nữ</option>
+                </select>
+
+                <label className="text-sm text-gray-600">Vai trò:</label>
+                <select
+                  value={newUser.role}
+                  required
+                  onChange={(e) =>
+                    setNewUser({
+                      ...newUser,
+                      role: e.target.value as "staff" | "groomer",
+                    })
+                  }
+                  className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-pink-400"
+                >
+                  <option value="staff">Staff</option>
+                  <option value="groomer">Groomer</option>
+                </select>
+              </div>
+
+              {formError && (
+                <p className="text-sm text-red-600 text-center">{formError}</p>
+              )}
+
+              <button
+                onClick={handleCreateUser}
+                disabled={creating}
+                className="w-full bg-pink-500 hover:bg-pink-600 text-white text-sm font-medium rounded-lg py-2.5 transition disabled:opacity-50"
+              >
+                {creating ? "Đang tạo..." : "Tạo mới"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

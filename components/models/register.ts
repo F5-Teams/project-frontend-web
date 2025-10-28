@@ -9,6 +9,20 @@ export interface RegisterFormData {
   avatar: string;
 }
 
+
+export enum RoleId {
+  Admin = 1,
+  Staff = 2,
+  Groomer = 3,
+  Customer = 4,
+}
+
+export interface UserCounts {
+  pets: number;
+  bookingsAsCustomer: number;
+  bookingsAsStaff: number;
+  bookingsAsGroomer: number;
+}
 export interface User {
   id: number;
   userName: string;
@@ -20,25 +34,8 @@ export interface User {
   gender: boolean | null; 
   isActive: boolean;
   createdAt: string; 
-  role: UserRole;
-  _count?: UserCount;
+  roleId: RoleId;        
+  _count: UserCounts;
 }
 
-export enum RoleType {
-  Staff = 1,
-  Groomer = 2,
-  User = 3,
-  Admin = 4,
-}
 
-export interface UserRole {
-  id: RoleType; 
-  name: string; 
-}
-
-export interface UserCount {
-  pets: number;
-  bookingsAsCustomer: number;
-  bookingsAsStaff: number;
-  bookingsAsGroomer: number;
-}
