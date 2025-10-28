@@ -59,7 +59,7 @@ export interface ApiPet {
 
 export interface ApiBooking {
   id: number;
-  bookingDate: string; // ISO – lịch hẹn dịch vụ 1 buổi
+  bookingDate: string;
   dropDownSlot: "MORNING" | "AFTERNOON" | "EVENING" | string;
   checkInDate: string | null;
   checkOutDate: string | null;
