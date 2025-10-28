@@ -8,7 +8,7 @@ import Logo from "@/public/logo/HappyPaws Logo.svg";
 import { TriangleAlert } from "lucide-react";
 
 interface ModalConfirmDeleteProps {
-  initialState?: ProductAdmin;
+  initialState?: ProductAdmin | null;
   onOpen: boolean;
   onCancel: () => void;
 }

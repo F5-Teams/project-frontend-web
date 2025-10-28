@@ -12,7 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { usePatchProduct } from "@/services/product/patchProduct/hooks";
 
 interface ModalProductProps {
-  initialState?: ProductAdmin;
+  initialState?: ProductAdmin | null;
 
   mode: "add" | "edit";
 

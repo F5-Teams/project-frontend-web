@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Pet, PetImage } from "@/components/models/pet";
 import api from "@/config/axios";
 import { uploadFile } from "@/utils/uploadFIle";
-import { UploadCloud } from "lucide-react"; // ✅ icon upload
+import { UploadCloud } from "lucide-react";
 
 export default function CreatePetPage() {
   const router = useRouter();
