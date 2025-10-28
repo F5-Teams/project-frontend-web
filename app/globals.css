@@ -112,7 +112,7 @@
   --tertiary-1: #8fb3f7;
   --tertiary-2: #d291bc;
   --tertiary-3: #a0df6d;
-  --border: #f6339a;
+  --border: #ffffff;
   --input: oklch(4.22% 0.01732 29.223);
   --ring: #f9f4f1;
   --chart-1: oklch(0.646 0.222 41.116);
@@ -249,4 +249,41 @@
 .toaster [data-sonner-toast],
 .toaster [data-sonner-toast] * {
   font-family: var(--font-poppins), var(--font-google-poppins), sans-serif !important;
+}
+
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(145, 144, 144, 0.25) transparent;
+}
+
+.thin-scroll::-webkit-scrollbar {
+  width: 1px;
+  height: 1px;
+}
+.thin-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: rgba(239, 237, 237, 0.25);
+  border-radius: 999px;
+}
+.thin-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(194, 194, 194, 0.35);
+}
+
+.thin-scroll.inset::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.591);
+  border-radius: 999px;
+}
+
+.thin-scroll::-webkit-scrollbar-button {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.thin-scroll::-webkit-scrollbar-button:single-button {
+  display: none;
+  width: 0;
+  height: 0;
 }

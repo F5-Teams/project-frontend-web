@@ -13,7 +13,7 @@ export default function HomeLayout({
     <div className="flex min-h-screen bg-gradient-to-b from-pink-100 via-white to-yellow-100">
       <Sidebar open={open} onToggle={() => setOpen((v) => !v)} />
       <main className="flex-1 overflow-auto">
-        <div className="p-4 md:p-6 lg:p-8">{children}</div>
+        <div className="container mx-auto md:py-2 lg:py-4">{children}</div>
       </main>
     </div>
   );

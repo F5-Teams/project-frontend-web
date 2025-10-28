@@ -7,6 +7,8 @@ import { poppins } from "../fonts/font";
 import { Providers } from "./_providers";
 import { Toaster } from "@/components/ui/sonner";
 
+import ReduxProvider from "./ReduxProvider";
+
 const getPoppins = Poppins({
   variable: "--font-google-poppins",
   subsets: ["latin"],
