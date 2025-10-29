@@ -119,9 +119,9 @@ body {
   --tertiary-1: #8fb3f7;
   --tertiary-2: #d291bc;
   --tertiary-3: #a0df6d;
-  --border: #f6339a;
+  --border: #ffffff;
   --input: oklch(4.22% 0.01732 29.223);
-  --ring: #f9f4f1;
+  --ring: #cecece;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -155,7 +155,7 @@ body {
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --ring: oklch(75.083% 0.00009 271.152);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -265,4 +265,41 @@ body {
 .toaster [data-sonner-toast],
 .toaster [data-sonner-toast] * {
   font-family: var(--font-poppins), var(--font-google-poppins), sans-serif !important;
+}
+
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(145, 144, 144, 0.25) transparent;
+}
+
+.thin-scroll::-webkit-scrollbar {
+  width: 1px;
+  height: 1px;
+}
+.thin-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: rgba(239, 237, 237, 0.25);
+  border-radius: 999px;
+}
+.thin-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(194, 194, 194, 0.35);
+}
+
+.thin-scroll.inset::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.591);
+  border-radius: 999px;
+}
+
+.thin-scroll::-webkit-scrollbar-button {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.thin-scroll::-webkit-scrollbar-button:single-button {
+  display: none;
+  width: 0;
+  height: 0;
 }

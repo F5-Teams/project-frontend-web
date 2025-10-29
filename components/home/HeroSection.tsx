@@ -22,10 +22,10 @@ const HeroSection = () => {
   useFloatingCircles(circleRefs);
 
   return (
-    <section className="flex flex-col w-full items-center gap-[54px] px-0 pb-[80px] pt-[80px] relative">
+    <section className="flex flex-col w-full items-center gap-[54px] px-0 pb-20 pt-20 relative">
       <div className="inline-flex flex-col items-center justify-center gap-4 relative flex-[0_0_auto] top-24">
         <h1
-          className="relative w-[1500px] mt-[-20px] font-poppins-regular text-[90px] text-foreground text-center leading-[100px] tracking-[-4px] whitespace-pre-line min-h-[200px]"
+          className="relative w-[1500px] -mt-5 font-poppins-regular text-[90px] text-foreground text-center leading-[100px] tracking-[-4px] whitespace-pre-line min-h-[200px]"
           dangerouslySetInnerHTML={{
             __html: `${highlightText(
               displayText
@@ -52,7 +52,7 @@ const HeroSection = () => {
           }}
           className="inline-flex items-start gap-[9.31px] absolute top-[0%] left-[6%]"
         >
-          <div className="relative w-[240px] h-[240px] bg-secondary rounded-[135px]" />
+          <div className="relative w-60 h-60 bg-secondary rounded-[135px]" />
           <div className="absolute top-3.5 left-[13px] w-[212px] h-[212px] rounded-full overflow-hidden">
             <Image
               src={Image1}

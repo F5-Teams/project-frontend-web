@@ -58,7 +58,7 @@ export default function Header() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 flex items-center justify-between px-16 py-4 z-[100] transition-all duration-300 ease-in-out ${
+      className={`fixed top-0 left-0 flex items-center justify-between px-16 py-4 z-100 transition-all duration-300 ease-in-out ${
         isCartOpen ? "w-full lg:w-[calc(100%-384px)]" : "w-full"
       }`}
     >
@@ -81,12 +81,12 @@ export default function Header() {
             <NavigationMenuItem>
               <NavigationMenuTrigger
                 className="font-poppins-light font-light text-[14px] sm:text-[15px] md:text-[16px] 
-                2xl:text-[18px] text-center leading-[24px] 
+                2xl:text-[18px] text-center leading-6 
                 tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors cursor-pointer"
               >
                 <p className="cursor-pointer ">DỊCH VỤ</p>
               </NavigationMenuTrigger>
-              <NavigationMenuContent className="p-3 absolute left-1/2 -translate-x-1/2 border-none min-w-[280px] z-[100] bg-white/90 backdrop-blur shadow-lg rounded-xl">
+              <NavigationMenuContent className="p-3 absolute left-1/2 -translate-x-1/2 border-none min-w-[280px] z-100 bg-white/90 backdrop-blur shadow-lg rounded-xl">
                 <ul className=" font-light grid gap-4">
                   <li>
                     <Link
@@ -165,7 +165,7 @@ export default function Header() {
             <NavigationMenuItem>
               <NavigationMenuLink
                 href="/about-us"
-                className="relative w-fit mt-[-1.00px] font-poppins-light text-[14px] sm:text-[15px] md:text-[16px] 2xl:text-[18px] text-foreground text-center leading-[24px] tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
+                className="relative w-fit -mt-px font-poppins-light text-[14px] sm:text-[15px] md:text-[16px] 2xl:text-[18px] text-foreground text-center leading-6 tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
               >
                 VỀ CHÚNG TÔI
               </NavigationMenuLink>
@@ -174,7 +174,7 @@ export default function Header() {
             <NavigationMenuItem>
               <NavigationMenuLink
                 href="#nhận-nuôi"
-                className="relative w-fit mt-[-1.00px] font-poppins-light text-[14px] sm:text-[15px] md:text-[16px] 2xl:text-[18px] text-foreground text-center leading-[24px] tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
+                className="relative w-fit -mt-px font-poppins-light text-[14px] sm:text-[15px] md:text-[16px] 2xl:text-[18px] text-foreground text-center leading-6 tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
               >
                 NHẬN NUÔI
               </NavigationMenuLink>
@@ -183,7 +183,7 @@ export default function Header() {
             <NavigationMenuItem>
               <NavigationMenuLink
                 href="#liên-hệ"
-                className="relative w-fit mt-[-1.00px] font-poppins-light text-[14px] sm:text-[15px] md:text-[16px] 2xl:text-[18px] text-foreground text-center leading-[24px] tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
+                className="relative w-fit -mt-px font-poppins-light text-[14px] sm:text-[15px] md:text-[16px] 2xl:text-[18px] text-foreground text-center leading-6 tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
               >
                 LIÊN HỆ
               </NavigationMenuLink>
@@ -237,7 +237,7 @@ export default function Header() {
                 <span className="hidden sm:inline-block font-poppins-light text-sm group-hover:text-primary transition-colors">
                   {auth.user?.userName || "thaoxinhdep"}
                 </span>
-                <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-pink-400 to-yellow-300 flex items-center justify-center text-white font-semibold uppercase">
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-linear-to-br from-pink-400 to-yellow-300 flex items-center justify-center text-white font-semibold uppercase">
                   {auth.user?.avatar ? (
                     <Image
                       src={auth.user.avatar}
