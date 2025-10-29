@@ -4,22 +4,15 @@ import React, { PropsWithChildren, useMemo } from "react";
 import { cn } from "@/lib/utils";
 
 export type BookingBlockProps = {
-  /** Thời điểm bắt đầu (Date hoặc ISO string) */
   start: Date | string;
-  /** Số phút diễn ra */
   durationMinutes: number;
-  /** Giờ bắt đầu của lưới trong ngày (vd 8 nghĩa là 08:00) */
   dayStartHour: number;
-  /** Chiều cao theo 1 giờ (px), bạn truyền từ WeeklySchedule (rowHeight) */
   rowHeight: number;
-  /** Lề trái/phải tuỳ chọn (dùng khi xử lý overlap, nếu cần) */
-  insetX?: number; // px
-  /** Màu (bg + border) của block */
-  colorClass?: string; // vd "bg-teal-50 border-teal-400"
-  /** className bổ sung */
+  insetX?: number;
+  colorClass?: string;
   className?: string;
-  /** Click handler tuỳ chọn */
   onClick?: () => void;
+  allowOverflow?: boolean;
 };
 
 function toDateLocal(x: Date | string) {
@@ -47,12 +40,12 @@ export const BookingBlock: React.FC<PropsWithChildren<BookingBlockProps>> = ({
   colorClass = "bg-teal-50 border-teal-400",
   className,
   onClick,
+  allowOverflow,
   children,
 }) => {
   const s = useMemo(() => toDateLocal(start), [start]);
   const e = useMemo(() => addMinutes(s, durationMinutes), [s, durationMinutes]);
 
-  // ví trí top = (giờ float - dayStartHour) * rowHeight
   const top = useMemo(() => {
     const startFloat = s.getHours() + s.getMinutes() / 60;
     return (startFloat - dayStartHour) * rowHeight;
@@ -78,19 +71,16 @@ export const BookingBlock: React.FC<PropsWithChildren<BookingBlockProps>> = ({
         height,
         left: insetX,
         right: insetX,
-        overflow: "hidden",
+        overflow: allowOverflow ? "visible" : "hidden",
       }}
       aria-label={`Booking from ${fmtHM(s)} to ${fmtHM(e)}`}
     >
-      {/* Nếu không truyền children, render mặc định */}
       {children ? (
         children
       ) : (
         <>
-          <div className="text-xs font-semibold text-gray-900 leading-tight truncate">
-            {/* để bạn truyền title ở ngoài nếu muốn custom */}
-          </div>
-          <div className="text-[11px] text-gray-600">
+          <div className="text-xs font-semibold text-gray-900 leading-tight"></div>
+          <div className="text-xs text-gray-600">
             {fmtHM(s)} – {fmtHM(e)}
           </div>
         </>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { ArrowLeft, ChevronRight, Bell, Edit3 } from "lucide-react";
@@ -8,12 +9,11 @@ import { useMe } from "@/services/profile/hooks";
 import { useInitials } from "@/utils/useInitials";
 import { UserInfoCard } from "@/components/profile/UserInfoCard";
 import { MiniCalendar } from "@/components/profile/MiniCalendar";
-import {
-  Booking,
-  WeeklySchedule,
-} from "@/components/profile/schedule/WeeklySchedule";
+
 import { useBookings } from "@/services/profile/profile-schedule/hooks";
 import { mapApiToBookings } from "@/components/profile/schedule/mapApiBookings";
+import { WeeklySchedule } from "@/components/profile/schedule/WeeklySchedule";
+import { Booking } from "@/types/scheduleType";
 
 export default function InfoPage() {
   const { data: user, isLoading, error, refetch } = useMe();
@@ -29,7 +29,7 @@ export default function InfoPage() {
     userName: user?.userName,
   });
 
-  const dayStartHour = 8;
+  const dayStartHour = 7;
   const dayEndHour = 18;
 
   const bookings: Booking[] = useMemo(() => {
@@ -73,8 +73,9 @@ export default function InfoPage() {
     <div
       className="
       mx-auto w-full
-      md:p-2 lg:p-4
-      sm:max-w-screen-sm md:max-w-screen-md
+      md:py-2 lg:py-4
+      md:px-1 lg:px-2
+      sm:max-w-screen-sm md:max-w-3xl
       lg:max-w-5xl xl:max-w-7xl
     "
     >
@@ -161,7 +162,7 @@ export default function InfoPage() {
                   className="flex items-center space-x-2.5 lg:space-x-3"
                 >
                   <div
-                    className={`w-9 h-9 lg:w-10 lg:h-10 ${doctor.color} rounded-xl flex items-center justify-center flex-shrink-0`}
+                    className={`w-9 h-9 lg:w-10 lg:h-10 ${doctor.color} rounded-xl flex items-center justify-center shrink-0`}
                   >
                     <div className="w-5 h-5 lg:w-6 lg:h-6 bg-white rounded-lg" />
                   </div>
@@ -177,7 +178,7 @@ export default function InfoPage() {
           </div>
 
           {/* Write Prescription Card */}
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl lg:rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+          <div className="bg-linear-to-br from-blue-50 to-blue-100 rounded-2xl lg:rounded-3xl p-4 lg:p-6 relative overflow-hidden">
             <h3 className="text-sm lg:text-base font-semibold text-gray-900 mb-1 lg:mb-2">
               Write Prescription
             </h3>

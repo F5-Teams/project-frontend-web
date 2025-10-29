@@ -1,7 +1,6 @@
 import { ApiBooking } from "@/services/profile/profile-schedule/types";
-import type { Booking } from "./WeeklySchedule";
+import { Booking } from "@/types/scheduleType";
 
-/** tiện ích */
 const toDate = (iso: string) => new Date(iso);
 const startOfDay = (d: Date) =>
   new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
@@ -87,15 +86,18 @@ export function mapApiToBookings(
     dayEndHour?: number;
   }
 ): Booking[] {
-  const defaultDuration = opts?.defaultDuration ?? 60; // phút nếu không có combo.duration
-  const dayStartHour = opts?.dayStartHour ?? 8;
+  const defaultDuration = opts?.defaultDuration ?? 60;
+  const dayStartHour = opts?.dayStartHour ?? 7;
   const dayEndHour = opts?.dayEndHour ?? 18;
 
   const out: Booking[] = [];
 
   for (const b of data) {
+    // luôn lưu bookingDate vào meta.bookingDate để dùng cho nhãn hiển thị
+    const bookingDateIso = b.bookingDate;
+
     // 1) Lịch dịch vụ 1 buổi -> b.bookingDate + duration (từ combo.duration hoặc default)
-    if (b.bookingDate) {
+    if (b.bookingDate && !b.slot) {
       const start = toDate(b.bookingDate);
       const durationMinutes = b.combo?.duration ?? defaultDuration;
       out.push({
@@ -105,6 +107,7 @@ export function mapApiToBookings(
         durationMinutes,
         colorClass: colorFor(b),
         meta: {
+          bookingDate: bookingDateIso,
           status: b.status,
           pet: b.pet?.name ?? null,
           price: b.comboPrice || b.servicePrice || null,
@@ -112,7 +115,7 @@ export function mapApiToBookings(
       });
     }
 
-    // 2) Slot (lưu trú/phòng) -> có thể nhiều ngày: tách theo ngày
+    // 2) Slot (lưu trú/phòng) -> tạo segment để render trên grid nhưng nhãn vẫn dùng bookingDate
     if (b.slot?.startDate && b.slot?.endDate) {
       const slotStart = toDate(b.slot.startDate);
       const slotEnd = toDate(b.slot.endDate);
@@ -130,12 +133,17 @@ export function mapApiToBookings(
         out.push({
           id: `B-${b.id}-slot-${idx}`,
           type: typeFor(b),
+          // position trên calendar theo segment (để hiển thị nhiều ngày)
           start: seg.start,
           durationMinutes,
-          colorClass: "bg-yellow-50 border-yellow-400",
+          colorClass: colorFor(b),
           meta: {
+            bookingDate: bookingDateIso,
+            pet: b.pet?.name ?? null,
             room: b.Room?.name ?? null,
             stay: 1,
+            slotStart: slotStart.toISOString(),
+            slotEnd: slotEnd.toISOString(),
           },
         });
       });

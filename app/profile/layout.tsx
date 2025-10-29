@@ -10,9 +10,9 @@ export default function HomeLayout({
 }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="flex min-h-screen bg-gradient-to-b from-pink-100 via-white to-yellow-100">
+    <div className="flex min-h-screen bg-linear-to-b from-pink-100 via-white to-yellow-100">
       <Sidebar open={open} onToggle={() => setOpen((v) => !v)} />
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto lg:ml-0">
         <div className="container mx-auto md:py-2 lg:py-4">{children}</div>
       </main>
     </div>
