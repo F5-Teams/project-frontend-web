@@ -60,7 +60,8 @@ export const WeeklySchedule: React.FC<WeeklyScheduleProps> = ({
     () => buildTimeSlots(dayStartHour, dayEndHour, slotMinutes),
     [dayStartHour, dayEndHour, slotMinutes]
   );
-  const rowHeight = 56 * (slotMinutes / 60) * 1.35;
+
+  const rowHeight = 90 * (slotMinutes / 60);
 
   // lọc booking theo tuần
   const weekBookings = React.useMemo(() => {

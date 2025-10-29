@@ -40,7 +40,9 @@ export interface ApiRoom {
   class: string;
   price: string;
   status: string;
-  description: string;
+  // mô tả và ảnh có thể có hoặc null từ API
+  description?: string | null;
+  imageUrl?: string | null;
 }
 
 export interface ApiPet {
@@ -55,6 +57,9 @@ export interface ApiPet {
   note: string;
   userId: number;
   recordId: number | null;
+  // ảnh pet nếu có
+  imageUrl?: string | null;
+  avatar?: string | null;
 }
 
 export interface ApiBooking {
@@ -78,5 +83,7 @@ export interface ApiBooking {
   pet: ApiPet;
   combo: ApiCombo | null;
   Room: ApiRoom | null;
+  // some responses may use lowercase "room"
+  room?: ApiRoom | null;
   slot: ApiSlot | null;
 }

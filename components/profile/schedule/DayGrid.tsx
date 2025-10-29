@@ -127,6 +127,7 @@ export const DayGrid: React.FC<Props> = ({
               dayStartHour={dayStartHour}
               rowHeight={rowHeight}
               colorClass={b.colorClass ?? "bg-teal-50 border-teal-400"}
+              allowOverflow={true}
             >
               <div className="text-xs font-poppins-medium text-gray-900 leading-tight">
                 {b.type}
@@ -158,6 +159,7 @@ export const DayGrid: React.FC<Props> = ({
               dayStartHour={dayStartHour}
               rowHeight={rowHeight}
               colorClass={active.colorClass ?? "bg-teal-50 border-teal-400"}
+              allowOverflow={true}
             >
               <div className="relative pt-4">
                 <div className="min-w-0">
