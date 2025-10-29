@@ -80,13 +80,6 @@ export function BagDrawer({ children }: BagDrawerProps) {
             <X className="h-5 w-5" />
           </button>
         }
-        headerStyle={{
-          borderBottom: "1px solid #ec4899",
-          padding: "16px 24px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
       >
         {items.length === 0 ? (
           <div className="flex flex-col items-center h-full text-center text-gray-500">
