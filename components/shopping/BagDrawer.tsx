@@ -1,0 +1,189 @@
+"use client";
+
+import { useProductCartStore } from "@/stores/productCart.store";
+import { Button, Drawer } from "antd";
+import Image from "next/image";
+import { Trash2, X } from "lucide-react";
+import { ReactNode, useState, useMemo } from "react";
+import BuyModal from "./BuyModal";
+
+interface BagDrawerProps {
+  children: ReactNode;
+}
+
+export function BagDrawer({ children }: BagDrawerProps) {
+  const [open, setOpen] = useState(false);
+  const [openBuy, setOpenBuy] = useState(false);
+  const { items, removeProduct, clearCart } = useProductCartStore();
+
+  const total = useMemo(
+    () => items.reduce((acc, cur) => acc + cur.price * cur.quantity, 0),
+    [items]
+  );
+
+  return (
+    <>
+      <div onClick={() => setOpen(true)}>{children}</div>
+
+      <Drawer
+        placement="right"
+        width={384}
+        open={open}
+        onClose={() => setOpen(false)}
+        closable={false}
+        styles={{
+          header: {
+            borderBottom: "1px solid #ec4899",
+            padding: "16px 24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          },
+        }}
+        title={
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex gap-1.5">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="22"
+                height="22"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  fill="#ec4899"
+                  fillRule="evenodd"
+                  d="M5.174 3h5.652a1.5 1.5 0 0 1 1.49 1.328l.808 7A1.5 1.5 0 0 1 11.634 13H4.366a1.5 1.5 0 0 1-1.49-1.672l.808-7A1.5 1.5 0 0 1 5.174 3m-2.98 1.156A3 3 0 0 1 5.174 1.5h5.652a3 3 0 0 1 2.98 2.656l.808 7a3 3 0 0 1-2.98 3.344H4.366a3 3 0 0 1-2.98-3.344zM5 5.25a.75.75 0 0 1 1.5 0v.25a1.5 1.5 0 1 0 3 0v-.25a.75.75 0 0 1 1.5 0v.25a3 3 0 0 1-6 0z"
+                  clip-rule="evenodd"
+                  stroke-width="0.5"
+                  stroke="#"
+                />
+              </svg>
+              <span className="font-semibold text-sm sm:text-base">
+                Giỏ của tôi
+              </span>
+            </div>
+            {items.length > 1 && (
+              <button
+                onClick={clearCart}
+                className="text-white bg-pink-500 px-3 py-1 mr-2 rounded-md hover:bg-pink-600 cursor-pointer"
+              >
+                Xóa hết
+              </button>
+            )}
+          </div>
+        }
+        extra={
+          <button
+            onClick={() => setOpen(false)}
+            className="text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        }
+      >
+        {items.length === 0 ? (
+          <div className="flex flex-col items-center h-full text-center text-gray-500">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              className="w-16 h-16 text-gray-400 mb-3"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 2h12l1 7H5l1-7zm1 7h10v13H7V9z"
+              />
+            </svg>
+            <p className="font-semibold text-lg mb-1">Giỏ hàng đang trống!</p>
+            <p className="text-gray-400">Thêm sản phẩm vào giỏ hàng ngay!</p>
+          </div>
+        ) : (
+          <div className="flex flex-col h-full justify-between">
+            <div className="overflow-y-auto pr-1 max-h-[70vh]">
+              {items.map((item) => (
+                <div
+                  key={item.productId}
+                  className="flex items-center justify-between mb-4 border-b pb-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="relative w-14 h-14 rounded-lg overflow-hidden border">
+                      <Image
+                        src={item.imageUrl || "/placeholder.svg"}
+                        alt={item.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-medium text-gray-800">{item.name}</p>
+                      <p className="text-sm text-gray-500">
+                        {item.quantity} × {item.price.toLocaleString("vi-VN")}đ
+                      </p>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="text"
+                    size="small"
+                    onClick={() => removeProduct(item.productId)}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-7 w-7 flex-shrink-0"
+                  >
+                    <Trash2 color="red" className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+            <div className="border-t border-pink-300 pt-4 mt-4 space-y-3">
+              <div className="flex justify-between text-sm font-medium">
+                <span>Sản phẩm ({items.length}):</span>
+                <span>{total.toLocaleString("vi-VN")} VNĐ</span>
+              </div>
+
+              <div className="flex justify-between text-sm font-medium">
+                <span>Total Deposit:</span>
+                <span>{(total / 10).toLocaleString("vi-VN")} VNĐ</span>
+              </div>
+
+              <div className="border-t border-pink-400 my-2" />
+
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-base">Tổng giá:</span>
+                <span className="text-green-600 font-bold text-lg">
+                  {total.toLocaleString("vi-VN")} VNĐ
+                </span>
+              </div>
+
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={() => setOpen(false)}
+                  className="flex-1 py-2 cursor-pointer rounded-xl border border-pink-500 text-pink-600 font-semibold hover:bg-pink-50 transition"
+                >
+                  Tiếp tục mua sắm
+                </button>
+
+                <button
+                  onClick={() => {
+                    setOpenBuy(true);
+                  }}
+                  className="flex-1 py-2 cursor-pointer rounded-xl bg-pink-500 hover:bg-pink-600 text-white font-semibold transition"
+                >
+                  Mua
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </Drawer>
+
+      <BuyModal
+        isOpen={openBuy}
+        isCancel={() => setOpenBuy(false)}
+        items={items}
+      />
+    </>
+  );
+}
