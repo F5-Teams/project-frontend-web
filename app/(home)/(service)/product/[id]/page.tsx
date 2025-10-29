@@ -1,6 +1,8 @@
 "use client";
 
+import BuyModal from "@/components/shopping/BuyModal";
 import { useGetProductPublicId } from "@/services/product/getProductPublicId/hooks";
+import { useProductCartStore } from "@/stores/productCart.store";
 import { ArrowLeftToLine } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
@@ -10,7 +12,8 @@ const ProductIdPage = () => {
   const params = useParams();
   const id = params?.id ? Number(params.id) : undefined;
   const router = useRouter();
-
+  const addProduct = useProductCartStore((state) => state.addProduct);
+  const [openBuy, setOpenBuy] = useState(false);
   const { data } = useGetProductPublicId(id);
   const [currentImage, setCurrentImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -161,15 +164,28 @@ const ProductIdPage = () => {
           <div className="flex gap-2">
             <button
               disabled={maxStock === 0}
-              className={`mt-8 py-3 rounded-xl w-[100%] cursor-pointer font-medium transition px-2 border-1 ${
+              onClick={() => {
+                addProduct({
+                  productId: data.id,
+                  name: data.name,
+                  price: Number(data.price),
+                  quantity,
+                  imageUrl: data.images?.[0]?.imageUrl,
+                });
+              }}
+              className={`mt-8 py-3 rounded-xl w-full cursor-pointer font-medium transition px-2 border-1 ${
                 maxStock === 0
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                   : "bg-[#f8daef] hover:bg-[#f5bee4] text-pink-600"
               }`}
             >
-              {maxStock === 0 ? "Hết hàng" : `Thêm ${quantity} sản phẩm `}
+              {maxStock === 0 ? "Hết hàng" : `Thêm ${quantity} sản phẩm`}
             </button>
+
             <button
+              onClick={() => {
+                setOpenBuy(true);
+              }}
               disabled={maxStock === 0}
               className={`mt-8 py-3 rounded-xl w-[100%] cursor-pointer font-medium transition px-2 ${
                 maxStock === 0
@@ -182,6 +198,19 @@ const ProductIdPage = () => {
           </div>
         </div>
       </div>
+      <BuyModal
+        isOpen={openBuy}
+        isCancel={() => setOpenBuy(false)}
+        items={[
+          {
+            productId: data.id,
+            name: data.name,
+            price: Number(data.price),
+            quantity,
+            imageUrl: data.images?.[0]?.imageUrl || "",
+          },
+        ]}
+      />
     </div>
   );
 };
