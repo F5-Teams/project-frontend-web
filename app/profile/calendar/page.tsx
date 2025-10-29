@@ -39,10 +39,10 @@ export default function ScheduleDetailPage() {
           <BookingDetailPanel booking={selected} />
         </div>
 
-        <div className="bg-white rounded-2xl p-4 max-h-[60vh] overflow-auto">
-          <div className="text-sm font-semibold text-gray-900 mb-2">
+        <div className="bg-white rounded-2xl max-h-[60vh] overflow-auto">
+          {/* <div className="text-sm font-semibold text-gray-900 mb-2">
             Lịch tháng
-          </div>
+          </div> */}
           <MonthRangeCalendar
             month={month}
             booking={selected}

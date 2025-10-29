@@ -93,7 +93,6 @@ export function MiniCalendar({
             root: "w-fit mx-auto",
             months: "flex flex-col gap-4 font-light",
             month: "flex flex-col w-full gap-4 font-light",
-
             weekdays: "flex",
             weekday: "flex-1 text-[0.8rem] text-primary/60 font-light",
             week: "flex w-full mt-2",

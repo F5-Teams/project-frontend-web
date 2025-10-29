@@ -61,7 +61,7 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
         aria-current={isActive ? "page" : undefined}
         onClick={onToggle}
         className={cn(
-          "relative w-10 h-10 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center transition-colors",
+          "relative w-10 h-10 lg:w-12 lg:h-12 rounded-[9999px] flex items-center justify-center transition-colors",
           isActive
             ? "bg-primary/20 text-primary"
             : "text-primary hover:bg-pink-200"
@@ -92,7 +92,7 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
         className={cn(
           "fixed lg:relative inset-y-0 left-0 z-40 transform transition-transform duration-300 ease-in-out",
           open ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
-          "w-20 lg:w-[100px] bg-white/40 backdrop-blur shadow-lg rounded-none lg:rounded-3xl lg:m-4 flex flex-col items-center py-8 space-y-6 lg:space-y-8"
+          "w-20 lg:w-[100px] bg-white/40 backdrop-blur shadow-lg rounded-none lg:rounded-[9999px] lg:m-4 flex flex-col items-center py-8 space-y-6 lg:space-y-8"
         )}
       >
         <div className="flex items-center justify-center">
