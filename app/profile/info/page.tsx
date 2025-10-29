@@ -14,9 +14,13 @@ import { useBookings } from "@/services/profile/profile-schedule/hooks";
 import { mapApiToBookings } from "@/components/profile/schedule/mapApiBookings";
 import { WeeklySchedule } from "@/components/profile/schedule/WeeklySchedule";
 import { Booking } from "@/types/scheduleType";
+import { useUserPets } from "@/services/profile/profile-pet/hooks";
+import { PetCard } from "@/components/profile/PetCard";
 
 export default function InfoPage() {
   const { data: user, isLoading, error, refetch } = useMe();
+  // ADD: fetch user pets
+  const { data: pets } = useUserPets(user?.id);
   const { data: apiBookings, isLoading: isBookingLoading } = useBookings();
   const [timeZone, setTimeZone] = useState<string>();
   const [today, setToday] = useState<Date>();
@@ -40,17 +44,6 @@ export default function InfoPage() {
       defaultDuration: 60,
     });
   }, [apiBookings]);
-
-  const doctors = [
-    { name: "Dr. Clarence Hamilton", role: "Therapist", color: "bg-teal-400" },
-    { name: "Dr. Brett Hoffman", role: "Surgeon", color: "bg-yellow-400" },
-    { name: "Dr. Miguel Leonard", role: "Hematologist", color: "bg-blue-400" },
-    {
-      name: "Dr. Mamie Holloway",
-      role: "Rehabilitologist",
-      color: "bg-blue-300",
-    },
-  ];
 
   useEffect(() => {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -146,38 +139,34 @@ export default function InfoPage() {
             className="w-full"
           />
 
-          {/* Doctors List */}
-          <div className="bg-white rounded-2xl lg:rounded-3xl p-4 lg:p-6">
-            <div className="flex items-center justify-between mb-3 lg:mb-4">
-              <h3 className="text-sm lg:text-base font-semibold text-gray-900">
-                Doctors
-              </h3>
-              <ChevronRight className="w-4 h-4 lg:w-5 lg:h-5 text-blue-500" />
-            </div>
-
-            <div className="space-y-2.5 lg:space-y-3">
-              {doctors.map((doctor, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center space-x-2.5 lg:space-x-3"
+          <div className="bg-[#1849A9] text-white rounded-2xl lg:rounded-3xl p-2 lg:p-4 shadow-lg overflow-hidden">
+            <div className="rounded-xl border-2 border-dashed border-white/30 p-3">
+              <div className="flex items-center justify-between mb-2 lg:mb-3">
+                <h3 className="text-sm lg:text-base font-poppins-medium text-white">
+                  Boss yêu của bạn
+                </h3>
+                <Link
+                  href="/profile-pet/information-pets"
+                  className="inline-flex items-center px-3 py-1 rounded-2xl text-xs text-white/90 bg-white/6 hover:bg-white/10 transition"
                 >
-                  <div
-                    className={`w-9 h-9 lg:w-10 lg:h-10 ${doctor.color} rounded-xl flex items-center justify-center shrink-0`}
-                  >
-                    <div className="w-5 h-5 lg:w-6 lg:h-6 bg-white rounded-lg" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 text-xs lg:text-sm truncate">
-                      {doctor.name}
-                    </div>
-                    <div className="text-xs text-gray-500">{doctor.role}</div>
-                  </div>
-                </div>
-              ))}
+                  Xem chi tiết{"  "}
+                  <ChevronRight className="w-4 h-4 lg:w-5 lg:h-5 text-white/90" />
+                </Link>
+              </div>
+
+              <div className="space-y-2.5 lg:space-y-3">
+                {pets && pets.length > 0 ? (
+                  pets
+                    .slice(0, 4)
+                    .map((pet) => <PetCard key={pet.id} pet={pet} />)
+                ) : (
+                  <div className="text-xs text-white/80">No pets found</div>
+                )}
+              </div>
             </div>
           </div>
-
-          {/* Write Prescription Card */}
+          {/* 
+          Write Prescription Card
           <div className="bg-linear-to-br from-blue-50 to-blue-100 rounded-2xl lg:rounded-3xl p-4 lg:p-6 relative overflow-hidden">
             <h3 className="text-sm lg:text-base font-semibold text-gray-900 mb-1 lg:mb-2">
               Write Prescription
@@ -196,7 +185,7 @@ export default function InfoPage() {
                 <div className="absolute bottom-6 right-6 lg:bottom-8 lg:right-8 w-12 h-16 lg:w-16 lg:h-20 bg-blue-200 rounded-lg transform -rotate-6"></div>
               </div>
             </div>
-          </div>
+          </div> */}
         </aside>
       </div>
     </div>

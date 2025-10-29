@@ -162,7 +162,7 @@ export function UserInfoCard({ user }: Props) {
                   Giới tính
                 </div>
                 {!isEditing ? (
-                  <div className="font-light text-lg">
+                  <div className="font-poppins-regular text-lg">
                     {user?.gender ? "Nam" : "Nữ"}
                   </div>
                 ) : (
@@ -197,7 +197,7 @@ export function UserInfoCard({ user }: Props) {
                   Số điện thoại
                 </div>
                 {!isEditing ? (
-                  <div className="font-light text-lg">
+                  <div className="font-poppins-regular text-lg">
                     {user?.phoneNumber || "Chưa cập nhật"}
                   </div>
                 ) : (
@@ -216,7 +216,7 @@ export function UserInfoCard({ user }: Props) {
                   Địa chỉ
                 </div>
                 {!isEditing ? (
-                  <p className="font-poppins-light text-lg break-words overflow-hidden">
+                  <p className="font-poppins-regular text-lg wrap-break-words overflow-hidden">
                     {user?.address || "Chưa cập nhật"}
                   </p>
                 ) : (
