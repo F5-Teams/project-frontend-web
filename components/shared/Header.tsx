@@ -23,11 +23,14 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { useCartSummary, useIsCartOpen } from "@/stores/cart.store";
+import { BagDrawer } from "../shopping/BagDrawer";
+import { useProductCartStore } from "@/stores/productCart.store";
 
 export default function Header() {
   const router = useRouter();
   const cartSummary = useCartSummary();
   const isCartOpen = useIsCartOpen();
+  const { items } = useProductCartStore();
   const [auth, setAuth] = useState<{
     token: string | null;
     user: { userName?: string; avatar?: string } | null;
@@ -192,7 +195,7 @@ export default function Header() {
       <div className="inline-flex items-center gap-3 p-4 ml-auto">
         {/* Cart Icon */}
         <CartDrawer>
-          <button className="relative p-2 rounded-full hover:bg-gray-100 transition-colors group">
+          <button className="relative cursor-pointer p-2 rounded-full hover:bg-gray-100 transition-colors group">
             <ShoppingCart className="h-6 w-6 text-gray-600 group-hover:text-primary transition-colors" />
             {cartSummary.totalItems > 0 && (
               <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
@@ -201,6 +204,31 @@ export default function Header() {
             )}
           </button>
         </CartDrawer>
+
+        <BagDrawer>
+          <button className="relative cursor-pointer p-2 rounded-full hover:bg-gray-100 transition-colors group">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 16 16"
+              className="h-6 w-6 text-gray-600 group-hover:text-primary transition-colors"
+              aria-hidden="true"
+            >
+              <path
+                d="M5.174 3h5.652a1.5 1.5 0 0 1 1.49 1.328l.808 7A1.5 1.5 0 0 1 11.634 13H4.366a1.5 1.5 0 0 1-1.49-1.672l.808-7A1.5 1.5 0 0 1 5.174 3m-2.98 1.156A3 3 0 0 1 5.174 1.5h5.652a3 3 0 0 1 2.98 2.656l.808 7a3 3 0 0 1-2.98 3.344H4.366a3 3 0 0 1-2.98-3.344zM5 5.25a.75.75 0 0 1 1.5 0v.25a1.5 1.5 0 1 0 3 0v-.25a.75.75 0 0 1 1.5 0v.25a3 3 0 0 1-6 0z"
+                fill="currentColor"
+                fillRule="evenodd"
+                clipRule="evenodd"
+                strokeWidth="0.5"
+              />
+            </svg>
+
+            {items.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                {items.length}
+              </span>
+            )}
+          </button>
+        </BagDrawer>
 
         {auth.token ? (
           <DropdownMenu>
