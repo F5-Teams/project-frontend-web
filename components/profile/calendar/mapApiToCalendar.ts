@@ -1,4 +1,7 @@
-import { ApiBooking } from "@/services/profile/profile-schedule/types";
+import {
+  ApiBooking,
+  ApiFilteredBooking,
+} from "@/services/profile/profile-schedule/types";
 import { CalendarBooking } from "@/types/calendarType";
 
 function getString(
@@ -31,7 +34,10 @@ function getArray(
   return Array.isArray(v) ? v : undefined;
 }
 
-export function mapApiToCalendar(b: ApiBooking): CalendarBooking {
+// accept both ApiBooking and ApiFilteredBooking shapes (they are compatible at runtime)
+export function mapApiToCalendar(
+  b: ApiBooking | ApiFilteredBooking
+): CalendarBooking {
   const rangeS = b.slot?.startDate ?? b.checkInDate ?? undefined;
   const rangeE = b.slot?.endDate ?? b.checkOutDate ?? undefined;
 

@@ -83,7 +83,44 @@ export interface ApiBooking {
   pet: ApiPet;
   combo: ApiCombo | null;
   Room: ApiRoom | null;
-  // some responses may use lowercase "room"
   room?: ApiRoom | null;
   slot: ApiSlot | null;
+}
+
+// API Searched
+export interface ApiFilteredBooking {
+  id: number;
+  status: BookingStatus;
+  bookingDate: string;
+  checkInDate: string | null;
+  checkOutDate: string | null;
+  dropDownSlot: "MORNING" | "AFTERNOON" | "EVENING" | string;
+  type?: "SPA" | "HOTEL" | string;
+  totalPrice: number;
+  pet: {
+    id: number;
+    name: string;
+    imageUrl?: string | null;
+  };
+  combo?: {
+    id: number;
+    name: string;
+    services: {
+      id: number;
+      name: string;
+      imageUrl?: string | null;
+    }[];
+  } | null;
+  room?: {
+    id: number;
+    name: string;
+    imageUrl?: string | null;
+  } | null;
+  slot?: {
+    startDate: string;
+    endDate: string;
+    totalPrice: number;
+  } | null;
+  canLeaveFeedback?: boolean;
+  hasFeedback?: boolean;
 }
