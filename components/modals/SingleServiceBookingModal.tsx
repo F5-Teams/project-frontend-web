@@ -30,7 +30,7 @@ import api from "@/config/axios";
 interface SingleServiceBookingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (bookingDraft: BookingDraft) => void;
+  onConfirm: (bookingDrafts: BookingDraft[]) => void;
   serviceId: string;
   selectedPetIds: string[];
   service?: any; // Optional service data to avoid duplicate API calls
@@ -139,18 +139,18 @@ export const SingleServiceBookingModal: React.FC<
     // selectedTime giờ đã là period (MORNING/AFTERNOON/EVENING)
     const dropDownSlot = selectedTime as "MORNING" | "AFTERNOON" | "EVENING";
 
-    // Tạo booking draft với comboId (vì trang spa đang truyền combo.id vào)
-    const bookingDraft: BookingDraft = {
+    // Tạo booking draft cho mỗi pet được chọn
+    const bookingDrafts: BookingDraft[] = selectedPetIds.map((petId) => ({
       tempId: generateTempId(),
-      petId: parseInt(selectedPetIds[0]), // Assuming single pet for now
+      petId: parseInt(petId),
       bookingDate: format(selectedDate!, "yyyy-MM-dd"),
       dropDownSlot,
       note: notes.trim() || undefined,
       comboId: parseInt(serviceId), // Đây là combo ID, không phải service ID
       customName: serviceData?.name, // Lưu tên combo để hiển thị
-    };
+    }));
 
-    onConfirm(bookingDraft);
+    onConfirm(bookingDrafts);
     onClose();
   };
 
@@ -168,12 +168,14 @@ export const SingleServiceBookingModal: React.FC<
       <CustomModal
         open={isOpen}
         onClose={onClose}
-        title="Book Service"
+        title="Đặt dịch vụ SPA"
         className="max-w-4xl"
       >
         <div className="flex items-center justify-center py-8">
           <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-          <span className="ml-2 text-gray-600">Loading service details...</span>
+          <span className="ml-2 text-gray-600">
+            Đang tải thông tin dịch vụ...
+          </span>
         </div>
       </CustomModal>
     );
@@ -187,7 +189,7 @@ export const SingleServiceBookingModal: React.FC<
     <CustomModal
       open={isOpen}
       onClose={onClose}
-      title="Book Service"
+      title="Đặt dịch vụ SPA"
       className="max-w-4xl"
     >
       <div className="space-y-6 max-h-[80vh] overflow-y-auto">
@@ -197,10 +199,10 @@ export const SingleServiceBookingModal: React.FC<
             <CardTitle className="flex items-center justify-between">
               <span>
                 {loading
-                  ? "Loading service..."
-                  : serviceData?.name || "Service not found"}
+                  ? "Đang tải thông tin dịch vụ..."
+                  : serviceData?.name || "Không tìm thấy dịch vụ"}
               </span>
-              <Badge variant="secondary">Spa Combo</Badge>
+              <Badge variant="secondary">Combo SPA</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -209,14 +211,14 @@ export const SingleServiceBookingModal: React.FC<
                 <div className="flex flex-col items-center gap-2">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                   <p className="text-sm text-gray-500">
-                    Loading service details...
+                    Đang tải thông tin dịch vụ...
                   </p>
                 </div>
               </div>
             ) : (
               <>
                 <p className="text-gray-600">
-                  {serviceData?.description || "Loading description..."}
+                  {serviceData?.description || "Mô tả dịch vụ hiện chưa có."}
                 </p>
 
                 {/* Display included services */}
@@ -245,7 +247,9 @@ export const SingleServiceBookingModal: React.FC<
                 <div className="flex items-center space-x-4 text-sm text-gray-500">
                   <div className="flex items-center space-x-1">
                     <Clock className="h-4 w-4" />
-                    <span>{formatDuration(serviceData?.duration || 0)}</span>
+                    <span>
+                      Thời lượng: {formatDuration(serviceData?.duration || 0)}
+                    </span>
                   </div>
                   <div className="flex items-center space-x-1">
                     <span className="font-medium text-lg text-green-600">
@@ -267,12 +271,18 @@ export const SingleServiceBookingModal: React.FC<
             <div className="flex items-center space-x-2 mb-2">
               <AlertCircle className="h-4 w-4 text-red-600" />
               <span className="font-medium text-red-800">
-                Please fix the following errors:
+                Vui lòng kiểm tra các lỗi sau:
               </span>
             </div>
             <ul className="list-disc list-inside space-y-1 text-sm text-red-700">
               {errors.map((error, index) => (
-                <li key={index}>{error}</li>
+                <li key={index}>
+                  {error === "Please select a date"
+                    ? "Vui lòng chọn ngày"
+                    : error === "Please select a time"
+                    ? "Vui lòng chọn khung giờ"
+                    : error}
+                </li>
               ))}
             </ul>
           </div>
@@ -280,7 +290,7 @@ export const SingleServiceBookingModal: React.FC<
 
         {/* Date Selection */}
         <div className="space-y-3">
-          <Label className="text-base font-medium">Select Date</Label>
+          <Label className="text-base font-medium">Chọn ngày</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -288,7 +298,7 @@ export const SingleServiceBookingModal: React.FC<
                 className="w-full justify-start text-left font-normal"
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
+                {selectedDate ? format(selectedDate, "PPP") : "Chọn ngày"}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -306,10 +316,10 @@ export const SingleServiceBookingModal: React.FC<
         {/* Time Selection */}
         {selectedDate && (
           <div className="space-y-3">
-            <Label className="text-base font-medium">Select Time</Label>
+            <Label className="text-base font-medium">Chọn khung giờ</Label>
             <Select value={selectedTime} onValueChange={setSelectedTime}>
               <SelectTrigger>
-                <SelectValue placeholder="Choose a time slot" />
+                <SelectValue placeholder="Chọn khung giờ" />
               </SelectTrigger>
               <SelectContent>
                 {availableTimeSlots.map((slot) => (
@@ -321,7 +331,7 @@ export const SingleServiceBookingModal: React.FC<
             </Select>
             {availableTimeSlots.length === 0 && (
               <p className="text-sm text-gray-500">
-                No available time slots for this date.
+                Không còn khung giờ nào khả dụng cho ngày này.
               </p>
             )}
           </div>
@@ -330,11 +340,11 @@ export const SingleServiceBookingModal: React.FC<
         {/* Notes */}
         <div className="space-y-3">
           <Label htmlFor="notes" className="text-base font-medium">
-            Additional Notes (Optional)
+            Ghi chú thêm
           </Label>
           <Textarea
             id="notes"
-            placeholder="Any special instructions or notes for the groomer..."
+            placeholder="Bạn có yêu cầu hoặc ghi chú nào cho dịch vụ này không..."
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
@@ -344,14 +354,14 @@ export const SingleServiceBookingModal: React.FC<
         {/* Action buttons */}
         <div className="flex justify-end space-x-3 pt-4 border-t">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            Hủy
           </Button>
           <Button
             onClick={handleConfirm}
             disabled={!selectedDate || !selectedTime}
             className="min-w-[120px]"
           >
-            Add to Cart
+            Thêm vào giỏ
           </Button>
         </div>
       </div>
