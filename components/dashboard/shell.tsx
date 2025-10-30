@@ -1,5 +1,4 @@
-import { SidebarItem } from "./sidebar";
-import { Sidebar } from "./Sidebar";
+import { Sidebar, SidebarItem } from "./sidebar";
 import { Topbar } from "./topbar";
 
 export function DashboardShell({
@@ -10,11 +9,11 @@ export function DashboardShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="flex">
-        <Sidebar items={items} />
-        <main className="flex-1">
-          <Topbar />
+    <div className="min-h-screen bg-[#fffafc] flex">
+      <Sidebar items={items} />
+      <div className="flex-1 ml-64 flex flex-col">
+        <Topbar />
+        <main className="flex-1 p-6 bg-[#fffafc] min-h-screen overflow-y-auto">
           <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
             {children}
           </div>

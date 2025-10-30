@@ -2,8 +2,8 @@
 import { motion } from "framer-motion";
 import { useAllProductAdmin } from "@/services/product/getProduct/hooks";
 import { ProductAdmin } from "@/services/product/getProduct/type";
-import { Input, message, Modal, Spin } from "antd";
-import { Calendar, Package, PencilOff, ShoppingBag, Trash } from "lucide-react";
+import { Input, Spin } from "antd";
+import { Calendar, Package, PencilOff, Trash } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { ModalProduct } from "@/components/products/ModalProduct";
@@ -44,9 +44,10 @@ const ProductCard = ({ productAdmin, onOpen, onDelete }: ProductCardProps) => {
       <div className="relative h-64 w-full bg-gray-50">
         <Image
           src={productAdmin.images[currentImage]?.imageUrl}
-          alt={productAdmin.images[currentImage]?.imageUrl}
-          fill
-          className="object-cover transition-transform duration-700 group-hover:scale-105"
+          alt={productAdmin.images[currentImage]?.imageUrl || "Product image"}
+          width={400}
+          height={256}
+          className="w-full h-64 object-cover transition-transform duration-700 group-hover:scale-105"
         />
 
         <div className="absolute top-3 left-3 bg-gradient-to-r from-pink-500 to-rose-400 text-white text-xs px-3 py-1 rounded-full shadow">
