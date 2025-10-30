@@ -192,14 +192,14 @@ export function WeeklyGrid({
         }}
       >
         <div
-          className="grid gap-y-4 gap-x-4 px-1"
+          className="grid gap-y-4 gap-x-4 px-2"
           style={{ gridTemplateColumns: "repeat(7, minmax(0, 1fr))" }}
         >
           {spans.length === 0 ? (
             <div
               key="empty"
               style={{ gridColumn: "1 / 8", gridRow: 1 }}
-              className="mx-1"
+              className="mx-0.5"
             >
               <div className="min-h-[72px] flex items-center justify-center rounded-lg border border-dashed border-gray-100 bg-white">
                 <span className="text-sm text-gray-500">
@@ -215,7 +215,7 @@ export function WeeklyGrid({
                   gridColumn: `${startIdx + 1} / ${endIdx + 2}`,
                   gridRow: idx + 1,
                 }}
-                className="mx-1"
+                className="mx-0.5"
               >
                 <BookingBox
                   data={b}

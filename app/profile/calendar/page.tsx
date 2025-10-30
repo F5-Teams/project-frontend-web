@@ -7,6 +7,7 @@ import { CalendarBooking } from "@/types/calendarType"; // import type from cent
 import { WeeklyGrid } from "@/components/profile/calendar/WeeklyGrid";
 import { BookingDetailPanel } from "@/components/profile/calendar/BookingDetailPanel";
 import { MonthRangeCalendar } from "@/components/profile/calendar/MonthRangeCalendar";
+import { BookingSearch } from "@/components/profile/calendar/BookingSearch";
 
 export default function ScheduleDetailPage() {
   const { data, isLoading, error } = useBookings();
@@ -22,16 +23,15 @@ export default function ScheduleDetailPage() {
   if (error) return <div className="p-6 text-red-600">Lỗi tải lịch.</div>;
 
   return (
-    <div className="mx-auto w-full sm:max-w-5xl lg:max-w-7xl p-4 md:p-6 space-y-6">
-      <WeeklyGrid
-        data={list}
+    <div className="mx-auto w-full sm:max-w-5xl lg:max-w-7xl p-2 md:p-4 px-2 md:px-4 space-y-6">
+      <BookingSearch
         selectedId={selected?.id}
         onSelect={(b) => {
           setSelected(b);
-
           setMonth(new Date(b.startDate ?? Date.now()));
         }}
         tzLabel={Intl.DateTimeFormat().resolvedOptions().timeZone}
+        defaultData={list}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
