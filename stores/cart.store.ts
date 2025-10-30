@@ -573,3 +573,9 @@ export const useCartItemPrice = (tempId: string) => {
     return pricing || DEFAULT_PRICING;
   });
 };
+
+export const useIsProductCartOpen = create((set) => ({
+  isProductCartOpen: false,
+  openProductCart: () => set({ isProductCartOpen: true }),
+  closeProductCart: () => set({ isProductCartOpen: false }),
+}));
