@@ -1,6 +1,14 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
 import { hotelApi } from "@/services/hotel/api";
+import Image from "next/image";
+
+const SPA_PLACEHOLDER = "/images/spa1.jpg";
+const HOTEL_PLACEHOLDER = "/images/hotel1.jpg";
+const DEFAULT_PLACEHOLDER = SPA_PLACEHOLDER;
+
+type CachedRoom = Awaited<ReturnType<typeof hotelApi.getRoomById>>;
+const roomCache = new Map<string, CachedRoom>();
 
 // Temporary helper functions - these should be moved to a proper API service
 const getPetById = (id: string) => {
@@ -35,24 +43,30 @@ const getComboById = (id: string) => {
     price: 200,
     duration: 120,
     description: "Combo description",
-    serviceIds: [],
+    serviceLinks: [], // Added for image fetching
   };
 };
 
 const getRoomById = async (id: string) => {
+  if (roomCache.has(id)) {
+    return roomCache.get(id)!;
+  }
+
   try {
     const room = await hotelApi.getRoomById(id);
+    roomCache.set(id, room);
     return room;
   } catch (error) {
     console.error("Error fetching room:", error);
-    return {
-      id,
+    const fallbackRoom: CachedRoom = {
+      id: Number(id),
       name: `Room ${id}`,
-      pricePerNight: 50,
-      capacity: 2,
-      amenities: [],
-      photos: [],
+      class: "",
+      price: "0",
+      images: [],
     };
+    roomCache.set(id, fallbackRoom);
+    return fallbackRoom;
   }
 };
 
@@ -67,11 +81,9 @@ const getGroomerById = (id: string) => {
   };
 };
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import {
   ShoppingCart,
   Trash2,
@@ -97,12 +109,108 @@ import {
   findComboByServiceIds,
   getServiceNamesByServiceIds,
 } from "@/hooks/useCombos";
+import { Checkbox } from "@/components/ui/checkbox";
+import type { CheckedState } from "@radix-ui/react-checkbox";
+
+type ComboCollection = ReturnType<typeof useCombos>["combos"];
+type ComboWithOptionalImages = ComboCollection[number] & {
+  images?: Array<{ id: number; imageUrl: string }>;
+};
 
 // Type guards to check item types
 const isBookingDraft = (
   item: CartItem | BookingDraft
 ): item is BookingDraft => {
   return "tempId" in item && "petId" in item;
+};
+
+const getComboPrimaryImage = (
+  comboId: number | string | undefined,
+  combos: ComboCollection
+) => {
+  if (!comboId || combos.length === 0) {
+    return null;
+  }
+
+  const numericId = Number(comboId);
+  const combo = combos.find((entry) => entry.id === numericId);
+  if (!combo) {
+    return null;
+  }
+
+  const comboWithImages = combo as ComboWithOptionalImages;
+  const directImage = comboWithImages.images?.[0]?.imageUrl;
+  if (directImage) {
+    return directImage;
+  }
+
+  for (const link of combo.serviceLinks) {
+    const serviceImage = link.service.images?.[0]?.imageUrl;
+    if (serviceImage) {
+      return serviceImage;
+    }
+  }
+
+  return null;
+};
+
+const findImageForServiceId = (
+  serviceId: number | string | undefined,
+  combos: ComboCollection
+) => {
+  if (serviceId === undefined || serviceId === null) {
+    return null;
+  }
+
+  const numericId = Number(serviceId);
+
+  for (const combo of combos) {
+    const link = combo.serviceLinks.find(
+      (serviceLink) => serviceLink.serviceId === numericId
+    );
+    const image = link?.service.images?.[0]?.imageUrl;
+    if (image) {
+      return image;
+    }
+  }
+
+  return null;
+};
+
+const findImageForServiceIds = (
+  serviceIds: Array<number> | Array<string> | undefined,
+  combos: ComboCollection
+) => {
+  if (!serviceIds || serviceIds.length === 0) {
+    return null;
+  }
+
+  for (const serviceId of serviceIds) {
+    const image = findImageForServiceId(serviceId, combos);
+    if (image) {
+      return image;
+    }
+  }
+
+  return null;
+};
+
+const resolveRoomImage = async (roomId: number | string | undefined) => {
+  if (!roomId) {
+    return null;
+  }
+
+  try {
+    const room = await getRoomById(roomId.toString());
+    const image = room.images?.[0]?.imageUrl || room.image;
+    if (image) {
+      return image;
+    }
+  } catch (error) {
+    console.error("Error resolving room image:", error);
+  }
+
+  return null;
 };
 
 // Component to display item price
@@ -112,25 +220,94 @@ const ItemPriceDisplay: React.FC<{ tempId: string }> = ({ tempId }) => {
   // Show loading state if price is 0
   if (pricing.price === 0) {
     return (
-      <div className="flex items-center justify-between pt-1.5 sm:pt-2 mt-1.5 sm:mt-2 border-t">
-        <div className="text-[10px] sm:text-xs text-gray-500">
-          Calculating...
-        </div>
-        <div className="font-bold text-xs sm:text-sm text-gray-400 animate-pulse">
-          Loading...
-        </div>
-      </div>
+      <span className="text-xs sm:text-sm font-semibold text-gray-400 animate-pulse">
+        Loading...
+      </span>
     );
   }
+  // Chỉ hiển thị tổng giá, bỏ deposit
+  return (
+    <span className="font-bold text-sm sm:text-base text-pink-500">
+      {formatCurrency(pricing.price)}
+    </span>
+  );
+};
+
+const ItemImage: React.FC<{
+  item: CartItem | BookingDraft;
+  combos: ComboCollection;
+}> = ({ item, combos }) => {
+  const getDefaultPlaceholder = () => {
+    if (isBookingDraft(item)) {
+      return item.roomId ? HOTEL_PLACEHOLDER : DEFAULT_PLACEHOLDER;
+    }
+    return item.type === "room" ? HOTEL_PLACEHOLDER : DEFAULT_PLACEHOLDER;
+  };
+
+  const [imageSrc, setImageSrc] = useState<string>(getDefaultPlaceholder());
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadImage = async () => {
+      let resolvedImage: string | null = null;
+
+      if (isBookingDraft(item)) {
+        if (item.roomId) {
+          resolvedImage = await resolveRoomImage(item.roomId);
+        } else if (item.comboId) {
+          resolvedImage = getComboPrimaryImage(item.comboId, combos);
+        } else if (item.serviceIds && item.serviceIds.length > 0) {
+          resolvedImage = findImageForServiceIds(item.serviceIds, combos);
+        }
+      } else {
+        switch (item.type) {
+          case "room":
+            resolvedImage = await resolveRoomImage(item.payload.roomId);
+            break;
+          case "combo":
+            resolvedImage = getComboPrimaryImage(item.payload.comboId, combos);
+            break;
+          case "custom":
+            resolvedImage = findImageForServiceIds(
+              item.payload.selectedServiceIds,
+              combos
+            );
+            break;
+          case "single":
+            resolvedImage = findImageForServiceId(
+              item.payload.serviceId,
+              combos
+            );
+            break;
+        }
+      }
+
+      if (!resolvedImage) {
+        resolvedImage = getDefaultPlaceholder();
+      }
+
+      if (!isCancelled) {
+        setImageSrc(resolvedImage);
+      }
+    };
+
+    loadImage();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [item, combos]);
 
   return (
-    <div className="flex items-center justify-between pt-1.5 sm:pt-2 mt-1.5 sm:mt-2 border-t">
-      <div className="text-[10px] sm:text-xs text-gray-500">
-        Deposit: {formatCurrency(pricing.deposit)}
-      </div>
-      <div className="font-bold text-xs sm:text-sm text-green-600">
-        {formatCurrency(pricing.price)}
-      </div>
+    <div className="relative h-32 w-32 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
+      <Image
+        src={imageSrc}
+        alt="Service image"
+        fill
+        sizes="96px"
+        className="object-cover"
+      />
     </div>
   );
 };
@@ -145,6 +322,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
   const summary = useCartSummary();
   const isOpen = useIsCartOpen();
   const { combos } = useCombos(); // ✅ Fetch combos once and cache
+
+  // State cho các booking được chọn để thanh toán
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   // Checkout modal state
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
@@ -171,6 +351,96 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, items.length, hasRecalculated]);
+
+  // Khi mở cart: luôn chọn hết mặc định
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedIds(items.map((item) => item.tempId));
+    }
+  }, [isOpen, items]);
+
+  // Hàm chọn/bỏ từng booking
+  const handleSelectBooking = (tempId: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(tempId)
+        ? prev.filter((id) => id !== tempId)
+        : [...prev, tempId]
+    );
+  };
+
+  // Khi remove booking khỏi cart -> loại khỏi mảng chọn
+  const handleRemoveItem = (tempId: string) => {
+    setSelectedIds((prev) => prev.filter((id) => id !== tempId));
+    removeItem(tempId);
+  };
+
+  const toggleSelectAll = (checked: CheckedState) => {
+    if (checked === true) {
+      setSelectedIds(items.map((item) => item.tempId));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  // Lọc các item được chọn
+  const selectedItems = items.filter((item) =>
+    selectedIds.includes(item.tempId)
+  );
+  // Lấy tổng tiền từ selected items
+  const selectedItemPrices = useCartStore((state) => state.itemPrices);
+  const selectedTotalPrice = selectedItems.reduce(
+    (sum, item) => sum + (selectedItemPrices.get(item.tempId)?.price || 0),
+    0
+  );
+  const areAllSelected =
+    items.length > 0 && selectedIds.length === items.length;
+  const hasPartialSelection =
+    selectedIds.length > 0 && selectedIds.length < items.length;
+  const selectAllState: CheckedState = areAllSelected
+    ? true
+    : hasPartialSelection
+    ? "indeterminate"
+    : false;
+
+  const trigger = useMemo(() => {
+    if (!children) {
+      return null;
+    }
+
+    if (React.isValidElement(children)) {
+      const originalOnClick = children.props
+        .onClick as React.MouseEventHandler<any> | undefined;
+
+      return React.cloneElement(children, {
+        onClick: (event: React.MouseEvent<any>) => {
+          if (typeof originalOnClick === "function") {
+            originalOnClick(event);
+          }
+
+          if (!event.defaultPrevented) {
+            setCartOpen(true);
+          }
+        },
+      });
+    }
+
+    return (
+      <span
+        role="button"
+        tabIndex={0}
+        onClick={() => setCartOpen(true)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            setCartOpen(true);
+          }
+        }}
+        className="inline-flex"
+      >
+        {children}
+      </span>
+    );
+  }, [children, setCartOpen]);
 
   // Note: Body overflow is managed by PushLayout component
 
@@ -307,11 +577,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
       if (item.comboId || (item.serviceIds && item.serviceIds.length > 0)) {
         if (item.bookingDate) {
           details.push(
-            `Date: ${format(new Date(item.bookingDate), "MMM dd, yyyy")}`
+            `Ngày: ${format(new Date(item.bookingDate), "MMM dd, yyyy")}`
           );
         }
         if (item.dropDownSlot) {
-          details.push(`Time: ${item.dropDownSlot}`);
+          details.push(`Thời gian: ${item.dropDownSlot}`);
         }
         if (item.groomerId) {
           const groomer = getGroomerById(item.groomerId.toString());
@@ -325,12 +595,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
       if (item.roomId) {
         if (item.startDate) {
           details.push(
-            `Check-in: ${format(new Date(item.startDate), "MMM dd, yyyy")}`
+            `Nhận phòng: ${format(new Date(item.startDate), "MMM dd, yyyy")}`
           );
         }
         if (item.endDate) {
           details.push(
-            `Check-out: ${format(new Date(item.endDate), "MMM dd, yyyy")}`
+            `Trả phòng: ${format(new Date(item.endDate), "MMM dd, yyyy")}`
           );
         }
         if (item.startDate && item.endDate) {
@@ -340,7 +610,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
               (1000 * 60 * 60 * 24)
           );
           if (nights > 0) {
-            details.push(`${nights} night${nights > 1 ? "s" : ""}`);
+            details.push(`${nights} đêm${nights > 1 ? "s" : ""}`);
           }
         }
       }
@@ -351,22 +621,22 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
         case "custom":
           if (item.payload.appointmentTime) {
             details.push(
-              `Time: ${formatAppointmentTime(item.payload.appointmentTime)}`
+              `Thời gian: ${formatAppointmentTime(
+                item.payload.appointmentTime
+              )}`
             );
           }
           break;
         case "room":
           if (item.payload.checkIn) {
-            details.push(`Check-in: ${item.payload.checkIn}`);
+            details.push(`Nhận phòng: ${item.payload.checkIn}`);
           }
           if (item.payload.checkOut) {
-            details.push(`Check-out: ${item.payload.checkOut}`);
+            details.push(`Trả phòng: ${item.payload.checkOut}`);
           }
           if (item.payload.nights) {
             details.push(
-              `${item.payload.nights} night${
-                item.payload.nights > 1 ? "s" : ""
-              }`
+              `${item.payload.nights} đêm${item.payload.nights > 1 ? "s" : ""}`
             );
           }
           break;
@@ -410,14 +680,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed top-0 right-0 h-full w-full sm:w-96 lg:w-96 bg-white shadow-2xl z-50 overflow-hidden flex flex-col"
+              className="fixed top-0 right-0 h-full w-[560px] sm:w-[560px] lg:w-[560px] bg-white shadow-2xl z-50 overflow-hidden flex flex-col"
             >
               {/* Header */}
               <div className="flex items-center justify-between p-3 sm:p-4 border-b bg-white sticky top-0 z-10">
                 <div className="flex items-center space-x-2">
                   <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 text-pink-500" />
                   <span className="font-semibold text-sm sm:text-base">
-                    Shopping Cart ({summary.totalItems})
+                    Giỏ hàng ({summary.totalItems})
                   </span>
                 </div>
                 <Button
@@ -430,185 +700,130 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
                 </Button>
               </div>
 
-              {/* Content */}
-              <div className="flex-1 overflow-y-auto p-3 sm:p-4">
-                {items.length === 0 ? (
-                  <div className="text-center py-12">
-                    <ShoppingCart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      Your cart is empty
-                    </h3>
-                    <p className="text-gray-500">
-                      Add some services or rooms to get started!
-                    </p>
+              {/* Body */}
+              <div className="flex-1 overflow-auto p-3 sm:p-4 space-y-3">
+                {items.length > 0 && (
+                  <div className="flex items-center justify-between rounded-xl border border-gray-100 bg-white px-3 py-2 text-xs sm:text-sm text-gray-600 shadow-sm">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        checked={selectAllState}
+                        onCheckedChange={toggleSelectAll}
+                        aria-label="Chọn tất cả booking"
+                      />
+                      <span className="font-medium text-gray-700">
+                        Chọn tất cả ({items.length})
+                      </span>
+                    </div>
+                    {hasPartialSelection && (
+                      <span className="text-[11px] sm:text-xs text-gray-400">
+                        {selectedIds.length} đã chọn
+                      </span>
+                    )}
                   </div>
+                )}
+                {items.length === 0 ? (
+                  <Card>
+                    <CardContent className="py-8 text-center text-sm text-gray-500">
+                      Chưa có dịch vụ nào trong giỏ.
+                    </CardContent>
+                  </Card>
                 ) : (
-                  <div className="space-y-2 sm:space-y-3">
-                    {items.map((item) => (
-                      <Card key={item.tempId} className="relative shadow-sm">
-                        <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex items-center gap-2 flex-1 min-w-0">
-                              {getItemIcon(item)}
-                              <CardTitle className="text-xs sm:text-sm truncate">
-                                <ItemTitleDisplay item={item} />
-                              </CardTitle>
-                              <Badge
-                                variant="outline"
-                                className="text-[10px] sm:text-xs flex-shrink-0"
-                              >
-                                {(() => {
-                                  if (isBookingDraft(item)) {
-                                    return item.roomId ? "HOTEL" : "SPA";
-                                  } else {
-                                    const cartItem = item as CartItem;
-                                    return cartItem.type === "room"
-                                      ? "HOTEL"
-                                      : "SPA";
-                                  }
-                                })()}
-                              </Badge>
+                  items.map((item) => {
+                    const details = getItemDetails(item);
+                    const petNames = getPetNames(item);
+                    const checked = selectedIds.includes(item.tempId);
+                    return (
+                      <Card key={item.tempId}>
+                        <CardContent className="p-3 sm:p-4">
+                          <div className="flex items-stretch gap-3 sm:gap-4">
+                            <div className="flex items-center gap-2">
+                              <Checkbox
+                                checked={checked}
+                                onCheckedChange={() =>
+                                  handleSelectBooking(item.tempId)
+                                }
+                                aria-label="Chọn booking"
+                              />
+                              <ItemImage item={item} combos={combos} />
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeItem(item.tempId)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-7 w-7 flex-shrink-0"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </CardHeader>
-
-                        <CardContent className="space-y-1.5 sm:space-y-2 p-3 sm:p-4 pt-0">
-                          {/* Pet info */}
-                          <div className="text-[11px] sm:text-xs text-gray-600">
-                            <span className="font-medium">Pet:</span>{" "}
-                            {getPetNames(item)}
-                          </div>
-
-                          {/* Item details */}
-                          {getItemDetails(item).length > 0 && (
-                            <div className="space-y-0.5 sm:space-y-1">
-                              {getItemDetails(item).map((detail, index) => (
-                                <div
-                                  key={index}
-                                  className="text-[11px] sm:text-xs text-gray-600 flex items-center gap-1"
-                                >
-                                  {detail.includes("Time:") && (
-                                    <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                                  )}
-                                  {detail.includes("Check-in:") ||
-                                    (detail.includes("Check-out:") && (
-                                      <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                                    ))}
-                                  <span className="truncate">{detail}</span>
+                            <div className="flex-1">
+                              <div className="flex flex-wrap items-start justify-between gap-2">
+                                <div className="flex items-center gap-2">
+                                  {getItemIcon(item)}
+                                  <CardTitle className="text-sm font-semibold">
+                                    <ItemTitleDisplay item={item} />
+                                  </CardTitle>
                                 </div>
-                              ))}
+                                <div className="flex items-center gap-2">
+                                  <ItemPriceDisplay tempId={item.tempId} />
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() =>
+                                      handleRemoveItem(item.tempId)
+                                    }
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                              <div className="mt-2">
+                                <div className="rounded-xl border border-gray-100 bg-gray-50 px-3 py-2 text-xs text-gray-600 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                                  <div className="font-medium text-gray-700 dark:text-gray-100">
+                                    Pet: {petNames}
+                                  </div>
+                                  {details.length > 0 && (
+                                    <div className="mt-1 space-y-0.5">
+                                      {details.map((d, i) => (
+                                        <div key={i}>{d}</div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                          )}
-
-                          {/* Notes */}
-                          {(() => {
-                            if (isBookingDraft(item)) {
-                              return (
-                                item.note && (
-                                  <div className="text-[11px] sm:text-xs text-gray-600">
-                                    <span className="font-medium">Notes:</span>{" "}
-                                    <span className="line-clamp-2">
-                                      {item.note}
-                                    </span>
-                                  </div>
-                                )
-                              );
-                            } else {
-                              const cartItem = item as CartItem;
-                              return (
-                                cartItem.payload.notes && (
-                                  <div className="text-[11px] sm:text-xs text-gray-600">
-                                    <span className="font-medium">Notes:</span>{" "}
-                                    <span className="line-clamp-2">
-                                      {cartItem.payload.notes}
-                                    </span>
-                                  </div>
-                                )
-                              );
-                            }
-                          })()}
-
-                          {/* Price - now showing for BookingDraft items */}
-                          <ItemPriceDisplay tempId={item.tempId} />
+                          </div>
                         </CardContent>
                       </Card>
-                    ))}
-                  </div>
+                    );
+                  })
                 )}
               </div>
 
-              {/* Cart Summary */}
-              {items.length > 0 && (
-                <>
-                  <Separator />
-                  <div className="p-3 sm:p-4 bg-gray-50 border-t">
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-xs sm:text-sm">
-                        <span>Items ({summary.totalItems}):</span>
-                        <span className="font-medium">
-                          {formatCurrency(summary.totalPrice)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-xs sm:text-sm">
-                        <span>Total Deposit:</span>
-                        <span className="font-medium">
-                          {formatCurrency(summary.totalDeposit)}
-                        </span>
-                      </div>
-                      <Separator />
-                      <div className="flex justify-between font-bold text-sm sm:text-base">
-                        <span>Total:</span>
-                        <span className="text-green-600">
-                          {formatCurrency(summary.totalPrice)}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-2 mt-3">
-                      <Button
-                        variant="outline"
-                        className="flex-1 text-xs sm:text-sm h-9 sm:h-10"
-                        onClick={() => setCartOpen(false)}
-                      >
-                        Continue Shopping
-                      </Button>
-                      <Button
-                        className="flex-1 text-xs sm:text-sm h-9 sm:h-10 bg-pink-500 hover:bg-pink-600"
-                        onClick={() => setIsCheckoutModalOpen(true)}
-                      >
-                        Checkout
-                      </Button>
-                    </div>
-                  </div>
-                </>
-              )}
+              {/* Footer */}
+              <div className="border-t p-3 sm:p-4 bg-white">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm text-gray-600">
+                    Đã chọn ({selectedIds.length})
+                  </span>
+                  <span className="font-semibold text-base">
+                    {formatCurrency(selectedTotalPrice)}
+                  </span>
+                </div>
+                <Button
+                  className="w-full"
+                  disabled={selectedIds.length === 0 || selectedTotalPrice === 0}
+                  onClick={() => setIsCheckoutModalOpen(true)}
+                >
+                  Thanh toán
+                </Button>
+              </div>
             </motion.div>
           </>
         )}
       </AnimatePresence>
 
-      {/* Trigger Button */}
-      {children && <div onClick={() => setCartOpen(true)}>{children}</div>}
-
-      {/* Checkout Modal */}
+      {/* Modal checkout */}
       <CheckoutModal
         isOpen={isCheckoutModalOpen}
         onClose={() => setIsCheckoutModalOpen(false)}
-        onSuccess={(bookingId) => {
-          console.log("Booking successful:", bookingId);
+        onSuccess={(bookingId: string) => {
+          console.log("Checkout success:", bookingId);
           setIsCheckoutModalOpen(false);
         }}
+        bookings={selectedItems}
       />
+
+      {trigger}
     </>
   );
-};
-
-export default CartDrawer;
