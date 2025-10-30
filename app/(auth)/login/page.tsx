@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -8,6 +7,7 @@ import Link from "next/link";
 import api from "@/config/axios";
 import { LoginFormData, AuthResponse } from "@/components/models/login";
 import { Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 
 import Image1 from "@/public/images/login_image.svg";
 import Image from "next/image";
@@ -32,24 +32,28 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
 
-    try {
+    const loginPromise = (async () => {
       const res = await api.post<AuthResponse>("auth/sign-in", formData);
       const token = res.data.access_token;
-
       localStorage.setItem("accessToken", token);
-
       const meRes = await api.get("user/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       if (meRes.data) {
         localStorage.setItem("user", JSON.stringify(meRes.data));
       }
-
       router.replace("/");
-    } catch (err: any) {
-      const serverMsg = "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.";
-      setError(serverMsg);
+      return meRes.data;
+    })();
+
+    try {
+      await toast.promise(loginPromise, {
+        loading: "Đang đăng nhập…",
+        success: () => "Đăng nhập thành công",
+        error: () => "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.",
+      });
+    } catch (err) {
+      setError("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
     }
   };
 
