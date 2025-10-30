@@ -18,6 +18,7 @@ import {
   Bath,
   Hotel,
   Package,
+  UserRoundPlus,
 } from "lucide-react";
 
 export type IconKey =
@@ -37,7 +38,8 @@ export type IconKey =
   | "spa"
   | "hotel"
   | "bell"
-  | "product";
+  | "product"
+  | "groomer";
 
 export const ICONS: Record<IconKey, LucideIcon> = {
   dashboard: LayoutDashboard,
@@ -57,4 +59,5 @@ export const ICONS: Record<IconKey, LucideIcon> = {
   spa: Bath,
   hotel: Hotel,
   product: Package,
+  groomer: UserRoundPlus,
 };
