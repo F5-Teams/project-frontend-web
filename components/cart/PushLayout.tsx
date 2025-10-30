@@ -97,7 +97,7 @@ export const PushLayout: React.FC<PushLayoutProps> = ({ children }) => {
     <div
       className={`min-h-screen transition-all duration-300 ease-in-out overflow-x-hidden ${
         // Push on large screens (desktop) by reducing width, overlay on mobile/tablet
-        isCartOpen ? "w-full lg:w-[calc(100%-384px)]" : "w-full"
+        isCartOpen ? "w-full lg:w-[calc(100%-560px)]" : "w-full"
       }`}
     >
       {children}

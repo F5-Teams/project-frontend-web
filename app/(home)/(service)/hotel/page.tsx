@@ -11,7 +11,7 @@ import { BookingDraft } from "@/types/cart";
 import { useHotelRooms } from "@/services/hotel";
 
 const PetHotelPage = () => {
-  const { addItem } = useCartStore();
+  const { addItems } = useCartStore();
   const { rooms, loading, error, refetch } = useHotelRooms();
 
   // Modal states
@@ -36,8 +36,8 @@ const PetHotelPage = () => {
     (room) => room.id.toString() === selectedRoomId
   );
 
-  const handleBookingConfirm = async (bookingDraft: BookingDraft) => {
-    const result = await addItem(bookingDraft);
+  const handleBookingConfirm = async (bookingDrafts: BookingDraft[]) => {
+    const result = await addItems(bookingDrafts);
     if (result.success) {
       setIsBookingModalOpen(false);
       // Optionally show success message or redirect
