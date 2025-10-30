@@ -8,9 +8,29 @@ import Link from "next/link";
 import api from "@/config/axios";
 import { LoginFormData, AuthResponse } from "@/components/models/login";
 import { Eye, EyeOff } from "lucide-react";
-
 import Image1 from "@/public/images/login_image.svg";
 import Image from "next/image";
+
+const ROLE_BY_ID: Record<number, "admin" | "staff" | "groomer" | "customer"> = {
+  1: "admin",
+  2: "staff",
+  3: "groomer",
+  4: "customer",
+};
+
+const ROLE_HOME: Record<string, string> = {
+  admin: "/admin",
+  staff: "/staff",
+  groomer: "/groomer/dashboard",
+  customer: "/",
+};
+
+function setCookie(name: string, value: string, maxAgeSeconds: number) {
+  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  document.cookie = `${name}=${encodeURIComponent(
+    value
+  )}; Path=/; Max-Age=${maxAgeSeconds}; SameSite=Lax${secure}`;
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -33,23 +53,33 @@ export default function LoginPage() {
     setError("");
 
     try {
+      // 1) Login để lấy access token
       const res = await api.post<AuthResponse>("auth/sign-in", formData);
       const token = res.data.access_token;
 
-      localStorage.setItem("accessToken", token);
-
+      // 2) Gọi /user/me để lấy roleId
       const meRes = await api.get("user/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
+      const me = meRes.data;
 
-      if (meRes.data) {
-        localStorage.setItem("user", JSON.stringify(meRes.data));
-      }
+      // 3) Map roleId -> role string (luôn viết hoa để middleware kiểm tra đúng)
+      const role = (ROLE_BY_ID[Number(me?.roleId)] ?? "customer").toUpperCase();
 
-      router.replace("/");
+      // 4) Lưu localStorage (tuỳ chọn)
+      localStorage.setItem("accessToken", token);
+      localStorage.setItem("user", JSON.stringify(me));
+      localStorage.setItem("role", role);
+
+      // 5) Set cookie cho middleware đọc
+      const oneDay = 60 * 60 * 24;
+      setCookie("accessToken", token, oneDay);
+      setCookie("role", role, oneDay);
+
+      // 6) Redirect theo role
+      router.replace(ROLE_HOME[role.toLowerCase()] ?? "/");
     } catch (err: any) {
-      const serverMsg = "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.";
-      setError(serverMsg);
+      setError("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
     }
   };
 
