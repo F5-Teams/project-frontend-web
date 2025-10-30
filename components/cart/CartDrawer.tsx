@@ -85,6 +85,14 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   ShoppingCart,
   Trash2,
   Calendar,
@@ -325,6 +333,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
 
   // State cho các booking được chọn để thanh toán
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteTargets, setDeleteTargets] = useState<string[]>([]);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Checkout modal state
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
@@ -361,6 +372,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
 
   // Hàm chọn/bỏ từng booking
   const handleSelectBooking = (tempId: string) => {
+    if (deleteError) {
+      setDeleteError(null);
+    }
     setSelectedIds((prev) =>
       prev.includes(tempId)
         ? prev.filter((id) => id !== tempId)
@@ -375,11 +389,38 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
   };
 
   const toggleSelectAll = (checked: CheckedState) => {
+    if (deleteError) {
+      setDeleteError(null);
+    }
     if (checked === true) {
       setSelectedIds(items.map((item) => item.tempId));
     } else {
       setSelectedIds([]);
     }
+  };
+
+  const handleBulkDeleteClick = () => {
+    if (selectedIds.length === 0) {
+      setDeleteError("Hãy chọn mục cần xoá");
+      return;
+    }
+
+    setDeleteError(null);
+    setDeleteTargets(selectedIds);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmBulkDelete = () => {
+    deleteTargets.forEach((id) => {
+      handleRemoveItem(id);
+    });
+    setDeleteDialogOpen(false);
+    setDeleteTargets([]);
+  };
+
+  const handleCancelBulkDelete = () => {
+    setDeleteDialogOpen(false);
+    setDeleteTargets([]);
   };
 
   // Lọc các item được chọn
@@ -401,6 +442,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
     : hasPartialSelection
     ? "indeterminate"
     : false;
+  const deleteTargetItems = useMemo(
+    () => items.filter((item) => deleteTargets.includes(item.tempId)),
+    [items, deleteTargets]
+  );
 
   const trigger = useMemo(() => {
     if (!children) {
@@ -703,23 +748,38 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
               {/* Body */}
               <div className="flex-1 overflow-auto p-3 sm:p-4 space-y-3">
                 {items.length > 0 && (
-                  <div className="flex items-center justify-between rounded-xl border border-gray-100 bg-white px-3 py-2 text-xs sm:text-sm text-gray-600 shadow-sm">
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        checked={selectAllState}
-                        onCheckedChange={toggleSelectAll}
-                        aria-label="Chọn tất cả booking"
-                      />
-                      <span className="font-medium text-gray-700">
-                        Chọn tất cả ({items.length})
-                      </span>
+                  <>
+                    <div className="flex items-center justify-between rounded-xl border border-gray-100 bg-white px-3 py-2 text-xs sm:text-sm text-gray-600 shadow-sm">
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          checked={selectAllState}
+                          onCheckedChange={toggleSelectAll}
+                          aria-label="Chọn tất cả booking"
+                        />
+                        <span className="font-medium text-gray-700">
+                          Chọn tất cả ({items.length})
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {selectedIds.length > 0 && (
+                          <span className="text-[11px] sm:text-xs text-gray-400">
+                            Đã chọn {selectedIds.length}
+                          </span>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                          onClick={handleBulkDeleteClick}
+                        >
+                          Xoá
+                        </Button>
+                      </div>
                     </div>
-                    {hasPartialSelection && (
-                      <span className="text-[11px] sm:text-xs text-gray-400">
-                        {selectedIds.length} đã chọn
-                      </span>
+                    {deleteError && (
+                      <div className="px-1 text-xs text-red-500">{deleteError}</div>
                     )}
-                  </div>
+                  </>
                 )}
                 {items.length === 0 ? (
                   <Card>
@@ -812,6 +872,61 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
           </>
         )}
       </AnimatePresence>
+
+      <Dialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleCancelBulkDelete();
+          } else {
+            setDeleteDialogOpen(true);
+          }
+        }}
+      >
+        <DialogContent className="max-w-md bg-white">
+          <DialogHeader>
+            <DialogTitle>Xoá các mục đã chọn</DialogTitle>
+            <DialogDescription className="text-sm text-gray-600">
+              Bạn có chắc chắn muốn xoá các mục này chứ? Thao tác này không thể
+              hoàn tác.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-64 space-y-2 overflow-auto pr-1">
+            {deleteTargetItems.length === 0 ? (
+              <p className="text-sm text-gray-500">
+                Không có mục nào được chọn.
+              </p>
+            ) : (
+              deleteTargetItems.map((item) => (
+                <div
+                  key={item.tempId}
+                  className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm"
+                >
+                  <div className="flex items-center gap-2">
+                    {getItemIcon(item)}
+                    <span className="font-medium">
+                      <ItemTitleDisplay item={item} />
+                    </span>
+                  </div>
+                  <ItemPriceDisplay tempId={item.tempId} />
+                </div>
+              ))
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancelBulkDelete}>
+              Huỷ
+            </Button>
+            <Button
+              variant="destructive"
+              className="bg-red-500 text-white hover:bg-red-600"
+              onClick={handleConfirmBulkDelete}
+            >
+              Xoá các mục
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Modal checkout */}
       <CheckoutModal
