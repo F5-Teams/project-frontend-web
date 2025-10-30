@@ -22,9 +22,9 @@ export function Sidebar({ items }: { items: SidebarItem[] }) {
   return (
     <aside
       className={cn(
-        "w-64 h-screen text-pink-600 border-r border-pink-100 sticky top-0 flex flex-col shadow-[4px_0_15px_-5px_rgba(0,0,0,0.05)]",
+        "fixed top-0 left-0 w-64 h-screen text-pink-600 border-r border-pink-100 flex flex-col shadow-[4px_0_15px_-5px_rgba(0,0,0,0.05)]",
         "bg-gradient-to-b from-[#FFE5EC] via-[#FFF4E0] to-[#FFD6E0]",
-        "animate-gradient"
+        "animate-gradien z-50"
       )}
     >
       {/* Logo */}

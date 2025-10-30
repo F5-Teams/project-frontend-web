@@ -2,11 +2,15 @@ import { Footer, Header } from "@/components/shared";
 import SideBarTemplate from "@/components/sidebar/SideBarTemplate";
 
 const links = [
-  { href: "/profile-pet/create-pet", label: "Tạo thú cưng", icon: "UserRound" },
+  {
+    href: "/profile-pet/create-pet",
+    label: "Tạo thú cưng",
+    icon: "CirclePlus",
+  },
   {
     href: "/profile-pet/information-pets",
     label: "Thông tin thú cưng",
-    icon: "Lock",
+    icon: "PawPrint",
   },
 ];
 
@@ -16,7 +20,7 @@ export default function HomeLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-gradient-to-b from-pink-100 via-white to-yellow-100 min-h-screen flex flex-col w-full">
+    <div className="bg-gradient-to-b from-pink-100 via-white to-yellow-100 min-h-screen flex flex-col w-full pt-[120px]">
       <Header />
       <div className="grid md:grid-cols-[260px_1fr] gap-6 px-16 pb-6">
         <SideBarTemplate links={links} />

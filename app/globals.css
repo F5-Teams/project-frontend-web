@@ -90,6 +90,7 @@ body {
 }
 
 :root {
+  
   --radius: 0.5rem;
   --background: linear-gradient(to bottom, #fbcfe8, #ffffff, #fef9c3);
   /* --background: #fbcfe8; */
