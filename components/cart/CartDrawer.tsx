@@ -10,20 +10,6 @@ const DEFAULT_PLACEHOLDER = SPA_PLACEHOLDER;
 type CachedRoom = Awaited<ReturnType<typeof hotelApi.getRoomById>>;
 const roomCache = new Map<string, CachedRoom>();
 
-// Temporary helper functions - these should be moved to a proper API service
-const getPetById = (id: string) => {
-  // This is a temporary implementation
-  // In a real app, this would fetch from an API or cache
-  return {
-    id,
-    name: `Pet ${id}`,
-    type: "dog",
-    avatar: "",
-    age: 2,
-    notes: "",
-  };
-};
-
 const getServiceById = (id: string) => {
   // This is a temporary implementation
   return {
@@ -81,7 +67,7 @@ const getGroomerById = (id: string) => {
   };
 };
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import {
@@ -119,6 +105,7 @@ import {
 } from "@/hooks/useCombos";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { CheckedState } from "@radix-ui/react-checkbox";
+import { useUserPets } from "@/services/profile/profile-pet/hooks";
 
 type ComboCollection = ReturnType<typeof useCombos>["combos"];
 type ComboWithOptionalImages = ComboCollection[number] & {
@@ -336,10 +323,60 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteTargets, setDeleteTargets] = useState<string[]>([]);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
 
   // Checkout modal state
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [hasRecalculated, setHasRecalculated] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const storedUser = localStorage.getItem("user");
+    if (!storedUser) {
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(storedUser);
+      const detectedId =
+        parsed?.id ?? parsed?.userId ?? parsed?.userID ?? parsed?.user?.id;
+      if (detectedId !== undefined && detectedId !== null) {
+        const numericId = Number(detectedId);
+        if (!Number.isNaN(numericId)) {
+          setUserId(numericId);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to parse stored user", error);
+    }
+  }, []);
+
+  const { data: userPets } = useUserPets(userId ?? undefined);
+
+  const petNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    userPets?.forEach((pet) => {
+      map.set(pet.id.toString(), pet.name);
+    });
+    return map;
+  }, [userPets]);
+
+  const getPetName = useCallback(
+    (petId: string | number | undefined) => {
+      if (petId === undefined || petId === null) {
+        return "Unknown Pet";
+      }
+      return (
+        petNameMap.get(petId.toString()) ||
+        userPets?.find((pet) => pet.id === Number(petId))?.name ||
+        `Pet ${petId}`
+      );
+    },
+    [petNameMap, userPets]
+  );
 
   // Recalculate prices once when cart opens with items
   useEffect(() => {
@@ -693,14 +730,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
 
   const getPetNames = (item: CartItem | BookingDraft) => {
     if (isBookingDraft(item)) {
-      // For BookingDraft, petId is a single number
-      return getPetById(item.petId.toString())?.name || "Unknown Pet";
-    } else {
-      // For CartItem, petIds is an array
-      return item.petIds
-        .map((petId) => getPetById(petId)?.name || "Unknown Pet")
-        .join(", ");
+      return getPetName(item.petId);
     }
+
+    if (!item.petIds || item.petIds.length === 0) {
+      return "Unknown Pet";
+    }
+
+    return item.petIds.map((petId) => getPetName(petId)).join(", ");
   };
 
   return (

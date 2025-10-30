@@ -106,16 +106,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           `Check-out: ${format(new Date(item.endDate), "MMM dd, yyyy")}`
         );
       }
-      if (item.startDate && item.endDate) {
-        const nights = Math.ceil(
-          (new Date(item.endDate).getTime() -
-            new Date(item.startDate).getTime()) /
-            (1000 * 60 * 60 * 24)
-        );
-        if (nights > 0) {
-          details.push(`${nights} night${nights > 1 ? "s" : ""}`);
-        }
-      }
     }
 
     return details;
@@ -270,244 +260,257 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[1000px] max-h-[90vh] overflow-y-auto bg-white">
+      <DialogContent className="max-w-[1100px] max-h-[95vh] overflow-y-auto bg-white text-sm sm:!max-w-none lg:!max-w-[1100px] xl:!max-w-[1100px]">
         <DialogHeader className="bg-white">
-          <DialogTitle className="text-xl font-semibold">
+          <DialogTitle className="text-lg font-semibold">
             Thanh toán
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Order Summary */}
-          <Card className="bg-white p-4">
-            <CardHeader>
-              <CardTitle className="text-lg">Tóm tắt đơn hàng</CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="space-y-4">
-                {bookings.length === 0 ? (
-                  <p className="text-center text-gray-500">
-                    Your cart is empty. Please add items to your cart.
-                  </p>
-                ) : (
-                  bookings.map((item) => (
-                    <div
-                      key={item.tempId}
-                      className="border rounded-lg bg-gray-50 p-4"
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          {getItemIcon(item)}
-                          <span className="font-medium text-sm">
-                            {getItemTitle(item)}
-                          </span>
-                          <Badge variant="outline" className="text-xs">
-                            {item.roomId ? "HOTEL" : "SPA"}
-                          </Badge>
-                        </div>
-                        <ItemPriceDisplay tempId={item.tempId} />
-                      </div>
-
-                      <div className="text-xs text-gray-600 mb-2">
-                        <span className="font-medium">Thú cưng:</span>{" "}
-                        {getPetName(item.petId)}
-                      </div>
-
-                      {getItemDetails(item).length > 0 && (
-                        <div className="space-y-1">
-                          {getItemDetails(item).map((detail, detailIndex) => (
-                            <div
-                              key={detailIndex}
-                              className="text-xs text-gray-600 flex items-center space-x-1"
+        <div className="space-y-4">
+          <div className="grid gap-4 lg:grid-cols-[1.65fr_1fr]">
+            {/* Order Summary */}
+            <Card className="bg-white p-3">
+              <CardHeader>
+                <CardTitle className="text-base">Tóm tắt đơn hàng</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-3">
+                <div className="max-h-[60vh] space-y-2 overflow-y-auto pr-1">
+                  {bookings.length === 0 ? (
+                    <p className="text-center text-gray-500">
+                      Your cart is empty. Please add items to your cart.
+                    </p>
+                  ) : (
+                    bookings.map((item) => (
+                      <div
+                        key={item.tempId}
+                        className="rounded-lg border bg-gray-50 p-3"
+                      >
+                        <div className="mb-1.5 flex items-start justify-between">
+                          <div className="flex items-center space-x-1.5">
+                            {getItemIcon(item)}
+                            <span className="text-sm font-medium">
+                              {getItemTitle(item)}
+                            </span>
+                            <Badge
+                              variant="outline"
+                              className="rounded-sm bg-black px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
                             >
-                              {detail.includes("Time:") && (
-                                <Clock className="h-3 w-3" />
-                              )}
-                              {(detail.includes("Check-in:") ||
-                                detail.includes("Check-out:")) && (
-                                <Calendar className="h-3 w-3" />
-                              )}
-                              <span>{detail}</span>
-                            </div>
-                          ))}
+                              {item.roomId ? "HOTEL" : "SPA"}
+                            </Badge>
+                          </div>
+                          <ItemPriceDisplay tempId={item.tempId} />
                         </div>
-                      )}
 
-                      {item.note && (
-                        <div className="text-xs text-gray-600 mt-2">
-                          <span className="font-medium">Ghi chú:</span>{" "}
-                          {item.note}
+                        <div className="mb-1.5 text-[11px] text-gray-600">
+                          <span className="font-medium">Thú cưng:</span>{" "}
+                          {getPetName(item.petId)}
                         </div>
-                      )}
+
+                        {getItemDetails(item).length > 0 && (
+                          <div className="space-y-0.5 text-[11px]">
+                            {getItemDetails(item).map((detail, detailIndex) => (
+                              <div
+                                key={detailIndex}
+                                className="flex items-center space-x-1 text-gray-600"
+                              >
+                                {detail.includes("Time:") && (
+                                  <Clock className="h-3 w-3" />
+                                )}
+                                {(detail.includes("Check-in:") ||
+                                  detail.includes("Check-out:")) && (
+                                  <Calendar className="h-3 w-3" />
+                                )}
+                                <span>{detail}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {item.note && (
+                          <div className="mt-1.5 text-[11px] text-gray-600">
+                            <span className="font-medium">Ghi chú:</span>{" "}
+                            {item.note}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <Separator className="my-3" />
+
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-[13px]">
+                    <span>Tạm tính:</span>
+                    <span>{formatCurrency(totalPrice)}</span>
+                  </div>
+                  <div className="flex justify-between border-t pt-1.5 text-base font-bold">
+                    <span>Tổng cộng:</span>
+                    <span className="text-green-600">
+                      {formatCurrency(totalPrice)}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex flex-col gap-4">
+              {/* Payment Method Selection */}
+              <Card className="bg-white p-3">
+                <CardHeader>
+                  <CardTitle className="text-base">
+                    Phương thức thanh toán
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-3">
+                  <RadioGroup
+                    value={selectedPaymentMethod}
+                    onValueChange={setSelectedPaymentMethod}
+                    className="space-y-2.5"
+                  >
+                    {/* Option 1: Chuyển khoản ngân hàng */}
+                    <div className="flex items-center space-x-2.5 rounded-lg border p-2.5 hover:bg-gray-50">
+                      <RadioGroupItem
+                        value="bank_transfer"
+                        id="bank_transfer"
+                      />
+                      <div className="flex items-center space-x-2">
+                        {/* Icon chuyển khoản ngân hàng */}
+                        <svg
+                          width="24"
+                          height="24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="lucide lucide-building-2"
+                        >
+                          <rect width="18" height="12" x="3" y="6" rx="2" />
+                          <path d="M16 3v3" />
+                          <path d="M8 3v3" />
+                          <path d="M12 3v3" />
+                          <path d="M6 10h.01" />
+                          <path d="M6 14h.01" />
+                          <path d="M10 14h.01" />
+                          <path d="M14 14h.01" />
+                          <path d="M18 14h.01" />
+                          <path d="M18 10h.01" />
+                          <path d="M14 10h.01" />
+                          <path d="M10 10h.01" />
+                        </svg>
+                        <Label
+                          htmlFor="bank_transfer"
+                          className="cursor-pointer font-medium"
+                        >
+                          Chuyển khoản ngân hàng
+                        </Label>
+                      </div>
                     </div>
-                  ))
-                )}
-              </div>
+                    {/* Option 2: Thanh toán khi đến cửa hàng */}
+                    <div className="flex items-center space-x-2.5 rounded-lg border p-2.5 hover:bg-gray-50">
+                      <RadioGroupItem value="cash" id="cash" />
+                      <div className="flex items-center space-x-2">
+                        {/* Icon cash on arrival */}
+                        <svg
+                          width="24"
+                          height="24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="lucide lucide-banknote"
+                        >
+                          <rect width="20" height="12" x="2" y="6" rx="2" />
+                          <circle cx="12" cy="12" r="2" />
+                          <path d="M6 12h.01" />
+                          <path d="M18 12h.01" />
+                        </svg>
+                        <Label
+                          htmlFor="cash"
+                          className="cursor-pointer font-medium"
+                        >
+                          Thanh toán khi đến cửa hàng
+                        </Label>
+                      </div>
+                    </div>
+                  </RadioGroup>
+                </CardContent>
+              </Card>
 
-              <Separator className="my-4" />
+              {/* Customer Notes */}
+              <Card className="flex h-full flex-col bg-white p-3">
+                <CardHeader>
+                  <CardTitle className="text-base">Ghi chú thêm</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-1 flex-col gap-3 p-3">
+                  <Textarea
+                    placeholder="Bạn có yêu cầu hoặc lưu ý thêm nào cho đơn này không..."
+                    value={customerNotes}
+                    onChange={(e) => setCustomerNotes(e.target.value)}
+                    rows={4}
+                  />
+                  <Alert>
+                    <AlertDescription>
+                      <div className="space-y-1.5 text-[13px] leading-relaxed text-gray-500">
+                        <div className="flex items-start">
+                          <span className="mr-2 mt-[5px] inline-block h-1.5 w-1.5 rounded-full bg-gray-400"></span>
+                          <span>
+                            Vui lòng đảm bảo thú cưng đã tiêm phòng đầy đủ và
+                            trong tình trạng sức khỏe ổn định.
+                          </span>
+                        </div>
+                        <div className="flex items-start">
+                          <span className="mr-2 mt-[5px] inline-block h-1.5 w-1.5 rounded-full bg-gray-400"></span>
+                          <span>
+                            Đơn đặt sẽ được xác nhận trong vòng 3 giờ sau khi
+                            thanh toán hoặc đặt lịch.
+                          </span>
+                        </div>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
 
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Tạm tính:</span>
-                  <span>{formatCurrency(totalPrice)}</span>
-                </div>
-                <div className="flex justify-between font-bold text-lg border-t pt-2">
-                  <span>Tổng cộng:</span>
-                  <span className="text-green-600">
-                    {formatCurrency(totalPrice)}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Payment Method Selection */}
-          <Card className="bg-white p-4">
-            <CardHeader>
-              <CardTitle className="text-lg">Phương thức thanh toán</CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <RadioGroup
-                value={selectedPaymentMethod}
-                onValueChange={setSelectedPaymentMethod}
-                className="space-y-3"
-              >
-                {/* Option 1: Chuyển khoản ngân hàng */}
-                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
-                  <RadioGroupItem value="bank_transfer" id="bank_transfer" />
-                  <div className="flex items-center space-x-2">
-                    {/* Icon chuyển khoản ngân hàng */}
-                    <svg
-                      width="24"
-                      height="24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="lucide lucide-building-2"
-                    >
-                      <rect width="18" height="12" x="3" y="6" rx="2" />
-                      <path d="M16 3v3" />
-                      <path d="M8 3v3" />
-                      <path d="M12 3v3" />
-                      <path d="M6 10h.01" />
-                      <path d="M6 14h.01" />
-                      <path d="M10 14h.01" />
-                      <path d="M14 14h.01" />
-                      <path d="M18 14h.01" />
-                      <path d="M18 10h.01" />
-                      <path d="M14 10h.01" />
-                      <path d="M10 10h.01" />
-                    </svg>
-                    <Label
-                      htmlFor="bank_transfer"
-                      className="font-medium cursor-pointer"
-                    >
-                      Chuyển khoản ngân hàng
-                    </Label>
-                  </div>
-                </div>
-                {/* Option 2: Thanh toán khi đến cửa hàng */}
-                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
-                  <RadioGroupItem value="cash" id="cash" />
-                  <div className="flex items-center space-x-2">
-                    {/* Icon cash on arrival */}
-                    <svg
-                      width="24"
-                      height="24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="lucide lucide-banknote"
-                    >
-                      <rect width="20" height="12" x="2" y="6" rx="2" />
-                      <circle cx="12" cy="12" r="2" />
-                      <path d="M6 12h.01" />
-                      <path d="M18 12h.01" />
-                    </svg>
-                    <Label
-                      htmlFor="cash"
-                      className="font-medium cursor-pointer"
-                    >
-                      Thanh toán khi đến cửa hàng
-                    </Label>
-                  </div>
-                </div>
-              </RadioGroup>
-            </CardContent>
-          </Card>
-
-          {/* Customer Notes */}
-          <Card className="bg-white p-4">
-            <CardHeader>
-              <CardTitle className="text-lg">Ghi chú thêm</CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <Textarea
-                placeholder="Bạn có yêu cầu hoặc lưu ý thêm nào cho đơn này không..."
-                value={customerNotes}
-                onChange={(e) => setCustomerNotes(e.target.value)}
-                rows={3}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Important Information */}
-          <Alert>
-            <AlertDescription>
-              <div className="space-y-2 text-gray-500 leading-relaxed text-[15px]">
-                <div className="flex items-start">
-                  <span className="inline-block w-2 h-2 bg-gray-400 rounded-full mr-2 mt-[6px]"></span>
-                  <span>
-                    Vui lòng đảm bảo thú cưng đã tiêm phòng đầy đủ
-                    <br />
-                    và trong tình trạng sức khỏe ổn định.
-                  </span>
-                </div>
-                <div className="flex items-start">
-                  <span className="inline-block w-2 h-2 bg-gray-400 rounded-full mr-2 mt-[6px]"></span>
-                  <span>
-                    Đơn đặt sẽ được xác nhận trong vòng 3 giờ
-                    <br />
-                    sau khi thanh toán/đặt lịch.
-                  </span>
-                </div>
-              </div>
-            </AlertDescription>
-          </Alert>
-
-          {/* Error Message */}
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Đã có lỗi xảy ra, vui lòng thử lại!
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex justify-end space-x-3 pt-4 border-t">
-            <Button variant="outline" onClick={onClose} disabled={isProcessing}>
-              Huỷ
-            </Button>
-            <Button
-              onClick={handleCheckout}
-              disabled={isProcessing || !selectedPaymentMethod}
-              className="min-w-[140px]"
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Đang xử lý...
-                </>
-              ) : (
-                `Thanh toán ${formatCurrency(totalPrice)}`
+          <div className="flex flex-col gap-3 border-t pt-3 lg:flex-row lg:items-start lg:justify-end">
+            <div className="flex flex-col gap-2.5 lg:min-w-[260px] lg:items-end">
+              {error && (
+                <Alert variant="destructive" className="w-full">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Đã có lỗi xảy ra, vui lòng thử lại!
+                  </AlertDescription>
+                </Alert>
               )}
-            </Button>
+              <div className="flex justify-end gap-2.5">
+                <Button
+                  variant="outline"
+                  onClick={onClose}
+                  disabled={isProcessing}
+                >
+                  Huỷ
+                </Button>
+                <Button
+                  onClick={handleCheckout}
+                  disabled={isProcessing || !selectedPaymentMethod}
+                  className="min-w-[130px]"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Đang xử lý...
+                    </>
+                  ) : (
+                    `Thanh toán ${formatCurrency(totalPrice)}`
+                  )}
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </DialogContent>
