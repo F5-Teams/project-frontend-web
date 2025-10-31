@@ -12,6 +12,27 @@ import { toast } from "sonner";
 import Image1 from "@/public/images/login_image.svg";
 import Image from "next/image";
 
+const ROLE_BY_ID: Record<number, "admin" | "staff" | "groomer" | "customer"> = {
+  1: "admin",
+  2: "staff",
+  3: "groomer",
+  4: "customer",
+};
+
+const ROLE_HOME: Record<string, string> = {
+  admin: "/admin",
+  staff: "/staff",
+  groomer: "/groomer/dashboard",
+  customer: "/",
+};
+
+function setCookie(name: string, value: string, maxAgeSeconds: number) {
+  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  document.cookie = `${name}=${encodeURIComponent(
+    value
+  )}; Path=/; Max-Age=${maxAgeSeconds}; SameSite=Lax${secure}`;
+}
+
 export default function LoginPage() {
   const router = useRouter();
 

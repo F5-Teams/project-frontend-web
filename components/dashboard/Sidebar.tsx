@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { IconKey, ICONS } from "./Icons";
 import Image from "next/image";
@@ -18,6 +18,18 @@ export type SidebarItem = {
 
 export function Sidebar({ items }: { items: SidebarItem[] }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
+
+  const handleLogout = () => {
+    if (!showLogoutConfirm) {
+      setShowLogoutConfirm(true);
+      return;
+    }
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("user");
+    router.replace("/");
+  };
 
   return (
     <aside
@@ -56,9 +68,22 @@ export function Sidebar({ items }: { items: SidebarItem[] }) {
         ))}
       </nav>
 
-      {/* Footer nhỏ */}
-      <div className="mt-auto w-full flex justify-center text-xs text-pink-500 font-medium py-4 opacity-80 hover:opacity-100 transition">
-        <span>Made with ♥ by HappyPaws</span>
+      {/* Footer */}
+      <div className="mt-auto w-full px-4 py-4 space-y-2">
+        <button
+          onClick={handleLogout}
+          className={cn(
+            "w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all",
+            showLogoutConfirm
+              ? "bg-red-500 text-white hover:bg-red-600"
+              : "bg-pink-50 text-pink-600 hover:bg-pink-100"
+          )}
+        >
+          {showLogoutConfirm ? "Xác nhận đăng xuất?" : "Đăng xuất"}
+        </button>
+        <div className="text-center text-xs text-pink-500 font-medium opacity-80">
+          Made with ♥ by HappyPaws
+        </div>
       </div>
     </aside>
   );
