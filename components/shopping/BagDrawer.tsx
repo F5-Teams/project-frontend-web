@@ -183,6 +183,7 @@ export function BagDrawer({ children }: BagDrawerProps) {
         isOpen={openBuy}
         isCancel={() => setOpenBuy(false)}
         items={items}
+        clearCart={clearCart}
       />
     </>
   );
