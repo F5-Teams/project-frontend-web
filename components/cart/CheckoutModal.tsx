@@ -32,6 +32,7 @@ import { PaymentMethod } from "@/types/cart";
 import { mockPaymentMethods } from "@/mock/api";
 import { bookingApi } from "@/services/booking/api";
 import { BookingDraft } from "@/types/cart";
+import { toast } from "sonner";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -204,16 +205,42 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
       const response = await bookingApi.createBulkBookings(bulkBookings);
 
-      if (response.success && response.data) {
-        // Clear cart and show success
-        clearCart();
-        onSuccess(response.data.bookingIds[0]); // Return first booking ID for compatibility
+      if (response.success) {
+        // Show success toast if there are created bookings
+        if (response.createdCount && response.createdCount > 0) {
+          toast.success(`Đã tạo ${response.createdCount} đơn đặt thành công!`, {
+            duration: 5000,
+          });
+        }
+
+        // Show error toasts for each error message
+        if (response.errors && response.errors.length > 0) {
+          response.errors.forEach((errorMsg) => {
+            toast.error(errorMsg, {
+              duration: 6000,
+            });
+          });
+        }
+
+        // Clear cart if at least one booking was created
+        if (response.bookingIds && response.bookingIds.length > 0) {
+          clearCart();
+          onSuccess(response.bookingIds[0].toString());
+        }
         onClose();
       } else {
-        setError(response.error || "Checkout failed. Please try again.");
+        const errorMsg = response.error || "Checkout failed. Please try again.";
+        setError(errorMsg);
+        toast.error(errorMsg, {
+          duration: 5000,
+        });
       }
     } catch (err) {
-      setError("An unexpected error occurred. Please try again.");
+      const errorMsg = "An unexpected error occurred. Please try again.";
+      setError(errorMsg);
+      toast.error(errorMsg, {
+        duration: 5000,
+      });
       console.error("Checkout error:", err);
     } finally {
       setIsProcessing(false);

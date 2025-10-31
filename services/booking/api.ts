@@ -17,9 +17,9 @@ export interface BulkBookingRequest {
 
 export interface BulkBookingResponse {
   success: boolean;
-  data?: {
-    bookingIds: string[];
-  };
+  createdCount?: number;
+  bookingIds?: number[];
+  errors?: string[];
   error?: string;
 }
 
@@ -31,10 +31,10 @@ export const bookingApi = {
     try {
       const response = await api.post("/bookings/bulk", data);
       return {
-        success: true,
-        data: {
-          bookingIds: response.data.bookingIds || [],
-        },
+        success: response.data.success || true,
+        createdCount: response.data.createdCount,
+        bookingIds: response.data.bookingIds || [],
+        errors: response.data.errors || [],
       };
     } catch (error: any) {
       console.error("Error creating bulk bookings:", error);
