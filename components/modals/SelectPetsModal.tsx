@@ -210,71 +210,72 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
                 maxPets && selectedPetIds.length >= maxPets && !isSelected;
 
               return (
-                <Card
-                  key={pet.id}
-                  className={`cursor-pointer transition-all duration-200 ${
-                    isSelected
-                      ? "ring-2 ring-blue-500 bg-blue-50"
-                      : isDisabled
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:shadow-md hover:ring-1 hover:ring-gray-300"
-                  }`}
-                  onClick={() => !isDisabled && handlePetToggle(pet.id)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start space-x-3">
-                      <Checkbox
-                        checked={isSelected}
-                        onChange={() => handlePetToggle(pet.id)}
-                        disabled={isDisabled}
-                        className="mt-1"
-                      />
+                <div className="p-3" key={pet.id}>
+                  <Card
+                    className={`cursor-pointer transition-all duration-200 ${
+                      isSelected
+                        ? "ring-2 ring-blue-500 bg-blue-50"
+                        : isDisabled
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:shadow-md hover:ring-1 hover:ring-gray-300"
+                    }`}
+                    onClick={() => !isDisabled && handlePetToggle(pet.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start space-x-3">
+                        <Checkbox
+                          checked={isSelected}
+                          onChange={() => handlePetToggle(pet.id)}
+                          disabled={isDisabled}
+                          className="mt-1"
+                        />
 
-                      {/* Pet Image */}
-                      {pet.avatar && (
-                        <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                          <img
-                            src={pet.avatar}
-                            alt={pet.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.currentTarget.style.display = "none";
-                            }}
-                          />
-                        </div>
-                      )}
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-lg">
-                              {getPetTypeIcon(pet.type)}
-                            </span>
-                            <h3 className="font-medium text-gray-900 truncate">
-                              {pet.name}
-                            </h3>
+                        {/* Pet Image */}
+                        {pet.avatar && (
+                          <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                            <img
+                              src={pet.avatar}
+                              alt={pet.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                              }}
+                            />
                           </div>
-                          <Badge className={getPetTypeColor(pet.type)}>
-                            {(pet.type || "other").charAt(0).toUpperCase() +
-                              (pet.type || "other").slice(1)}
-                          </Badge>
-                        </div>
+                        )}
 
-                        <div className="space-y-1 text-sm text-gray-600">
-                          <p>
-                            Age: {pet.age || 0} year
-                            {(pet.age || 0) !== 1 ? "s" : ""} old
-                          </p>
-                          {pet.notes && (
-                            <p className="text-xs text-gray-500 truncate">
-                              Notes: {pet.notes}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-lg">
+                                {getPetTypeIcon(pet.type)}
+                              </span>
+                              <h3 className="font-medium text-gray-900 truncate">
+                                {pet.name}
+                              </h3>
+                            </div>
+                            <Badge className={getPetTypeColor(pet.type)}>
+                              {(pet.type || "other").charAt(0).toUpperCase() +
+                                (pet.type || "other").slice(1)}
+                            </Badge>
+                          </div>
+
+                          <div className="space-y-1 text-sm text-gray-600">
+                            <p>
+                              Age: {pet.age || 0} year
+                              {(pet.age || 0) !== 1 ? "s" : ""} old
                             </p>
-                          )}
+                            {pet.notes && (
+                              <p className="text-xs text-gray-500 truncate">
+                                Notes: {pet.notes}
+                              </p>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </div>
               );
             })}
           </div>
@@ -295,8 +296,7 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
             <div className="flex items-center space-x-2">
               <CheckCircle className="h-5 w-5 text-green-600" />
               <span className="font-medium text-green-800">
-                {selectedPetIds.length} pet
-                {selectedPetIds.length > 1 ? "s" : ""} selected
+                {selectedPetIds.length} thú cưng đã chọn
               </span>
             </div>
             <div className="mt-2 text-sm text-green-700">

@@ -59,7 +59,7 @@ export default function Header() {
   return (
     <nav
       className={`fixed top-0 left-0 flex items-center justify-between px-16 py-4 z-100 transition-all duration-300 ease-in-out ${
-        isCartOpen ? "w-full lg:w-[calc(100%-384px)]" : "w-full"
+        isCartOpen ? "w-full lg:w-[calc(100%-560px)]" : "w-full"
       }`}
     >
       <div

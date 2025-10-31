@@ -12,7 +12,7 @@ import { BookingDraft } from "@/types/cart";
 import { useCombos } from "@/hooks/useCombos";
 
 const PetCarePage = () => {
-  const { addItem } = useCartStore();
+  const { addItems } = useCartStore();
   const { combos, loading, error, refetch } = useCombos();
 
   // Modal states
@@ -37,8 +37,8 @@ const PetCarePage = () => {
     setIsBookingModalOpen(true);
   };
 
-  const handleBookingConfirm = async (bookingDraft: BookingDraft) => {
-    const result = await addItem(bookingDraft);
+  const handleBookingConfirm = async (bookingDrafts: BookingDraft[]) => {
+    const result = await addItems(bookingDrafts);
     if (result.success) {
       setIsBookingModalOpen(false);
       // Optionally show success message

@@ -20,6 +20,7 @@ import {
   Package,
   ShoppingBag,
   Truck,
+  UserRoundPlus,
 } from "lucide-react";
 
 export type IconKey =
@@ -41,7 +42,8 @@ export type IconKey =
   | "bell"
   | "product"
   | "order"
-  | "delivery";
+  | "delivery"
+  | "groomer";
 
 export const ICONS: Record<IconKey, LucideIcon> = {
   dashboard: LayoutDashboard,
@@ -63,4 +65,5 @@ export const ICONS: Record<IconKey, LucideIcon> = {
   product: Package,
   order: ShoppingBag,
   delivery: Truck,
+  groomer: UserRoundPlus,
 };

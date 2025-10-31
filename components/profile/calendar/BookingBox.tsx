@@ -32,12 +32,11 @@ export function BookingBox({
 
   const dotClass = getStatusDotClass(data.status);
 
-  // determine source of start/end for range display
   const metaStart = data.meta?.startDate ?? null;
   const metaEnd = data.meta?.endDate ?? null;
   const rangeStart = metaStart ?? data.startDate ?? null;
   const rangeEnd = metaEnd ?? data.endDate ?? null;
-  // only consider a "Khoảng ngày" when there is an explicit start AND end
+
   const hasExplicitRange = Boolean(
     (metaStart && metaEnd) || (data.startDate && data.endDate)
   );
@@ -52,32 +51,47 @@ export function BookingBox({
     >
       {/* Header */}
       <button
-        className="w-full flex items-start gap-3 px-4 py-3"
+        className="w-full flex flex-col items-start gap-2 px-3 py-3"
         onClick={() => {
           onToggle?.(data);
           onSelect?.(data);
         }}
       >
-        <span
-          className={cn("inline-block w-2.5 h-2.5 mt-1 rounded-full", dotClass)}
-        />
-        <div className="min-w-0 flex-1 text-left">
+        {/* dot + chevron: full width row */}
+        <div className="w-full flex items-center justify-between gap-2">
+          <span
+            className={cn("inline-block w-2.5 h-2.5 rounded-full", dotClass)}
+          />
+          <ChevronDown
+            className={cn("w-4 h-4 transition-transform", open && "rotate-180")}
+          />
+        </div>
+
+        {/* main content below (title + preview) */}
+        <div className="w-full min-w-0 text-left">
           <div className="text-sm font-medium text-gray-900 whitespace-normal wrap-break-words">
             {data.title}
           </div>
-          {data.meta?.room && (
-            <div className="text-xs text-gray-600 whitespace-normal wrap-break-words mt-0.5">
-              {data.meta.room}
-            </div>
-          )}
+          <div ref={bodyRef} className="pt-1 text-xs text-gray-700 space-y-1.5">
+            {data.meta?.bookingDate && !data.endDate && (
+              <div className="flex flex-col items-start">
+                <span className="text-gray-500 text-xs">Ngày:</span>
+                <span className="font-poppins-light text-gray-700 mt-0.5">
+                  {formatDMY(new Date(data.meta.bookingDate))}
+                </span>
+              </div>
+            )}
+            {hasExplicitRange && rangeStart && rangeEnd && (
+              <div className="flex justify-between">
+                <span className="text-gray-500">Ngày:</span>
+                <span className="font-poppins-light ml-1">
+                  {formatDMY(new Date(rangeStart))}–
+                  {formatDMY(new Date(rangeEnd))}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
-
-        <ChevronDown
-          className={cn(
-            "w-4 h-4 ml-1 shrink-0 transition-transform",
-            open && "rotate-180"
-          )}
-        />
       </button>
 
       <div
@@ -88,23 +102,10 @@ export function BookingBox({
           ref={bodyRef}
           className="px-4 pb-4 pt-1 text-xs text-gray-700 space-y-1.5"
         >
-          {data.meta?.bookingDate && !data.endDate && (
-            <div className="flex items-center gap-1">
-              <span className="text-gray-500">Ngày:</span>
-              <span className="font-poppins-regular text-gray-700">
-                {formatDMY(new Date(data.meta.bookingDate))}
-              </span>
-            </div>
-          )}
-          {hasExplicitRange && rangeStart && rangeEnd && (
-            <div className="flex justify-between">
-              <span className="text-gray-500">Khoảng ngày:</span>
-              <span className="font-medium">
-                {formatDMY(new Date(rangeStart))}–
-                {formatDMY(new Date(rangeEnd))}
-              </span>
-            </div>
-          )}
+          Boss yêu của Sen:{" "}
+          <span className="font-poppins-semibold text-primary">
+            {data.pet?.name}
+          </span>
         </div>
       </div>
     </div>

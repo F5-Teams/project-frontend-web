@@ -182,7 +182,7 @@ export const DayGrid: React.FC<Props> = ({
                 >
                   <PopoverTrigger asChild>
                     <button
-                      className="absolute top-0 right-1 z-10 -translate-y-1/2 translate-x-1/2 rounded-full h-6 px-3 py-1.5 text-[12px] bg-secondary backdrop-blur-sm ring-1 ring-black/5 hover:bg-secondary/80 transition-colors"
+                      className="absolute top-0 right-1 z-10 -translate-y-1/2 translate-x-1/2 rounded-full h-6 px-2 py-1 text-[12px] bg-primary text-primary-foreground backdrop-blur-sm ring-1 ring-black/5 hover:bg-primary/80 transition-colors"
                       title={`Xem ${more} booking khác`}
                     >
                       +{more}
@@ -227,7 +227,6 @@ export const DayGrid: React.FC<Props> = ({
               </div>
             </BookingBlock>
 
-            {/* gợi ý còn nhiều booking */}
             {g.slice(1, 4).map((b, i) => (
               <div
                 key={`ghost-${gi}-${b.id}`}

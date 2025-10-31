@@ -12,7 +12,7 @@ const adminItems: SidebarItem[] = [
     label: "Dịch vụ",
     icon: "services",
     children: [
-      { href: "/admin/services/hotel", label: "Hotel", icon: "hotel" },
+      { href: "/admin/services/room", label: "Room", icon: "hotel" },
       { href: "/admin/services/spa", label: "Spa", icon: "spa" },
     ],
   },
