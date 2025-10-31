@@ -209,7 +209,9 @@ const Products = () => {
   return (
     <div>
       <div className="flex justify-between">
-        <h1 className="text-3xl">Danh sách sản phẩm</h1>
+        <h1 className="text-xl font-bold tracking-tight text-gray-800">
+          Danh sách sản phẩm
+        </h1>
         <button
           onClick={() => {
             setSelectedProduct(null);

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useState } from "react";
@@ -8,6 +7,7 @@ import Link from "next/link";
 import { RegisterFormData } from "@/components/models/register";
 import api from "@/config/axios";
 import { Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 
 import Image1 from "@/public/images/login_image.svg";
 import Image from "next/image";
@@ -55,16 +55,22 @@ export default function RegisterPage() {
       gender: genderBoolean,
     };
 
-    try {
-      const response = await api.post("auth/sign-up", submitData);
+    // perform request and show toast (loading → success / error)
+    const registerPromise = api.post("auth/sign-up", submitData);
 
-      if (response.status === 200 || response.status === 201) {
-        alert("Đăng ký thành công!");
-        router.push("/login");
-      }
+    try {
+      await toast.promise(registerPromise, {
+        loading: "Đang đăng ký…",
+        success: "Đăng ký thành công",
+        error: (err: any) =>
+          err?.response?.data?.message || "Đăng ký thất bại. Vui lòng thử lại.",
+      });
+
+      // navigate after successful registration
+      router.push("/login");
     } catch (err: any) {
       setError(
-        err.response?.data?.message || "Đăng ký thất bại. Vui lòng thử lại."
+        err?.response?.data?.message || "Đăng ký thất bại. Vui lòng thử lại."
       );
       console.error("Registration error:", err);
     } finally {

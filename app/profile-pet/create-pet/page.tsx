@@ -8,6 +8,7 @@ import api from "@/config/axios";
 import { uploadFile } from "@/utils/uploadFIle";
 import { UploadCloud, PawPrint } from "lucide-react";
 import Image from "next/image";
+import { toast } from "sonner";
 
 export default function CreatePetPage() {
   const router = useRouter();
@@ -94,7 +95,7 @@ export default function CreatePetPage() {
 
       await api.post(`/pet/user/${userId}`, payload);
 
-      alert("Thêm thú cưng thành công!");
+      toast.success("Thêm Boss thành công!");
       router.push("/profile-pet/information-pets");
     } catch (err: unknown) {
       console.error("Error:", err);
@@ -104,7 +105,8 @@ export default function CreatePetPage() {
         "response" in err &&
         (err as any).response?.data
       ) {
-        setError((err as any).response.data?.message || "Có lỗi xảy ra!");
+        const msg = (err as any).response.data?.message || "Có lỗi xảy ra!";
+        setError(msg);
       } else {
         setError("Có lỗi xảy ra!");
       }
