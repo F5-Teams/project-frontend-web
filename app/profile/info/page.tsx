@@ -160,7 +160,9 @@ export default function InfoPage() {
                     .slice(0, 4)
                     .map((pet) => <PetCard key={pet.id} pet={pet} />)
                 ) : (
-                  <div className="text-xs text-white/80">No pets found</div>
+                  <div className="text-xs text-white/80">
+                    Chưa có thú cưng nào.
+                  </div>
                 )}
               </div>
             </div>
