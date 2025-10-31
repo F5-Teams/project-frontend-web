@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -7,8 +8,6 @@ import Link from "next/link";
 import api from "@/config/axios";
 import { LoginFormData, AuthResponse } from "@/components/models/login";
 import { Eye, EyeOff } from "lucide-react";
-import { toast } from "sonner";
-
 import Image1 from "@/public/images/login_image.svg";
 import Image from "next/image";
 
@@ -53,27 +52,33 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
 
-    const loginPromise = (async () => {
+    try {
+      // 1) Login để lấy access token
       const res = await api.post<AuthResponse>("auth/sign-in", formData);
       const token = res.data.access_token;
-      localStorage.setItem("accessToken", token);
+
+      // 2) Gọi /user/me để lấy roleId
       const meRes = await api.get("user/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (meRes.data) {
-        localStorage.setItem("user", JSON.stringify(meRes.data));
-      }
-      router.replace("/");
-      return meRes.data;
-    })();
+      const me = meRes.data;
 
-    try {
-      await toast.promise(loginPromise, {
-        loading: "Đang đăng nhập…",
-        success: () => "Đăng nhập thành công",
-        error: () => "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.",
-      });
-    } catch (err) {
+      // 3) Map roleId -> role string (luôn viết hoa để middleware kiểm tra đúng)
+      const role = (ROLE_BY_ID[Number(me?.roleId)] ?? "customer").toUpperCase();
+
+      // 4) Lưu localStorage (tuỳ chọn)
+      localStorage.setItem("accessToken", token);
+      localStorage.setItem("user", JSON.stringify(me));
+      localStorage.setItem("role", role);
+
+      // 5) Set cookie cho middleware đọc
+      const oneDay = 60 * 60 * 24;
+      setCookie("accessToken", token, oneDay);
+      setCookie("role", role, oneDay);
+
+      // 6) Redirect theo role
+      router.replace(ROLE_HOME[role.toLowerCase()] ?? "/");
+    } catch (err: any) {
       setError("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
     }
   };
