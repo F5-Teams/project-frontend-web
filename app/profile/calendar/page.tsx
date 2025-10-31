@@ -23,7 +23,7 @@ export default function ScheduleDetailPage() {
   if (error) return <div className="p-6 text-red-600">Lỗi tải lịch.</div>;
 
   return (
-    <div className="mx-auto w-full sm:max-w-5xl lg:max-w-7xl p-2 md:p-4 px-2 md:px-4 space-y-6">
+    <div className="mx-auto w-full sm:max-w-5xl lg:max-w-7xl p-2 space-y-6">
       <BookingSearch
         selectedId={selected?.id}
         onSelect={(b) => {
