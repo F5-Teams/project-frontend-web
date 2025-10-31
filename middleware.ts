@@ -23,6 +23,7 @@ const publicPrefixes = [
   "/_next",
   "/images",
   "/favicon.ico",
+  "/about-us", // Cho phép truy cập trang about mà không cần đăng nhập
 ];
 
 export function middleware(req: NextRequest) {
