@@ -14,7 +14,7 @@ const roleHome: Record<string, string> = {
 const guards: Array<{ prefix: string; allow: string[] }> = [
   { prefix: "/admin", allow: ["ADMIN"] },
   { prefix: "/staff", allow: ["STAFF", "ADMIN"] },     
-  { prefix: "/groomer", allow: ["GROOMER", "ADMIN"] }, 
+  { prefix: "/groomer", allow: ["GROOMER", "ADMIN"] },
 ];
 
 // Ko yêu cầu ĐN 
@@ -24,6 +24,7 @@ const publicPrefixes = [
   "/_next",          
   "/images",
   "/favicon.ico",
+  "/about-us", // Cho phép truy cập trang about mà không cần đăng nhập
 ];
 
 export function middleware(req: NextRequest) {
