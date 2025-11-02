@@ -1,8 +1,9 @@
 import { postOrder } from "@/services/orders/postOrder/api";
 import { useGetUser } from "@/services/users/hooks";
 import { useQueryClient } from "@tanstack/react-query";
-import { Input, message, Modal, Radio, Select } from "antd";
-import React, { useState } from "react";
+import { Button, Form, Input, message, Modal, Radio, Select } from "antd";
+import { useForm } from "antd/es/form/Form";
+import React, { useEffect, useState } from "react";
 
 interface CartItem {
   productId: number;
@@ -10,6 +11,7 @@ interface CartItem {
   imageUrl?: string;
   name: string;
   quantity: number;
+  weight: string;
 }
 
 interface DataProps {
@@ -20,12 +22,14 @@ interface DataProps {
 }
 
 const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
+  const [form] = useForm();
   const [selectedBank, setSelectedBank] = useState<string>("");
   const [option, setOption] = useState<string>("");
   const [note, setNote] = useState<string>("");
-
+  const [phone, setPhone] = useState<string>("");
+  const [address, setAddress] = useState<string>("");
   const { data: user } = useGetUser();
-
+  const [loading, setLoading] = useState(false);
   const total = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
@@ -33,8 +37,28 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   const queryClient = useQueryClient();
   const [messageApi, contextHolder] = message.useMessage();
 
+  useEffect(() => {
+    setAddress(user?.address || "");
+    setPhone(user?.phoneNumber || "");
+
+    form.setFieldsValue({
+      phone: user?.phoneNumber,
+      address: user?.address,
+    });
+  }, [user]);
+
+  console.log("hihi", items);
+
+  const totalWeight = items.reduce(
+    (sum, item) => sum + Number(item.weight) * item.quantity,
+    0
+  );
+
+  const weightInGram = Math.round(totalWeight * 1000);
+
   const handleSubmit = async () => {
     if (!option) return alert("Vui lòng chọn phương thức thanh toán!");
+    setLoading(true);
 
     const paymentMethod = option === "COD" ? "CASH" : "TRANSFER";
 
@@ -50,8 +74,8 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       })),
       shipping: {
         toName: user?.firstName + " " + user?.lastName,
-        toPhone: user?.phoneNumber,
-        toAddress: user?.address,
+        toPhone: phone,
+        toAddress: address,
         toWardCode: "21211",
         toDistrictId: 1444,
         toWardName: "",
@@ -63,6 +87,8 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
         length: 20,
         width: 15,
         height: 10,
+        weight: items.reduce((sum, item) => sum + item.quantity * 500, 0),
+        // weight: weightInGram,
         codAmount: codAmount,
         insuranceValue: 0,
         note: "",
@@ -70,8 +96,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       paymentMethod,
     };
 
-    console.log("DATA", orderPayload);
-    console.log("Note", note);
+    console.log("AAA", orderPayload);
 
     try {
       await postOrder(orderPayload);
@@ -80,7 +105,10 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       clearCart();
     } catch (error) {
       console.log(error);
+    } finally {
+      setLoading(false);
     }
+
     isCancel();
   };
 
@@ -138,7 +166,34 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
         </div>
       </div>
 
-      <div>
+      <Form form={form}>
+        <div className="flex">
+          <h1 className="w-[30%]">Nhập số điện thoại:</h1>
+          <Form.Item
+            className="w-[60%]"
+            name="phone"
+            rules={[
+              { required: true, message: "Vui lòng nhập số điện thoại!" },
+              { min: 10, message: "Số điện thoại phải đủ 10 số!" },
+            ]}
+          >
+            <Input type="number" onChange={(e) => setPhone(e.target.value)} />
+          </Form.Item>
+        </div>
+
+        <div className="flex mt-5">
+          <h1 className="w-[30%]">Nhập địa chỉ:</h1>
+          <Form.Item
+            className="w-[60%]"
+            name="address"
+            rules={[{ required: true, message: "Vui lòng nhập địa chỉ!" }]}
+          >
+            <Input.TextArea onChange={(e) => setAddress(e.target.value)} />
+          </Form.Item>
+        </div>
+      </Form>
+
+      <div className="mt-5">
         <h1 className="font-semibold mb-2">Chọn phương thức thanh toán</h1>
         <Radio.Group onChange={(e) => setOption(e.target.value)} value={option}>
           <div className="flex flex-col gap-2">
@@ -150,7 +205,6 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
         <h1 className="font-semibold mb-2">Ghi chú:</h1>
         <Input.TextArea
           onChange={(e) => setNote(e.target.value)}
-          value={note}
           rows={3}
         ></Input.TextArea>
       </div>
@@ -174,22 +228,24 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
 
       <div className="flex gap-3 mt-6">
         <button
-          onClick={isCancel}
+          onClick={() => {
+            setLoading(false); // reset
+            isCancel();
+          }}
           className="flex-1 py-2 rounded-xl border border-pink-500 cursor-pointer text-pink-600 font-semibold hover:bg-pink-50 transition"
         >
           Hủy
         </button>
 
-        <button
+        <Button
+          type="primary"
           onClick={handleSubmit}
-          className={`flex-1 py-2 rounded-xl font-semibold cursor-pointer transition ${
-            option
-              ? "bg-pink-500 hover:bg-pink-600 text-white"
-              : "bg-gray-300 text-gray-500 cursor-not-allowed"
-          }`}
+          loading={loading}
+          disabled={!option}
+          className="flex-1! py-2! rounded-xl! text-white! bg-pink-500! hover:bg-pink-600!"
         >
           Đặt hàng
-        </button>
+        </Button>
       </div>
     </Modal>
   );

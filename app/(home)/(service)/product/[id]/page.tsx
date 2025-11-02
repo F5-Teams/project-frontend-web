@@ -13,6 +13,7 @@ const ProductIdPage = () => {
   const id = params?.id ? Number(params.id) : undefined;
   const router = useRouter();
   const addProduct = useProductCartStore((state) => state.addProduct);
+  const clearCart = useProductCartStore((state) => state.clearCart);
   const [openBuy, setOpenBuy] = useState(false);
   const { data } = useGetProductPublicId(id);
   const [currentImage, setCurrentImage] = useState(0);
@@ -20,6 +21,8 @@ const ProductIdPage = () => {
 
   const images = data?.images || [];
   const maxStock = data?.stocks ?? 0;
+
+  console.log("DATA", data);
 
   const nextImage = () =>
     setCurrentImage((prev) => (images.length ? (prev + 1) % images.length : 0));
@@ -198,15 +201,18 @@ const ProductIdPage = () => {
           </div>
         </div>
       </div>
+
       <BuyModal
         isOpen={openBuy}
         isCancel={() => setOpenBuy(false)}
+        clearCart={clearCart}
         items={[
           {
             productId: data.id,
             name: data.name,
             price: Number(data.price),
             quantity,
+            weight: data.weight,
             imageUrl: data.images?.[0]?.imageUrl || "",
           },
         ]}
