@@ -22,8 +22,6 @@ const ProductIdPage = () => {
   const images = data?.images || [];
   const maxStock = data?.stocks ?? 0;
 
-  console.log("DATA", data);
-
   const nextImage = () =>
     setCurrentImage((prev) => (images.length ? (prev + 1) % images.length : 0));
 

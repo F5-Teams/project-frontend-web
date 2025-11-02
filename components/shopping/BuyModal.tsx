@@ -54,7 +54,10 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
     0
   );
 
-  const weightInGram = Math.round(totalWeight * 1000);
+  const getWeight = items.reduce(
+    (sum, item) => sum + Number(item.weight) * item.quantity,
+    0
+  );
 
   const handleSubmit = async () => {
     if (!option) return alert("Vui lòng chọn phương thức thanh toán!");
@@ -87,8 +90,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
         length: 20,
         width: 15,
         height: 10,
-        weight: items.reduce((sum, item) => sum + item.quantity * 500, 0),
-        // weight: weightInGram,
+        weight: totalWeight,
         codAmount: codAmount,
         insuranceValue: 0,
         note: "",
