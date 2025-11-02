@@ -13,11 +13,12 @@ import { usePostOrderGhnCancel } from "@/services/orders/postOrderGhnCancel/hook
 import ModalViewOrder from "@/components/orders/ModalViewOrder";
 import ModalDeleteOrder from "@/components/orders/ModalDeleteOrder";
 import { useDeleteOrder } from "@/services/orders/deleteOrder/hooks";
+import ModalComplete from "@/components/orders/ModalComplete";
 
 const OrderPage = () => {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
-
+  const [openComplete, setOpenComplete] = useState(false);
   const [loadingDelete, setLoadingDelete] = useState(false);
   const { data: allOrder } = useGetAllOrder();
   const [selectedOrder, setSelectedOrder] = useState<Order>();
@@ -28,7 +29,6 @@ const OrderPage = () => {
   const { mutate: postOrderGhnCancel } = usePostOrderGhnCancel();
   const { mutate: deleteOrder } = useDeleteOrder();
 
-  // 🧩 Giữ nguyên toàn bộ các handle khác
   const handleApprove = async (order: Order) => {
     const orderId = order.id;
     const body = {
@@ -131,7 +131,6 @@ const OrderPage = () => {
     });
   };
 
-  // ✅ Sửa lại phần xoá — đúng chuẩn React Query mutation
   const handleConfirmDelete = () => {
     if (!selectedOrder) return;
     setLoadingDelete(true);
@@ -149,6 +148,11 @@ const OrderPage = () => {
       },
       onSettled: () => setLoadingDelete(false),
     });
+  };
+
+  const handleComplete = async (value: Order) => {
+    console.log("VA", value);
+    setOpenComplete(true);
   };
 
   const columns = [
@@ -273,14 +277,28 @@ const OrderPage = () => {
           )}
 
           {record.status === "SHIPPING" && (
-            <Button
-              className="bg-[#f15e6a]! text-white! hover:bg-[#dd3744]!"
-              danger
-              size="small"
-              onClick={() => handleCancelGHN(record)}
-            >
-              Hủy vận đơn
-            </Button>
+            <>
+              <Button
+                className="bg-[#f15e6a]! text-white! hover:bg-[#dd3744]!"
+                danger
+                size="small"
+                onClick={() => handleCancelGHN(record)}
+              >
+                Hủy vận đơn
+              </Button>
+              <Button
+                className="bg-[#47c7a0]! text-white! hover:bg-[#25b68b]!"
+                danger
+                type="primary"
+                size="small"
+                onClick={() => {
+                  handleComplete(record);
+                  setSelectedOrder(record);
+                }}
+              >
+                Hoàn thành
+              </Button>
+            </>
           )}
         </div>
       ),
@@ -317,6 +335,12 @@ const OrderPage = () => {
         }}
         onConfirm={handleConfirmDelete}
         loading={loadingDelete}
+      />
+
+      <ModalComplete
+        open={openComplete}
+        onClose={() => setOpenComplete(false)}
+        order={selectedOrder}
       />
     </div>
   );
