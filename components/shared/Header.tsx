@@ -263,6 +263,11 @@ export default function Header() {
                   Thông tin thú cưng
                 </DropdownMenuItem>
               </Link>
+              <Link href="/history-order">
+                <DropdownMenuItem className="font-poppins-light text-[14px] focus:text-primary transition-all duration-200 hover:translate-x-1">
+                  Lịch sử đơn hàng
+                </DropdownMenuItem>
+              </Link>
               <DropdownMenuItem
                 onClick={handleLogout}
                 className="font-poppins-regular text-error text-[14px] transition-all duration-200 hover:translate-x-1 hover:text-error"

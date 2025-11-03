@@ -7,7 +7,6 @@ const api = axios.create({
   },
 });
 
-
 api.interceptors.request.use((config) => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
@@ -18,4 +17,3 @@ api.interceptors.request.use((config) => {
 });
 
 export default api;
-

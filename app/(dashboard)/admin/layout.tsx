@@ -5,8 +5,6 @@ const adminItems: SidebarItem[] = [
   { href: "/admin", label: "Dashboard", icon: "dashboard", exact: true },
   { href: "/admin/customers", label: "Người dùng", icon: "customers" },
   { href: "/admin/products", label: "Sản phẩm", icon: "product" },
-  { href: "/admin/orders", label: "Đơn hàng", icon: "order" },
-  { href: "/admin/delivery", label: "Giao hàng", icon: "delivery" },
 
   {
     label: "Dịch vụ",

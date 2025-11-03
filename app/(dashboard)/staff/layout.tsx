@@ -5,6 +5,8 @@ const staffItems: SidebarItem[] = [
   { href: "/staff", label: "Dashboard", icon: "dashboard", exact: true },
   { href: "/staff/booking", label: "Đơn chờ", icon: "orders" },
   { href: "/staff/groomer", label: "NV nhân viên", icon: "groomer" },
+  { href: "/staff/orders", label: "Đơn hàng", icon: "order" },
+  { href: "/staff/delivery", label: "Giao hàng", icon: "delivery" },
 ];
 
 export default function StaffLayout({

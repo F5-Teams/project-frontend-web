@@ -54,7 +54,6 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
           </p>
         </div>
 
-        {/* Khách hàng */}
         <div>
           <h3 className="flex gap-2 font-semibold text-gray-700 mb-2">
             <User className="text-pink-500" /> Thông tin khách hàng
@@ -73,7 +72,6 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
           </div>
         </div>
 
-        {/* Vận chuyển */}
         <div>
           <h3 className="flex gap-2 font-semibold text-gray-700 mb-2">
             <Car className="text-pink-500" /> Thông tin vận chuyển
@@ -93,7 +91,6 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
           </div>
         </div>
 
-        {/* Thanh toán */}
         <div>
           <h3 className="flex gap-2 font-semibold text-gray-700 mb-2">
             <CreditCard className="text-pink-500" /> Thanh toán
@@ -105,7 +102,6 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
           </div>
         </div>
 
-        {/* Sản phẩm */}
         <div>
           <h3 className="flex gap-2 font-semibold text-gray-700 mb-2">
             <ShoppingCart className="text-pink-500" /> Sản phẩm

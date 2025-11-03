@@ -10,5 +10,6 @@ export interface ProductById {
   price: number;
   type: string;
   stocks: number;
+  weight: string;
   images: Images[];
 }
