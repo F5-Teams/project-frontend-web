@@ -7,7 +7,7 @@ import { Order } from "@/services/orders/getAllOrder/type";
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Logo from "@/public/logo/HappyPaws Logo.svg";
-import { uploadFile } from "@/utils/uploadFIle";
+import { usePutGhnDelivered } from "@/services/orders/putGhnDelivered/hooks";
 
 interface ModalCompleteProps {
   open: boolean;
@@ -22,9 +22,10 @@ const ModalComplete: React.FC<ModalCompleteProps> = ({
 }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const putGhnDeliveredMutation = usePutGhnDelivered();
   const queryClient = useQueryClient();
+  const [messageApi, contextHolder] = message.useMessage();
 
-  // Nếu order đã có ảnh (tuỳ thuộc backend), map sang format của Upload
   useEffect(() => {
     if (order?.shipping?.images) {
       form.setFieldsValue({
@@ -40,48 +41,40 @@ const ModalComplete: React.FC<ModalCompleteProps> = ({
 
   const handleFinish = async (values: any) => {
     if (!order) return;
-    if (!values.images || values.images.length === 0) {
-      message.error("Vui lòng tải lên hình ảnh giao hàng!");
+
+    const file = values.images?.[0]?.originFileObj;
+    if (!file) {
+      message.error("Vui lòng chọn ảnh mới để xác nhận giao hàng!");
       return;
     }
 
+    const formData = new FormData();
+    formData.append("deliveryProofImage", file);
+
     setLoading(true);
-    try {
-      const newFiles = values.images.filter((img: any) => img.originFileObj);
 
-      const uploadedImages = await Promise.all(
-        newFiles.map(async (fileObj: any) => {
-          const uploaded = await uploadFile(fileObj.originFileObj);
-          return { imageUrl: uploaded.url };
-        })
-      );
+    putGhnDeliveredMutation.mutate(
+      { id: order.id, body: formData },
+      {
+        onSuccess: (res) => {
+          messageApi.success("Duyệt đơn thành công!");
 
-      const oldImages = values.images.filter((img: any) => img.url);
-
-      const allImages = [...oldImages, ...uploadedImages];
-
-      const payload = {
-        images: allImages,
-        note: values.note,
-      };
-
-      console.log("LINK IMG CLOUD:", payload);
-
-      // await patchOrder({ id: order.id, body: { status: "COMPLETED", note: values.note, images: allImages } });
-
-      message.success("Cập nhật thành công!");
-      form.resetFields();
-      onClose();
-    } catch (err) {
-      console.error(err);
-      message.error("Upload thất bại!");
-    } finally {
-      setLoading(false);
-    }
+          form.resetFields();
+          onClose();
+          queryClient.invalidateQueries(["getAllOrder"]);
+        },
+        onError: (err: any) => {
+          console.log(err);
+          messageApi.error("Duyệt đơn thành công!");
+        },
+        onSettled: () => setLoading(false),
+      }
+    );
   };
 
   return (
     <Modal open={open} onCancel={onClose} footer={null}>
+      {contextHolder}
       <div className="text-lg font-bold flex items-center gap-3">
         <Image
           alt="Logo"
@@ -106,13 +99,14 @@ const ModalComplete: React.FC<ModalCompleteProps> = ({
           getValueFromEvent={(e) => (Array.isArray(e) ? e : e && e.fileList)}
           rules={[{ required: true, message: "Vui lòng tải lên hình ảnh!" }]}
         >
-          <Upload listType="picture" beforeUpload={() => false} multiple>
+          <Upload
+            listType="picture"
+            maxCount={1}
+            beforeUpload={() => false}
+            multiple
+          >
             <Button icon={<UploadOutlined />}>Tải hình lên</Button>
           </Upload>
-        </Form.Item>
-
-        <Form.Item name="note" label="Ghi chú (tuỳ chọn)">
-          <Input.TextArea rows={3} placeholder="Nhập ghi chú..." />
         </Form.Item>
 
         <div className="flex justify-between">

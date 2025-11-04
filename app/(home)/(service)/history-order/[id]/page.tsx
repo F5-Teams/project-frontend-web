@@ -17,7 +17,7 @@ const statusSteps = [
   { key: "PENDING", label: "Chờ xác nhận", icon: Clock },
   { key: "APPROVED", label: "Đã xác nhận", icon: ClipboardCheck },
   { key: "SHIPPING", label: "Đang giao hàng", icon: Truck },
-  { key: "DELIVERED", label: "Hoàn thành", icon: PackageCheck },
+  { key: "COMPLETED", label: "Hoàn thành", icon: PackageCheck },
 ];
 
 export default function OrderDetailPage() {

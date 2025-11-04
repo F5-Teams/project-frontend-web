@@ -7,6 +7,7 @@ import Logo from "@/public/logo/HappyPaws Logo.svg";
 import dayjs from "dayjs";
 import { Car, CreditCard, ShoppingCart, User } from "lucide-react";
 import { Order } from "@/services/orders/getAllOrder/type";
+import { getImageUrl } from "@/utils/getImageUrl";
 
 interface ModalViewOrderProps {
   order?: Order;
@@ -20,6 +21,8 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
   onClose,
 }) => {
   if (!order) return null;
+
+  console.log("URL", getImageUrl(order.shipping.deliveryProofImage));
 
   return (
     <Modal
@@ -127,6 +130,11 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
         <div className="text-right text-lg font-semibold text-pink-600">
           Tổng thanh toán: {Number(order.totalPrice).toLocaleString("vi-VN")} đ
         </div>
+        <img
+          src={getImageUrl(order.shipping.deliveryProofImage)}
+          alt="Delivery Proof"
+          className="w-full max-h-[450px] object-contain rounded-md"
+        />
       </div>
     </Modal>
   );

@@ -54,11 +54,6 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
     0
   );
 
-  const getWeight = items.reduce(
-    (sum, item) => sum + Number(item.weight) * item.quantity,
-    0
-  );
-
   const handleSubmit = async () => {
     if (!option) return alert("Vui lòng chọn phương thức thanh toán!");
     setLoading(true);

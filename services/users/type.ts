@@ -9,5 +9,10 @@ export interface User {
   lastName: string;
   createdAt: string;
   isActive: boolean;
-  roleId: number;
+  role: Role;
+}
+
+export interface Role {
+  id: number;
+  name: string;
 }

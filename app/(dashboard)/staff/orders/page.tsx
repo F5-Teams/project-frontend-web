@@ -22,7 +22,6 @@ const OrderPage = () => {
   const [loadingDelete, setLoadingDelete] = useState(false);
   const { data: allOrder } = useGetAllOrder();
   const [selectedOrder, setSelectedOrder] = useState<Order>();
-
   const queryClient = useQueryClient();
   const [messageApi, contextHolder] = message.useMessage();
   const { mutate: postOrderGhn } = usePostOrderGhn();
