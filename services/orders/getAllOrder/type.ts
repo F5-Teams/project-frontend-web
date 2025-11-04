@@ -1,6 +1,6 @@
 export interface Order {
   id: number;
-  status: "PENDING" | "APPROVED" | "SHIPPING" | "DELIVERED" | "CANCELLED";
+  status: "PENDING" | "APPROVED" | "SHIPPING" | "COMPLETED" | "CANCELLED";
   totalPrice: string;
   note: string;
   createdAt: string;
@@ -58,6 +58,7 @@ export interface Shipping {
   insuranceValue: string;
   shippingFee: string;
   note: string;
+  deliveryProofImage: string;
   status: "PENDING" | "SHIPPING" | "DELIVERED" | "CANCELLED";
   orderId: number;
 }

@@ -1,16 +1,18 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
+import { Eye, EyeOff } from "lucide-react";
 import api from "@/config/axios";
 import { LoginFormData, AuthResponse } from "@/components/models/login";
-import { Eye, EyeOff } from "lucide-react";
 import Image1 from "@/public/images/login_image.svg";
-import Image from "next/image";
 
+/* --------------------------------------------------
+   1. Cấu hình mapping Role theo ID & Route tương ứng
+-------------------------------------------------- */
 const ROLE_BY_ID: Record<number, "admin" | "staff" | "groomer" | "customer"> = {
   1: "admin",
   2: "staff",
@@ -25,6 +27,9 @@ const ROLE_HOME: Record<string, string> = {
   customer: "/",
 };
 
+/* --------------------------------------------------
+   2. Hàm tiện ích: Set / Get cookie
+-------------------------------------------------- */
 function setCookie(name: string, value: string, maxAgeSeconds: number) {
   const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
   document.cookie = `${name}=${encodeURIComponent(
@@ -32,82 +37,125 @@ function setCookie(name: string, value: string, maxAgeSeconds: number) {
   )}; Path=/; Max-Age=${maxAgeSeconds}; SameSite=Lax${secure}`;
 }
 
+function getCookie(name: string) {
+  const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]+)`));
+  return match ? decodeURIComponent(match[1]) : "";
+}
+
+/* --------------------------------------------------
+   3. Component chính: Trang Đăng Nhập
+-------------------------------------------------- */
 export default function LoginPage() {
   const router = useRouter();
 
+  // State lưu dữ liệu form & lỗi
   const [formData, setFormData] = useState<LoginFormData>({
     username: "",
     password: "",
   });
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  /* ---------------------------------------------
+     4. Handle thay đổi input
+  --------------------------------------------- */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (error) setError("");
   };
 
+  /* ---------------------------------------------
+     5. Handle submit form đăng nhập
+  --------------------------------------------- */
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
 
     try {
-      // 1) Login để lấy access token
+      // (1) Gọi API login
       const res = await api.post<AuthResponse>("auth/sign-in", formData);
-      const token = res.data.access_token;
 
-      // 2) Gọi /user/me để lấy roleId
-      const meRes = await api.get("user/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // (2) Lấy access token từ nhiều format có thể có
+      const token =
+        res.data?.access_token ||
+        res.data?.token ||
+        res.data?.data?.accessToken;
+
+      if (!token) {
+        setError("Không nhận được token từ server.");
+        return;
+      }
+
+      // (3) Gọi API lấy thông tin người dùng
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      const meRes = await api.get("/user/me");
       const me = meRes.data;
 
-      // 3) Map roleId -> role string (luôn viết hoa để middleware kiểm tra đúng)
-      const role = (ROLE_BY_ID[Number(me?.roleId)] ?? "customer").toUpperCase();
+      // (4) Xác định role từ dữ liệu backend (dạng linh hoạt)
+      const roleIdRaw = me?.role?.id ?? me?.roleId ?? me?.roleID;
+      const roleNameRaw = me?.role?.name ?? me?.roleName ?? me?.role;
 
-      // 4) Lưu localStorage (tuỳ chọn)
+      let roleLower: "admin" | "staff" | "groomer" | "customer" = "customer";
+
+      const roleId = Number(roleIdRaw);
+      if (!Number.isNaN(roleId) && ROLE_BY_ID[roleId]) {
+        roleLower = ROLE_BY_ID[roleId];
+      } else if (typeof roleNameRaw === "string") {
+        const rn = roleNameRaw.toLowerCase();
+        if (["admin", "staff", "groomer", "customer"].includes(rn)) {
+          roleLower = rn as typeof roleLower;
+        }
+      }
+
+      const roleUpper = roleLower.toUpperCase();
+
+      // (5) Lưu thông tin vào localStorage
       localStorage.setItem("accessToken", token);
       localStorage.setItem("user", JSON.stringify(me));
-      localStorage.setItem("role", role);
+      localStorage.setItem("role", roleUpper);
 
-      // 5) Set cookie cho middleware đọc
+      // (6) Set cookie để middleware đọc (Next.js middleware)
       const oneDay = 60 * 60 * 24;
       setCookie("accessToken", token, oneDay);
-      setCookie("role", role, oneDay);
+      setCookie("role", roleUpper, oneDay);
 
-      // 6) Redirect theo role
-      router.replace(ROLE_HOME[role.toLowerCase()] ?? "/");
-    } catch (err: any) {
+      // (7) Điều hướng về trang home của từng role
+      router.replace(ROLE_HOME[roleLower] ?? "/");
+    } catch (err) {
+      console.error(err);
       setError("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
     }
   };
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
-      {/* Left side */}
+      {/* Bên trái: Hình ảnh */}
       <div className="relative hidden lg:block">
         <Image
           src={Image1}
-          alt="Image1"
+          alt="Login Illustration"
           className="absolute inset-0 h-full w-full object-cover"
         />
       </div>
 
-      {/* Right side */}
+      {/* Bên phải: Form đăng nhập */}
       <div className="flex items-center justify-center bg-background px-6 py-12">
         <div className="w-full max-w-md bg-popover rounded-2xl shadow-pink-300 shadow-2xl p-8">
           <h2 className="text-2xl font-poppins-regular text-center text-foreground mb-6">
             Đăng nhập
           </h2>
 
+          {/* Hiển thị lỗi nếu có */}
           {error && (
             <div className="mb-4 text-sm text-error bg-error-foreground/10 p-3 rounded-lg">
               {error}
             </div>
           )}
 
+          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+            {/* Username */}
             <div>
               <label className="block text-md font-poppins-regular mb-1 text-foreground">
                 Tên đăng nhập
@@ -123,6 +171,7 @@ export default function LoginPage() {
               />
             </div>
 
+            {/* Password */}
             <div>
               <label className="block text-md font-poppins-regular mb-1 text-foreground">
                 Mật khẩu
@@ -137,6 +186,7 @@ export default function LoginPage() {
                   placeholder="Nhập mật khẩu"
                   autoComplete="current-password"
                 />
+                {/* Icon ẩn/hiện mật khẩu */}
                 <button
                   type="button"
                   onClick={() => setShowPassword((p) => !p)}
@@ -151,14 +201,16 @@ export default function LoginPage() {
               </div>
             </div>
 
+            {/* Submit */}
             <button
               type="submit"
-              className="w-full py-2 rounded-lg text-white font-poppins-regular bg-pink-500 hover:bg-pink-600"
+              className="w-full py-2 rounded-lg text-white font-poppins-regular bg-pink-500 hover:bg-pink-600 transition-colors"
             >
               Đăng nhập
             </button>
           </form>
 
+          {/* Link đăng ký */}
           <p className="mt-6 text-center font-poppins-light text-sm text-muted-foreground">
             Bạn chưa có tài khoản?{" "}
             <Link

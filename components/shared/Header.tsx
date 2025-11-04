@@ -25,12 +25,14 @@ import { CartDrawer } from "@/components/cart/CartDrawer";
 import { useCartSummary, useIsCartOpen } from "@/stores/cart.store";
 import { BagDrawer } from "../shopping/BagDrawer";
 import { useProductCartStore } from "@/stores/productCart.store";
+import { useGetUser } from "@/services/users/hooks";
 
 export default function Header() {
   const router = useRouter();
   const cartSummary = useCartSummary();
   const isCartOpen = useIsCartOpen();
   const { items } = useProductCartStore();
+  const { data: user } = useGetUser();
   const [auth, setAuth] = useState<{
     token: string | null;
     user: { userName?: string; avatar?: string } | null;
@@ -263,11 +265,13 @@ export default function Header() {
                   Thông tin thú cưng
                 </DropdownMenuItem>
               </Link>
-              <Link href="/history-order">
-                <DropdownMenuItem className="font-poppins-light text-[14px] focus:text-primary transition-all duration-200 hover:translate-x-1">
-                  Lịch sử đơn hàng
-                </DropdownMenuItem>
-              </Link>
+              {user?.role.id === 4 && (
+                <Link href="/history-order">
+                  <DropdownMenuItem className="font-poppins-light text-[14px] focus:text-primary transition-all duration-200 hover:translate-x-1">
+                    Lịch sử đơn hàng
+                  </DropdownMenuItem>
+                </Link>
+              )}
               <DropdownMenuItem
                 onClick={handleLogout}
                 className="font-poppins-regular text-error text-[14px] transition-all duration-200 hover:translate-x-1 hover:text-error"
