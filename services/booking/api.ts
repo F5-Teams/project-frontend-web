@@ -1,6 +1,7 @@
 import api from "@/config/axios";
 
 export interface BulkBookingRequest {
+  paymentMethod: "WALLET" | "CASH";
   bookings: Array<{
     type: "SPA" | "HOTEL";
     petId: number;
@@ -36,11 +37,12 @@ export const bookingApi = {
         bookingIds: response.data.bookingIds || [],
         errors: response.data.errors || [],
       };
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error creating bulk bookings:", error);
+      const apiError = error as { response?: { data?: { message?: string } } };
       return {
         success: false,
-        error: error?.response?.data?.message || "Không thể tạo booking",
+        error: apiError?.response?.data?.message || "Không thể tạo booking",
       };
     }
   },

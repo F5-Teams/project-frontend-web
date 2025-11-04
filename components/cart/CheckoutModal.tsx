@@ -19,20 +19,13 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
-import {
-  CreditCard,
-  Building2,
-  Banknote,
-  AlertCircle,
-  CheckCircle,
-  Loader2,
-} from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { useCartStore } from "@/stores/cart.store";
-import { PaymentMethod } from "@/types/cart";
-import { mockPaymentMethods } from "@/mock/api";
 import { bookingApi } from "@/services/booking/api";
 import { BookingDraft } from "@/types/cart";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { GET_USER_QUERY_KEY } from "@/services/users/hooks";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -48,6 +41,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   bookings = [],
 }) => {
   const { clearCart, setCartOpen } = useCartStore();
+  const queryClient = useQueryClient();
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<string>("");
   const [customerNotes, setCustomerNotes] = useState<string>("");
@@ -149,8 +143,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     setError("");
 
     try {
+      // Map payment method selection to API format
+      const paymentMethodMap: { [key: string]: "WALLET" | "CASH" } = {
+        wallet: "WALLET", // Ví điện tử
+        cash: "CASH", // Thanh toán khi đến cửa hàng
+      };
+
       // Convert cart items to bulk booking format for /bookings/bulk API
       const bulkBookings = {
+        paymentMethod: paymentMethodMap[selectedPaymentMethod] || "CASH",
         bookings: bookings.map((item) => {
           const baseBooking = {
             petId: item.petId,
@@ -225,6 +226,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         // Clear cart if at least one booking was created
         if (response.bookingIds && response.bookingIds.length > 0) {
           clearCart();
+          // Invalidate user query to refresh wallet balance
+          await queryClient.invalidateQueries({
+            queryKey: GET_USER_QUERY_KEY,
+          });
           onSuccess(response.bookingIds[0].toString());
         }
         onClose();
@@ -247,6 +252,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
   };
 
+  // Helper methods for future use (kept for reference)
+  /*
   const getPaymentMethodIcon = (type: PaymentMethod["type"]) => {
     switch (type) {
       case "card":
@@ -272,6 +279,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         return "";
     }
   };
+  */
 
   // Tổng tiền:
   const selectedItemPrices = useCartStore((state) => state.itemPrices);
@@ -280,10 +288,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     0
   );
   // Thay ở các vị trí render/submit dùng summary.items thành bookings
-  const totalDeposit = bookings.reduce(
-    (sum, item) => sum + (selectedItemPrices.get(item.tempId)?.deposit || 0),
-    0
-  );
+  // const totalDeposit = bookings.reduce(
+  //   (sum, item) => sum + (selectedItemPrices.get(item.tempId)?.deposit || 0),
+  //   0
+  // );
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -396,14 +404,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     onValueChange={setSelectedPaymentMethod}
                     className="space-y-2.5"
                   >
-                    {/* Option 1: Chuyển khoản ngân hàng */}
+                    {/* Option 1: Ví điện tử */}
                     <div className="flex items-center space-x-2.5 rounded-lg border p-2.5 hover:bg-gray-50">
-                      <RadioGroupItem
-                        value="bank_transfer"
-                        id="bank_transfer"
-                      />
+                      <RadioGroupItem value="wallet" id="wallet" />
                       <div className="flex items-center space-x-2">
-                        {/* Icon chuyển khoản ngân hàng */}
+                        {/* Icon wallet */}
                         <svg
                           width="24"
                           height="24"
@@ -412,26 +417,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                           strokeWidth="2"
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                          className="lucide lucide-building-2"
+                          className="lucide lucide-wallet"
                         >
-                          <rect width="18" height="12" x="3" y="6" rx="2" />
-                          <path d="M16 3v3" />
-                          <path d="M8 3v3" />
-                          <path d="M12 3v3" />
-                          <path d="M6 10h.01" />
-                          <path d="M6 14h.01" />
-                          <path d="M10 14h.01" />
-                          <path d="M14 14h.01" />
-                          <path d="M18 14h.01" />
-                          <path d="M18 10h.01" />
-                          <path d="M14 10h.01" />
-                          <path d="M10 10h.01" />
+                          <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h3V7Z" />
+                          <path d="M3 5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-10a2 2 0 0 0-2-2Z" />
                         </svg>
                         <Label
-                          htmlFor="bank_transfer"
+                          htmlFor="wallet"
                           className="cursor-pointer font-medium"
                         >
-                          Chuyển khoản ngân hàng
+                          Ví điện tử
                         </Label>
                       </div>
                     </div>

@@ -173,9 +173,9 @@ const PetCarePage = () => {
                       duration: 0.8,
                       ease: "easeOut",
                     }}
-                    className="group relative rounded-xl sm:rounded-2xl border bg-white shadow-md p-4 sm:p-6 cursor-pointer overflow-hidden hover:-translate-y-2 hover:shadow-xl transition duration-500"
+                    className="group relative rounded-xl sm:rounded-2xl border bg-white shadow-md p-4 sm:p-6 cursor-pointer overflow-hidden hover:-translate-y-2 hover:shadow-xl transition duration-500 flex flex-col h-full"
                   >
-                    <div className="relative w-full h-40 sm:h-48 md:h-56">
+                    <div className="relative w-full h-40 sm:h-48 md:h-56 flex-shrink-0">
                       <Image
                         src={
                           combo.serviceLinks?.[0]?.service?.images?.[0]
@@ -199,51 +199,60 @@ const PetCarePage = () => {
                       )}
                     </div>
 
-                    <h3 className="mt-3 sm:mt-4 text-base sm:text-lg md:text-xl font-bold text-slate-800 group-hover:text-pink-600 transition-colors line-clamp-2">
-                      {combo.name}
-                    </h3>
-                    <p className="text-slate-600 mt-1.5 sm:mt-2 text-xs sm:text-sm leading-relaxed line-clamp-2">
-                      {combo.description}
-                    </p>
+                    {/* Title & Description - Fixed height for consistency */}
+                    <div className="mt-3 sm:mt-4 flex-shrink-0">
+                      <h3 className="h-14 sm:h-16 text-base sm:text-lg md:text-xl font-bold text-slate-800 group-hover:text-pink-600 transition-colors line-clamp-2 flex items-center">
+                        {combo.name}
+                      </h3>
+                      <p className="text-slate-600 mt-1.5 sm:mt-2 text-xs sm:text-sm leading-relaxed line-clamp-2 h-9 sm:h-10">
+                        {combo.description}
+                      </p>
+                    </div>
 
-                    {/* Display included services */}
-                    {combo.serviceLinks && combo.serviceLinks.length > 0 && (
-                      <div className="mt-2 sm:mt-3">
-                        <p className="text-[10px] sm:text-xs font-semibold text-gray-700 mb-1.5 sm:mb-2">
-                          Bao gồm:
-                        </p>
-                        <div className="space-y-0.5 sm:space-y-1">
-                          {combo.serviceLinks.slice(0, 3).map((serviceLink) => (
-                            <div
-                              key={serviceLink.id}
-                              className="flex items-center gap-1.5 sm:gap-2"
-                            >
-                              <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-green-500 flex-shrink-0" />
-                              <span className="text-[10px] sm:text-xs text-gray-600 truncate">
-                                {serviceLink.service.name}
-                              </span>
-                            </div>
-                          ))}
-                          {combo.serviceLinks.length > 3 && (
-                            <p className="text-[10px] sm:text-xs text-gray-500 pl-4 sm:pl-5">
-                              +{combo.serviceLinks.length - 3} dịch vụ khác
-                            </p>
-                          )}
+                    {/* Display included services - Flexible height */}
+                    <div className="flex-grow mt-2 sm:mt-3">
+                      {combo.serviceLinks && combo.serviceLinks.length > 0 && (
+                        <div>
+                          <p className="text-[10px] sm:text-xs font-semibold text-gray-700 mb-1.5 sm:mb-2">
+                            Bao gồm:
+                          </p>
+                          <div className="space-y-0.5 sm:space-y-1">
+                            {combo.serviceLinks
+                              .slice(0, 3)
+                              .map((serviceLink) => (
+                                <div
+                                  key={serviceLink.id}
+                                  className="flex items-center gap-1.5 sm:gap-2"
+                                >
+                                  <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-green-500 flex-shrink-0" />
+                                  <span className="text-[10px] sm:text-xs text-gray-600 truncate">
+                                    {serviceLink.service.name}
+                                  </span>
+                                </div>
+                              ))}
+                            {combo.serviceLinks.length > 3 && (
+                              <p className="text-[10px] sm:text-xs text-gray-500 pl-4 sm:pl-5">
+                                +{combo.serviceLinks.length - 3} dịch vụ khác
+                              </p>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
 
-                    <div className="mt-3 sm:mt-4 space-y-0.5 sm:space-y-1">
+                    {/* Price & Duration - Fixed height */}
+                    <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 flex-shrink-0">
                       <p className="font-semibold text-sm sm:text-base text-pink-600">
                         {parseInt(combo.price).toLocaleString("vi-VN")}đ
                       </p>
-                      <p className="text-[10px] sm:text-xs text-gray-500">
+                      <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
                         ⏳ Thời gian: {combo.duration} phút
                       </p>
                     </div>
 
+                    {/* Button - Always at bottom */}
                     <button
-                      className={`mt-3 sm:mt-4 w-full px-3 sm:px-4 py-1.5 sm:py-2 cursor-pointer rounded-lg text-sm sm:text-base font-medium transition ${
+                      className={`mt-3 sm:mt-4 w-full px-3 sm:px-4 py-1.5 sm:py-2 cursor-pointer rounded-lg text-sm sm:text-base font-medium transition flex-shrink-0 ${
                         combo.isActive
                           ? "bg-pink-500 text-white hover:bg-pink-600"
                           : "bg-gray-300 text-gray-500 cursor-not-allowed"
