@@ -1,9 +1,12 @@
 import { postOrder } from "@/services/orders/postOrder/api";
 import { useGetUser } from "@/services/users/hooks";
+import { createVnpay } from "@/services/vn-pay/createUrl/api";
+import { useCreateVnpay } from "@/services/vn-pay/createUrl/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button, Form, Input, message, Modal, Radio, Select } from "antd";
 import { useForm } from "antd/es/form/Form";
 import React, { useEffect, useState } from "react";
+import { json } from "stream/consumers";
 
 interface CartItem {
   productId: number;
@@ -30,6 +33,8 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   const [address, setAddress] = useState<string>("");
   const { data: user } = useGetUser();
   const [loading, setLoading] = useState(false);
+  const createUrlMutation = useCreateVnpay();
+
   const total = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
@@ -47,10 +52,13 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
     });
   }, [user]);
 
-  console.log("hihi", items);
-
   const totalWeight = items.reduce(
     (sum, item) => sum + Number(item.weight) * item.quantity,
+    0
+  );
+
+  const money = items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
     0
   );
 
@@ -96,7 +104,14 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
     console.log("AAA", orderPayload);
 
     try {
-      await postOrder(orderPayload);
+      if (paymentMethod === "CASH") {
+        await postOrder(orderPayload);
+      } else if (paymentMethod === "TRANSFER") {
+        // const res = await createUrlMutation.mutateAsync({ amount: money });
+        // console.log("VNPay URL:", res.paymentUrl);
+        // localStorage.setItem("PendingOrder", JSON.stringify(orderPayload));
+        // window.location.href = res.paymentUrl;
+      }
       messageApi.success("Đặt hàng thành công!");
       queryClient.invalidateQueries(["createOrder"]);
       clearCart();
@@ -206,7 +221,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
         ></Input.TextArea>
       </div>
 
-      {option === "BANK_TRANSFER" && (
+      {/* {option === "BANK_TRANSFER" && (
         <div className="mt-5">
           <p className="font-semibold mb-2">Chọn ngân hàng thanh toán:</p>
           <Radio.Group
@@ -221,7 +236,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
             <Radio.Button value="VPB">VPBank</Radio.Button>
           </Radio.Group>
         </div>
-      )}
+      )} */}
 
       <div className="flex gap-3 mt-6">
         <button
