@@ -34,7 +34,12 @@ let combosCache: Combo[] | null = null;
 let isLoading = false;
 let loadingPromise: Promise<Combo[]> | null = null;
 
-export const useCombos = () => {
+/**
+ * Hook để fetch combos từ API
+ * @param skipLoad - Nếu true, sẽ không fetch ngay khi component mount (lazy loading)
+ * Mặc định false để backward compatibility
+ */
+export const useCombos = (skipLoad: boolean = false) => {
   const [combos, setCombos] = useState<Combo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -101,9 +106,10 @@ export const useCombos = () => {
   };
 
   useEffect(() => {
-    loadCombos();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!skipLoad) {
+      loadCombos();
+    }
+  }, [skipLoad]);
 
   return { combos, loading, error, refetch };
 };

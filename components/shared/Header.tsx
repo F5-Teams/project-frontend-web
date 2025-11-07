@@ -17,7 +17,7 @@ import {
   NavigationMenuContent,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import { Bath, Hotel, PawPrint, ShoppingCart } from "lucide-react";
+import { Bath, Hotel, PawPrint, ShoppingCart, Wallet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
@@ -91,13 +91,11 @@ export default function Header() {
               <NavigationMenuContent className="p-3 absolute left-1/2 -translate-x-1/2 border-none min-w-[280px] z-100 bg-white/90 backdrop-blur shadow-lg rounded-xl">
                 <ul className=" font-light grid gap-4">
                   <li>
-                    <Link
-                      className="cursor-pointer"
-                      href="/spa"
-                      legacyBehavior
-                      passHref
-                    >
-                      <NavigationMenuLink className="flex items-start gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition-all duration-200 hover:translate-x-1">
+                    <NavigationMenuLink asChild>
+                      <Link
+                        className="flex items-start gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition-all duration-200 hover:translate-x-1 cursor-pointer"
+                        href="/spa"
+                      >
                         <div>
                           <div className="flex gap-2 items-center text-primary">
                             <Bath className="w-5 h-5 text-primary " />
@@ -110,18 +108,16 @@ export default function Header() {
                             cưng
                           </p>
                         </div>
-                      </NavigationMenuLink>
-                    </Link>
+                      </Link>
+                    </NavigationMenuLink>
                   </li>
 
                   <li>
-                    <Link
-                      className="cursor-pointer"
-                      href="/hotel"
-                      legacyBehavior
-                      passHref
-                    >
-                      <NavigationMenuLink className="flex items-start gap-3 p-3 rounded-lg hover:bg-primary/10 transition-all duration-200 hover:translate-x-1">
+                    <NavigationMenuLink asChild>
+                      <Link
+                        className="flex items-start gap-3 p-3 rounded-lg hover:bg-primary/10 transition-all duration-200 hover:translate-x-1 cursor-pointer"
+                        href="/hotel"
+                      >
                         <div>
                           <div className="flex gap-2 items-center text-primary">
                             <Hotel className="w-5 h-5 text-primary" />
@@ -134,18 +130,16 @@ export default function Header() {
                             của bạn
                           </p>
                         </div>
-                      </NavigationMenuLink>
-                    </Link>
+                      </Link>
+                    </NavigationMenuLink>
                   </li>
 
                   <li>
-                    <Link
-                      className="cursor-pointer"
-                      href="/product"
-                      legacyBehavior
-                      passHref
-                    >
-                      <NavigationMenuLink className="flex items-start gap-3 p-3 rounded-lg hover:bg-primary/10 transition-all duration-200 hover:translate-x-1">
+                    <NavigationMenuLink asChild>
+                      <Link
+                        className="flex items-start gap-3 p-3 rounded-lg hover:bg-primary/10 transition-all duration-200 hover:translate-x-1 cursor-pointer"
+                        href="/product"
+                      >
                         <div>
                           <div className="flex gap-2 items-center text-primary">
                             <PawPrint className="w-5 h-5 text-primary" />
@@ -157,8 +151,8 @@ export default function Header() {
                             Thức ăn, phụ kiện và đồ chơi chất lượng cho thú cưng
                           </p>
                         </div>
-                      </NavigationMenuLink>
-                    </Link>
+                      </Link>
+                    </NavigationMenuLink>
                   </li>
                 </ul>
               </NavigationMenuContent>
@@ -254,7 +248,24 @@ export default function Header() {
                 </div>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 pr-2">
+            <DropdownMenuContent align="end" className="w-56 pr-2">
+              <Link href="/wallet">
+                <div className="px-2 py-2 mx-1 my-1 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20 cursor-pointer hover:bg-gradient-to-r hover:from-primary/15 hover:to-primary/10 transition-all">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <p className="font-poppins-light text-xs text-muted-foreground mb-1">
+                        Số dư ví
+                      </p>
+                      <p className="font-poppins-regular text-[14px] text-primary font-semibold">
+                        {user?.walletBalance?.toLocaleString("vi-VN")} ₫
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-center bg-primary/20 rounded-lg p-2">
+                      <Wallet className="w-5 h-5 text-primary" />
+                    </div>
+                  </div>
+                </div>
+              </Link>
               <Link href="/profile">
                 <DropdownMenuItem className="font-poppins-light text-[14px] focus:text-primary transition-all duration-200 hover:translate-x-1">
                   Thông tin cá nhân
