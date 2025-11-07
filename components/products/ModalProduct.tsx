@@ -10,6 +10,7 @@ import { uploadFile } from "@/utils/uploadFIle";
 import { usePostProduct } from "@/services/product/postProduct/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePatchProduct } from "@/services/product/patchProduct/hooks";
+import { toast } from "sonner";
 
 interface ModalProductProps {
   initialState?: ProductAdmin | null;
@@ -112,11 +113,31 @@ export const ModalProduct = ({
     try {
       if (initialState) {
         await updateProduct({ id: initialState.id, body: payloadPatch });
-        messageApi.success("Cập nhật sản phẩm thành công!");
+        toast.promise<{ name: string }>(
+          () =>
+            new Promise((resolve) =>
+              setTimeout(() => resolve({ name: "Cập nhật sản phẩm" }), 2000)
+            ),
+          {
+            loading: "Loading...",
+            success: (data) => `${data.name} thành công!`,
+            error: "Error",
+          }
+        );
         queryClient.invalidateQueries(["patchProduct"]);
       } else {
         await createProduct(payloadPost);
-        messageApi.success("Thêm sản phẩm thành công!");
+        toast.promise<{ name: string }>(
+          () =>
+            new Promise((resolve) =>
+              setTimeout(() => resolve({ name: "Thêm sản phẩm" }), 2000)
+            ),
+          {
+            loading: "Loading...",
+            success: (data) => `${data.name} thành công!`,
+            error: "Error",
+          }
+        );
         queryClient.invalidateQueries(["allProductAdmin"]);
       }
       setTimeout(() => {

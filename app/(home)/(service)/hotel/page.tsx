@@ -153,9 +153,9 @@ const PetHotelPage = () => {
                     key={roomData.id}
                     custom={idx}
                     variants={cardVariants}
-                    className="group relative rounded-2xl border bg-white shadow-md p-6 cursor-pointer overflow-hidden hover:-translate-y-2 hover:shadow-xl transition duration-500"
+                    className="group relative rounded-2xl border bg-white shadow-md p-6 cursor-pointer overflow-hidden hover:-translate-y-2 hover:shadow-xl transition duration-500 flex flex-col h-full"
                   >
-                    <div className="relative w-full h-48 md:h-56 rounded-2xl overflow-hidden mb-4">
+                    <div className="relative w-full h-48 md:h-56 rounded-2xl overflow-hidden mb-4 flex-shrink-0">
                       <Image
                         src={roomData.image || "/images/hotel1.jpg"}
                         alt={roomData.name}
@@ -178,19 +178,32 @@ const PetHotelPage = () => {
                         </div>
                       )}
                     </div>
-                    <h3 className="mt-4 text-xl font-bold text-slate-800 group-hover:text-pink-600 transition-colors">
-                      {roomData.name}
-                    </h3>
-                    <p className="text-slate-600 mt-2 text-sm leading-relaxed">
-                      {roomData.description}
-                    </p>
-                    <p className="mt-4 font-semibold text-pink-600">
-                      {roomData.price > 0
-                        ? `${roomData.price.toLocaleString()}đ/đêm`
-                        : "Liên hệ"}
-                    </p>
+
+                    {/* Title & Description - Fixed height */}
+                    <div className="flex-shrink-0">
+                      <h3 className="h-14 text-lg md:text-xl font-bold text-slate-800 group-hover:text-pink-600 transition-colors line-clamp-2 flex items-center">
+                        {roomData.name}
+                      </h3>
+                      <p className="text-slate-600 mt-2 text-sm leading-relaxed h-12 line-clamp-2">
+                        {roomData.description}
+                      </p>
+                    </div>
+
+                    {/* Flexible spacer */}
+                    <div className="flex-grow" />
+
+                    {/* Price & Duration - Fixed height with border */}
+                    <div className="mt-4 pt-4 border-t border-gray-200 flex-shrink-0">
+                      <p className="font-semibold text-pink-600">
+                        {roomData.price > 0
+                          ? `${roomData.price.toLocaleString()}đ/đêm`
+                          : "Liên hệ"}
+                      </p>
+                    </div>
+
+                    {/* Button - Always at bottom */}
                     <button
-                      className={`mt-4 px-4 py-2 cursor-pointer rounded-lg font-medium transition ${
+                      className={`mt-4 px-4 py-2 cursor-pointer rounded-lg font-medium transition flex-shrink-0 w-full ${
                         roomData.isAvailable && roomData.totalAvailableRooms > 0
                           ? "bg-pink-500 text-white hover:bg-pink-600"
                           : "bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -209,7 +222,7 @@ const PetHotelPage = () => {
                         ? "Đặt ngay"
                         : "Hết chỗ"}
                     </button>
-                    <span className="inline-block mt-4 text-sm text-pink-600 font-semibold opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
+                    <span className="hidden sm:inline-block mt-3 text-sm text-pink-600 font-semibold opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
                       Xem chi tiết →
                     </span>
                   </motion.div>

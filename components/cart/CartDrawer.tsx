@@ -316,7 +316,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
     useCartStore();
   const summary = useCartSummary();
   const isOpen = useIsCartOpen();
-  const { combos } = useCombos(); // ✅ Fetch combos once and cache
+  // ✅ Only fetch combos when drawer is actually open (lazy loading)
+  const { combos } = useCombos(isOpen === false); // skipLoad=true when drawer is closed
 
   // State cho các booking được chọn để thanh toán
   const [selectedIds, setSelectedIds] = useState<string[]>([]);

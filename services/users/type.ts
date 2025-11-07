@@ -10,6 +10,8 @@ export interface User {
   createdAt: string;
   isActive: boolean;
   role: Role;
+  walletBalance: number;
+  walletStatus: string;
 }
 
 export interface Role {
