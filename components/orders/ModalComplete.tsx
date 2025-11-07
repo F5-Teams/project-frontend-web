@@ -57,7 +57,7 @@ const ModalComplete: React.FC<ModalCompleteProps> = ({
       { id: order.id, body: formData },
       {
         onSuccess: (res) => {
-          messageApi.success("Duyệt đơn thành công!");
+          messageApi.success("Đơn đã hoàn thành!");
 
           form.resetFields();
           onClose();
@@ -65,7 +65,7 @@ const ModalComplete: React.FC<ModalCompleteProps> = ({
         },
         onError: (err: any) => {
           console.log(err);
-          messageApi.error("Duyệt đơn thành công!");
+          messageApi.error("Lỗi!");
         },
         onSettled: () => setLoading(false),
       }

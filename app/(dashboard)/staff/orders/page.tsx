@@ -84,7 +84,7 @@ const OrderPage = () => {
           });
 
           messageApi.success(
-            "Tạo vận đơn thành công! Đơn chuyển sang trạng thái SHIPPING."
+            `Tạo vận đơn thành công với mã: ${res.ghnOrderCode}`
           );
           queryClient.invalidateQueries(["getAllOrder"]);
         } catch (err) {
