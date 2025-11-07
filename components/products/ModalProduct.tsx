@@ -35,7 +35,7 @@ export const ModalProduct = ({
   const { mutateAsync: createProduct } = usePostProduct();
   const { mutateAsync: updateProduct } = usePatchProduct();
   const [messageApi, contextHolder] = message.useMessage();
-
+  // load
   useEffect(() => {
     if (initialState) {
       form.setFieldsValue({
