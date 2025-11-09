@@ -21,6 +21,24 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
   onClose,
 }) => {
   if (!order) return null;
+  const total = Number(order.totalPrice) + Number(order.shipping.shippingFee);
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "PENDING":
+        return "Đang chờ duyệt";
+      case "APPROVED":
+        return "Đã duyệt";
+      case "SHIPPING":
+        return "Đang giao hàng";
+      case "COMPLETED":
+        return "Hoàn thành";
+      case "CANCELLED":
+        return "Đã hủy";
+      default:
+        return status;
+    }
+  };
 
   return (
     <Modal
@@ -32,7 +50,6 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
       className="rounded-xl"
     >
       <div className="space-y-6">
-        {/* Header */}
         <div className="text-lg font-bold flex items-center gap-3">
           <Image
             alt="Logo"
@@ -47,7 +64,6 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
 
         <div className="w-[80%] mx-auto h-px bg-gray-300"></div>
 
-        {/* Order Info */}
         <div className="border-b pb-2">
           <h2 className="text-xl font-bold text-gray-800">
             Chi tiết đơn hàng #{order.id}
@@ -55,10 +71,11 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
           <p className="text-sm text-gray-500">
             Ngày tạo: {dayjs(order.createdAt).format("DD/MM/YYYY HH:mm")}
           </p>
-          <p className="text-sm text-gray-500">Trạng thái: {order.status}</p>
+          <p className="text-sm text-gray-500">
+            Trạng thái: {getStatusLabel(order.status)}
+          </p>
         </div>
 
-        {/* Customer Info */}
         <div>
           <h3 className="flex gap-2 font-semibold text-gray-700 mb-2">
             <User className="text-pink-500" /> Thông tin khách hàng
@@ -74,7 +91,6 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
           </div>
         </div>
 
-        {/* Shipping Info */}
         <div>
           <h3 className="flex gap-2 font-semibold text-gray-700 mb-2">
             <Car className="text-pink-500" /> Thông tin vận chuyển
@@ -99,7 +115,6 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
           </div>
         </div>
 
-        {/* Payment Info */}
         <div>
           <h3 className="flex gap-2 font-semibold text-gray-700 mb-2">
             <CreditCard className="text-pink-500" /> Thanh toán
@@ -118,7 +133,6 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
           </div>
         </div>
 
-        {/* Products */}
         <div>
           <h3 className="flex gap-2 font-semibold text-gray-700 mb-2">
             <ShoppingCart className="text-pink-500" /> Sản phẩm
@@ -141,9 +155,8 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
           </div>
         </div>
 
-        {/* Total */}
         <div className="text-right text-lg font-semibold text-pink-600">
-          Tổng thanh toán: {Number(order.totalPrice).toLocaleString("vi-VN")} đ
+          Tổng thanh toán: {total.toLocaleString("vi-VN")}. đ
         </div>
 
         {order.shipping.deliveryProofImage && (
