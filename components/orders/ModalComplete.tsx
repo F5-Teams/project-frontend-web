@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Logo from "@/public/logo/HappyPaws Logo.svg";
 import { usePutGhnDelivered } from "@/services/orders/putGhnDelivered/hooks";
+import { toast } from "sonner";
 
 interface ModalCompleteProps {
   open: boolean;
@@ -57,7 +58,17 @@ const ModalComplete: React.FC<ModalCompleteProps> = ({
       { id: order.id, body: formData },
       {
         onSuccess: (res) => {
-          messageApi.success("Đơn đã hoàn thành!");
+          toast.promise<{ name: string }>(
+            () =>
+              new Promise((resolve) =>
+                setTimeout(() => resolve({ name: "Đơn đã" }), 500)
+              ),
+            {
+              loading: "Loading...",
+              success: (data) => `${data.name} hoàn thành!`,
+              error: "Error",
+            }
+          );
 
           form.resetFields();
           onClose();

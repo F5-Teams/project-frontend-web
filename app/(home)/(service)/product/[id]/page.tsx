@@ -172,6 +172,7 @@ const ProductIdPage = () => {
                   price: Number(data.price),
                   quantity,
                   imageUrl: data.images?.[0]?.imageUrl,
+                  weight: data.weight,
                 });
               }}
               className={`mt-8 py-3 rounded-xl w-full cursor-pointer font-medium transition px-2 border-1 ${

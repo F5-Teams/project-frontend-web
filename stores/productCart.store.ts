@@ -9,6 +9,7 @@ interface CartProduct {
   price: number;
   quantity: number;
   imageUrl?: string;
+  weight: string;
 }
 
 interface ProductCartState {
@@ -32,6 +33,7 @@ export const useProductCartStore = create<ProductCartState>()(
         if (index !== -1) {
           const updated = [...items];
           updated[index].quantity += newItem.quantity;
+          updated[index].weight = newItem.weight;
           return set({ items: updated });
         }
 

@@ -23,8 +23,8 @@ export default function HistoryOrder() {
   const { data: user } = useGetUser();
   const { data: orders } = useOrderCustomer(user?.id);
 
-  console.log("ID", user?.id);
-  console.log("LLL", orders);
+  // const total =
+  //   Number(orders?.totalPrice) + Number(orders?.shipping.shippingFee);
 
   return (
     <div className="px-20 py-6 space-y-6">
@@ -78,10 +78,13 @@ export default function HistoryOrder() {
                 </div>
               </div>
 
-              {/* RIGHT */}
               <div className="flex items-center gap-3">
                 <p className="text-orange-500 font-semibold">
-                  {Number(order.totalPrice).toLocaleString()} đ
+                  {(
+                    Number(order.totalPrice) +
+                    Number(order.shipping.shippingFee)
+                  ).toLocaleString("vi-VN")}{" "}
+                  đ
                 </p>
                 <span className="text-gray-400 text-lg">{`>`}</span>
               </div>
