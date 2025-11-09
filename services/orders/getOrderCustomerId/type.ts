@@ -1,8 +1,8 @@
-export interface Order {
+export interface OrderCustomer {
   id: number;
   status: "PENDING" | "APPROVED" | "SHIPPING" | "DELIVERED" | "CANCELLED";
   totalPrice: string;
-  note: string;
+  note: string | null;
   createdAt: string;
   customerId: number;
   customer: Customer;
@@ -30,6 +30,14 @@ export interface Product {
   id: number;
   name: string;
   price: string;
+  weight: string; // ✅ bổ sung đúng như data trả về
+  images: ProductImage[]; // ✅ thêm danh sách hình ảnh
+}
+
+export interface ProductImage {
+  id: number;
+  imageUrl: string;
+  type: string | null;
 }
 
 export interface Shipping {
@@ -57,16 +65,16 @@ export interface Shipping {
   codAmount: string;
   insuranceValue: string;
   shippingFee: string;
-  note: string;
-  status: "PENDING" | "SHIPPING" | "DELIVERED" | "CANCELLED";
+  note: string | null;
+  status: string;
   orderId: number;
 }
 
 export interface Payment {
   id: number;
-  paymentMethod: "CASH" | "BANK" | "MOMO" | "ZALOPAY";
+  paymentMethod: string; // CASH / VNPAY / MOMO ...
   amount: string;
-  status: "PENDING" | "PAID" | "FAILED";
+  status: string; // PENDING / PAID / FAILED ...
   createdAt: string;
   orderId: number;
 }

@@ -158,29 +158,99 @@ export default function BookingPendingPage() {
                     {/* Chi tiết booking khi mở rộng */}
                     {expandedId === b.id && (
                       <tr className="bg-gray-50/70">
-                        <td colSpan={5} className="p-4">
-                          <div className="space-y-2 text-sm text-gray-700">
-                            <p>
-                              <strong>Ngày tạo:</strong>{" "}
-                              {new Date(b.createdAt ?? "").toLocaleString(
-                                "vi-VN"
-                              )}
-                            </p>
-                            <p>
-                              <strong>Tổng tiền:</strong>{" "}
-                              {formatMoney(b.comboPrice)}
-                            </p>
-                            <p>
-                              <strong>Ghi chú:</strong>{" "}
-                              {b.note?.trim() || "Không có ghi chú"}
-                            </p>
+                        <td colSpan={5} className="p-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+                            {/* Cột 1 - Thông tin cơ bản */}
+                            <div className="space-y-2">
+                              <p>
+                                <strong>Mã đơn:</strong> #{b.id}
+                              </p>
+                              <p>
+                                <strong>Ngày tạo:</strong>{" "}
+                                {new Date(b.createdAt ?? "").toLocaleString(
+                                  "vi-VN"
+                                )}
+                              </p>
+                              <p>
+                                <strong>Thời gian hẹn:</strong>{" "}
+                                {b.bookingDate
+                                  ? new Date(b.bookingDate).toLocaleString(
+                                      "vi-VN"
+                                    )
+                                  : "—"}
+                              </p>
+                              <p>
+                                <strong>Trạng thái:</strong>{" "}
+                                <span className="text-yellow-600 font-medium">
+                                  {b.status === "PENDING"
+                                    ? "Đang chờ xác nhận"
+                                    : b.status === "CONFIRMED"
+                                    ? "Đã xác nhận"
+                                    : b.status}
+                                </span>
+                              </p>
+                            </div>
+
+                            {/* Cột 2 - Thông tin khách hàng và thú cưng */}
+                            <div className="space-y-2">
+                              <p>
+                                <strong>Khách hàng:</strong>{" "}
+                                {b.customer
+                                  ? `${b.customer.firstName ?? ""} ${
+                                      b.customer.lastName ?? ""
+                                    }`.trim()
+                                  : "—"}
+                              </p>
+                              <p>
+                                <strong>Số điện thoại:</strong>{" "}
+                                {b.customer?.phoneNumber || "—"}
+                              </p>
+
+                              <p>
+                                <strong>Thú cưng:</strong>{" "}
+                                {b.pet
+                                  ? `${b.pet.name} (${b.pet.species})`
+                                  : "—"}
+                              </p>
+                            </div>
                           </div>
 
-                          <div className="mt-4 flex items-center gap-2">
+                          {/* Dịch vụ */}
+                          <div className="mt-4">
+                            <strong>Dịch vụ:</strong>{" "}
+                            {b.combo?.serviceLinks?.length ? (
+                              <ul className="list-disc list-inside text-gray-700 mt-1">
+                                {b.combo.serviceLinks.map((sl, idx) => (
+                                  <li key={idx}>
+                                    {sl.service?.name} —{" "}
+                                    {formatMoney(sl.service?.price)}
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="text-gray-500 italic">
+                                Không có dịch vụ
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Tổng tiền + ghi chú + nút xác nhận */}
+                          <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                            <div className="space-y-1 text-gray-800">
+                              <p>
+                                <strong>Tổng tiền:</strong>{" "}
+                                {formatMoney(b.comboPrice)}
+                              </p>
+                              <p>
+                                <strong>Ghi chú:</strong>{" "}
+                                {b.note?.trim() || "Không có ghi chú"}
+                              </p>
+                            </div>
+
                             <Button
                               onClick={() => handleConfirmBooking(b.id)}
                               disabled={confirmingId === b.id}
-                              className="bg-green-600 hover:bg-green-700 text-white"
+                              className="mt-3 sm:mt-0 bg-green-600 hover:bg-green-700 text-white"
                             >
                               {confirmingId === b.id ? (
                                 <>
@@ -190,7 +260,7 @@ export default function BookingPendingPage() {
                               ) : (
                                 <>
                                   <Check className="w-4 h-4 mr-1" />
-                                  Xác nhận
+                                  Xác nhận đơn
                                 </>
                               )}
                             </Button>
