@@ -9,5 +9,12 @@ export interface User {
   lastName: string;
   createdAt: string;
   isActive: boolean;
-  roleId: number;
+  role: Role;
+  walletBalance: number;
+  walletStatus: string;
+}
+
+export interface Role {
+  id: number;
+  name: string;
 }
