@@ -54,7 +54,7 @@ export default function GroomerDashboardPage() {
               {/* Booking detail dưới TotalSummary */}
               <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="font-medium">Chi tiết booking</div>
+                  <div className="font-poppins-regular">Chi tiết booking</div>
                 </div>
 
                 <div>

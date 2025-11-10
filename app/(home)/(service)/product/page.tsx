@@ -59,19 +59,23 @@ export const ProductCard = ({ product }: { product: Product }) => {
         <h3 className="text-lg font-poppins-medium text-slate-800 mb-1">
           {product.name}
         </h3>
-        <p className="text-slate-600 text-sm mb-3">{product.description}</p>
+        <p className="text-slate-600 font-poppins-light text-sm mb-4">
+          {product.description}
+        </p>
 
         <div className="flex justify-between text-sm text-gray-700 mb-3">
-          <span>
-            <span className="font-medium">Loại:</span> {product.type}
+          <span className="font-poppins-medium">
+            <span className="font-poppins-light">Loại:</span> {product.type}
           </span>
           <span>
-            <span className="font-medium">Số lượng:</span>{" "}
-            <span className="text-green-600 font-medium">{product.stocks}</span>
+            <span className="font-poppins-light">Số lượng:</span>{" "}
+            <span className="text-green-600 font-poppins-medium">
+              {product.stocks}
+            </span>
           </span>
         </div>
 
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center border rounded-xl overflow-hidden">
             <button
               onClick={handleDecrease}
@@ -88,7 +92,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
             <button
               onClick={handleIncrease}
               disabled={quantity >= maxStock}
-              className={`px-2 py-1 text-lg font-bold ${
+              className={`px-2 py-1 text-lg font-poppins-light ${
                 quantity >= maxStock
                   ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                   : "bg-gray-200 hover:bg-gray-300"
@@ -97,7 +101,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
               +
             </button>
           </div>
-          <span className="text-pink-600 font-medium text-3xl">
+          <span className="text-pink-600 font-poppins-medium text-2xl">
             {new Intl.NumberFormat("vi-VN").format(Number(product.price))} đ
           </span>
         </div>
@@ -115,10 +119,10 @@ export const ProductCard = ({ product }: { product: Product }) => {
                 weight: product.weight,
               });
             }}
-            className={`h-10 cursor-pointer rounded-xl w-full font-medium transition ${
+            className={`h-10 text-sm cursor-pointer rounded-xl w-full font-poppins-light transition ${
               maxStock === 0
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-[#f8daef] hover:bg-[#f5bee4] text-pink-600"
+                : "bg-[#f8daef] hover:bg-[#f5bee4] text-primary"
             }`}
           >
             {maxStock === 0 ? "Hết hàng" : "Thêm vào giỏ hàng"}
@@ -127,10 +131,10 @@ export const ProductCard = ({ product }: { product: Product }) => {
           <button
             onClick={() => setOpenBuy(true)}
             disabled={maxStock === 0}
-            className={`h-10 cursor-pointer rounded-xl w-full font-medium transition ${
+            className={`h-10 text-sm cursor-pointer rounded-xl w-full font-poppins-light transition ${
               maxStock === 0
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-pink-500 hover:bg-pink-600 text-white"
+                : "bg-primary hover:bg-pink-600 text-white"
             }`}
           >
             {maxStock === 0 ? "Hết hàng" : "Đặt ngay"}
@@ -246,7 +250,7 @@ const PetStorePage = () => {
             className={`px-2 py-1 rounded-xl cursor-pointer transition ${
               select === "All"
                 ? "bg-pink-500 text-white"
-                : "bg-gray-400 text-white hover:bg-gray-800"
+                : "bg-pink-200 text-white hover:bg-pink-600"
             }`}
           >
             All
@@ -265,7 +269,7 @@ const PetStorePage = () => {
                 className={`px-2 py-1 rounded-xl font-poppins-light cursor-pointer transition ${
                   select === item
                     ? "bg-pink-500 text-white"
-                    : "bg-gray-300 text-white hover:bg-gray-400"
+                    : "bg-pink-200 text-white hover:bg-pink-600"
                 }`}
               >
                 {item}

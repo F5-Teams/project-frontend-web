@@ -117,7 +117,7 @@ export default function StartServicePanel({
           </label>
 
           <div className="text-xs font-poppins-light text-muted-foreground mt-2">
-            Hỗ trợ nhiều ảnh. Ảnh sẽ được upload lên server và gắn nhãn BEFORE.
+            Hỗ trợ nhiều ảnh. Ảnh sẽ được upload lên server.
           </div>
         </section>
 

@@ -166,7 +166,7 @@ export default function Header() {
                 VỀ CHÚNG TÔI
               </NavigationMenuLink>
             </NavigationMenuItem>
-
+            {/* 
             <NavigationMenuItem>
               <NavigationMenuLink
                 href="#nhận-nuôi"
@@ -174,7 +174,7 @@ export default function Header() {
               >
                 NHẬN NUÔI
               </NavigationMenuLink>
-            </NavigationMenuItem>
+            </NavigationMenuItem> */}
 
             <NavigationMenuItem>
               <NavigationMenuLink
