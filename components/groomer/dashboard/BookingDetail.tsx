@@ -143,7 +143,7 @@ export default function BookingDetail({
       <div className="mt-4 grid grid-cols-2 gap-4">
         <div>
           <div className="text-xs text-muted-foreground">Ngày đặt</div>
-          <div className="font-medium">
+          <div className="font-poppins-regular">
             {booking.bookingDate
               ? formatDMY(new Date(booking.bookingDate))
               : "—"}
@@ -151,25 +151,35 @@ export default function BookingDetail({
         </div>
 
         <div>
-          <div className="text-xs text-muted-foreground">Khung giờ</div>
-          <div className="font-medium">{booking.dropDownSlot ?? "—"}</div>
+          <div className="text-xs font-poppins-regular text-gray-500">
+            Khung giờ
+          </div>
+          <div className="font-poppins-regular">
+            {booking.dropDownSlot ?? "—"}
+          </div>
         </div>
 
         <div>
-          <div className="text-xs text-muted-foreground">Khách hàng</div>
-          <div className="font-medium">{customerName}</div>
+          <div className="text-xs font-poppins-regular text-gray-500">
+            Khách hàng
+          </div>
+          <div className="font-poppins-regular">{customerName}</div>
           <div className="text-xs text-muted-foreground">{customerPhone}</div>
         </div>
 
         <div>
-          <div className="text-xs text-muted-foreground">Dịch vụ / Combo</div>
-          <div className="font-medium">{serviceInfo}</div>
+          <div className="text-xs font-poppins-regular text-gray-500">
+            Dịch vụ / Combo
+          </div>
+          <div className="font-poppins-regular">{serviceInfo}</div>
         </div>
       </div>
 
       <div className="mt-4">
-        <div className="text-xs text-muted-foreground">Ghi chú</div>
-        <div className="text-sm">{booking.note ?? "—"}</div>
+        <div className="text-xs font-poppins-regular text-gray-500">
+          Ghi chú
+        </div>
+        <div className="font-poppins-regular">{booking.note ?? "—"}</div>
       </div>
 
       <div className="mt-4 flex items-center gap-3">
@@ -188,13 +198,6 @@ export default function BookingDetail({
             No image
           </div>
         )}
-
-        <div className="flex-1 text-xs text-muted-foreground">
-          <div>
-            Ngày tạo:{" "}
-            {booking.createdAt ? formatDMY(new Date(booking.createdAt)) : "—"}
-          </div>
-        </div>
       </div>
 
       {/* Modal panel shown after startSuccessful => mandatory upload BEFORE */}

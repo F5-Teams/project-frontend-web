@@ -4,6 +4,8 @@ import {
   startBookingOnService,
   uploadBookingPhotos,
   UploadBookingPhotosPayload,
+  completeBooking,
+  CompleteBookingPayload,
 } from "./api";
 import { Booking } from "./type";
 
@@ -21,12 +23,14 @@ export function useConfirmedBookings() {
   });
 }
 
-export function useStartOnService() {
+export function useStartOnService(options?: { invalidateOnSuccess?: boolean }) {
   const qc = useQueryClient();
   return useMutation<void, unknown, number>({
     mutationFn: (bookingId: number) => startBookingOnService(bookingId),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: GROOMER_CONFIRMED_BOOKINGS_KEY });
+      if (options?.invalidateOnSuccess !== false) {
+        qc.invalidateQueries({ queryKey: GROOMER_CONFIRMED_BOOKINGS_KEY });
+      }
     },
   });
 }
@@ -40,6 +44,20 @@ export function useUploadBookingPhotos() {
   >({
     mutationFn: ({ bookingId, payload }) =>
       uploadBookingPhotos(bookingId, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: GROOMER_CONFIRMED_BOOKINGS_KEY });
+    },
+  });
+}
+
+export function useCompleteBooking() {
+  const qc = useQueryClient();
+  return useMutation<
+    void,
+    unknown,
+    { bookingId: number; payload: CompleteBookingPayload }
+  >({
+    mutationFn: ({ bookingId, payload }) => completeBooking(bookingId, payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: GROOMER_CONFIRMED_BOOKINGS_KEY });
     },

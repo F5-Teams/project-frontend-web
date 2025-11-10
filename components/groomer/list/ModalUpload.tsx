@@ -2,17 +2,19 @@
 
 import React, { useEffect, useState } from "react";
 import { uploadFile } from "@/utils/uploadFIle";
-import { useUploadBookingPhotos } from "@/services/groomer/booking/hooks";
-import type { UploadBookingPhotosPayload } from "@/services/groomer/booking/api";
+import { useCompleteBooking } from "@/services/groomer/booking/hooks";
+import type { CompleteBookingPayload } from "@/services/groomer/booking/api";
 import { toast } from "sonner";
 import Image from "next/image";
 import { UploadCloud, X } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { GROOMER_CONFIRMED_BOOKINGS_KEY } from "@/services/groomer/booking/hooks";
 
 type ImageType = "AFTER";
 
 type Props = {
   bookingId: number;
-  imageType?: ImageType; // default "AFTER"
+  imageType?: ImageType;
   title?: string;
   submitLabel?: string;
   onDone?: () => void;
@@ -31,7 +33,8 @@ export default function ModalUpload({
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [note, setNote] = useState("");
-  const uploadMutation = useUploadBookingPhotos();
+  const completeMutation = useCompleteBooking();
+  const qc = useQueryClient();
 
   useEffect(() => {
     const urls = files.map((f) => URL.createObjectURL(f));
@@ -65,14 +68,16 @@ export default function ModalUpload({
         uploadedUrls.push(res.url);
       }
 
-      const payload: UploadBookingPhotosPayload = {
+      const payload: CompleteBookingPayload = {
         imageUrls: uploadedUrls,
-        imageType,
+        imageType: imageType,
         note: note || undefined,
       };
 
-      await uploadMutation.mutateAsync({ bookingId, payload });
-      toast.success("Ảnh đã được lưu vào hồ sơ booking.");
+      await completeMutation.mutateAsync({ bookingId, payload });
+      // Explicitly refetch bookings so List + Detail update instantly
+      qc.invalidateQueries({ queryKey: GROOMER_CONFIRMED_BOOKINGS_KEY });
+      toast.success("Đã hoàn tất dịch vụ và lưu ảnh");
       onDone?.();
     } catch (err) {
       console.error(err);
@@ -88,7 +93,7 @@ export default function ModalUpload({
       aria-modal="true"
       role="dialog"
     >
-      <div className="absolute inset-0 bg-black/40" />
+      <div className="absolute rounded-2xl inset-0 bg-black/40" />
 
       <div className="relative z-10 w-[min(800px,96%)] bg-white rounded-xl p-6 shadow-lg border">
         {/* Close button */}
@@ -108,8 +113,7 @@ export default function ModalUpload({
         </div>
 
         <p className="text-sm text-rose-600 mb-4 text-center">
-          Vui lòng chụp ảnh pet sau khi hoàn thành dịch vụ (rõ mặt, đủ sáng).
-          Ảnh sẽ được gắn nhãn AFTER.
+          Vui lòng chụp ảnh pet sau khi hoàn thành dịch vụ (rõ mặt, đủ sáng)
         </p>
 
         <section className="mb-4">
@@ -177,7 +181,7 @@ export default function ModalUpload({
             disabled={uploading}
             className="px-3 py-2 bg-pink-600 text-white rounded-md font-poppins-light text-sm disabled:opacity-50"
           >
-            {uploading ? "Đang gửi..." : submitLabel ?? "Tải ảnh ngay"}
+            {uploading ? "Đang gửi..." : submitLabel ?? "Hoàn tất dịch vụ"}
           </button>
         </div>
       </div>
