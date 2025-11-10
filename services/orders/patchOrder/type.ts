@@ -1,5 +1,5 @@
 export interface CreateOrderRequest {
-  status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+  status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED" | "FAILED";
   note: string;
   customerId: number;
   shipping: ShippingRequest;

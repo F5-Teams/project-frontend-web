@@ -15,11 +15,17 @@ import { Input, Spin } from "antd";
 import { Product } from "@/services/product/getProductPublic/type";
 import { useAllProduct } from "@/services/product/getProductPublic/hooks";
 import { useRouter } from "next/navigation";
+import { useProductCartStore } from "@/stores/productCart.store";
+import BuyModal from "@/components/shopping/BuyModal";
 
 export const ProductCard = ({ product }: { product: Product }) => {
   const [currentImage, setCurrentImage] = useState(0);
-  const route = useRouter();
-  console.log("PRO", product);
+  const addProduct = useProductCartStore((state) => state.addProduct);
+  const clearCart = useProductCartStore((state) => state.clearCart);
+  const [openBuy, setOpenBuy] = useState(false);
+
+  const [quantity, setQuantity] = useState(1);
+
   const nextImage = () =>
     setCurrentImage((prev) => (prev + 1) % product.images.length);
 
@@ -27,10 +33,19 @@ export const ProductCard = ({ product }: { product: Product }) => {
     setCurrentImage((prev) =>
       prev === 0 ? product.images.length - 1 : prev - 1
     );
+  const maxStock = product?.stocks ?? 0;
+
+  const handleDecrease = () => {
+    setQuantity((prev) => Math.max(1, prev - 1));
+  };
+
+  const handleIncrease = () => {
+    setQuantity((prev) => Math.min(maxStock, prev + 1));
+  };
 
   return (
     <div className="group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-500 overflow-hidden cursor-pointer hover:-translate-y-2">
-      <div className="relative h-64 overflow-hidden">
+      <div className="relative h-60 overflow-hidden">
         <Image
           src={product.images[currentImage]?.imageUrl || "/placeholder.svg"}
           alt={product.name}
@@ -54,27 +69,128 @@ export const ProductCard = ({ product }: { product: Product }) => {
           </>
         )}
       </div>
+
       <div className="p-6">
-        <h3 className="text-xl font-bold text-slate-800 mb-2">
-          {product.name}
-        </h3>
+        <h3 className="text-xl font-bold text-pink-600 mb-2">{product.name}</h3>
         <p className="text-slate-600 text-sm mb-3 leading-relaxed">
           {product.description}
         </p>
-        <div className="flex items-center justify-between">
-          <span className="text-2xl font-poppins-regular text-pink-600">
-            {new Intl.NumberFormat("vi-VN").format(Number(product.price))} đ
-          </span>
 
-          <button
+        <div className="flex items-center justify-between">
+          {/* <button
             onClick={() => route.push(`/product/${product?.id}`)}
             className="flex items-center gap-2 mt-4 px-4 py-2 cursor-pointer rounded-lg bg-pink-500 text-white font-medium hover:bg-pink-600 transition"
           >
             <Eye color="white" />
             <p>Xem chi tiết</p>
+          </button> */}
+        </div>
+
+        <div className="flex justify-between">
+          <div>
+            <span className="text-md font-medium text-gray-700"> Loại: </span>
+            <span className="text-md font-poppins-regular">{product.type}</span>
+          </div>
+
+          <div>
+            <span className="text-md font-medium text-gray-700">
+              {" "}
+              Số lượng:{" "}
+            </span>
+
+            <span className="text-md font-poppins-regular text-green-600 font-medium mr-5">
+              {product.stocks}
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-2 flex justify-between items-center gap-4">
+          <div className="flex items-center border rounded-xl overflow-hidden">
+            <button
+              onClick={handleDecrease}
+              disabled={quantity <= 1}
+              className={`px-2 py-1 text-lg font-bold ${
+                quantity <= 1
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-gray-200 hover:bg-gray-300"
+              } transition`}
+            >
+              −
+            </button>
+            <span className="px-6 text-md font-medium select-none">
+              {quantity}
+            </span>
+            <button
+              onClick={handleIncrease}
+              disabled={quantity >= maxStock}
+              className={`px-2 py-1 text-md font-bold ${
+                quantity >= maxStock
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-gray-200 hover:bg-gray-300"
+              } transition`}
+            >
+              +
+            </button>
+          </div>
+          <div className="mt-4">
+            <span className="text-[27px] font-poppins-regular font-medium text-pink-600">
+              {new Intl.NumberFormat("vi-VN").format(Number(product.price))} đ
+            </span>
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            disabled={maxStock === 0}
+            onClick={() => {
+              addProduct({
+                productId: product.id,
+                name: product.name,
+                price: Number(product.price),
+                quantity,
+                imageUrl: product.images[0].imageUrl,
+                weight: product.weight,
+              });
+            }}
+            className={`h-10 mt-2 text-[14px] rounded-xl w-full cursor-pointer font-medium transition px-2 border-1 ${
+              maxStock === 0
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-[#f8daef] hover:bg-[#f5bee4] text-pink-600"
+            }`}
+          >
+            {maxStock === 0 ? "Hết hàng" : `Thêm vào giỏ hàng`}
+          </button>
+
+          <button
+            onClick={() => {
+              setOpenBuy(true);
+            }}
+            disabled={maxStock === 0}
+            className={`h-10  mt-2 text-[14px]  rounded-xl w-[100%] cursor-pointer font-medium transition px-2 ${
+              maxStock === 0
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-pink-500 hover:bg-pink-600 text-white"
+            }`}
+          >
+            {maxStock === 0 ? "Hết hàng" : `Đặt ngay`}
           </button>
         </div>
       </div>
+      <BuyModal
+        isOpen={openBuy}
+        isCancel={() => setOpenBuy(false)}
+        clearCart={clearCart}
+        items={[
+          {
+            productId: product.id,
+            name: product.name,
+            price: Number(product.price),
+            quantity,
+            weight: product.weight,
+            imageUrl: product.images?.[0]?.imageUrl || "",
+          },
+        ]}
+      />
     </div>
   );
 };

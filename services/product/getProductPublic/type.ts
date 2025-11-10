@@ -18,12 +18,13 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  stock: number;
+  stocks: number;
   type: string;
   createAt: string;
   note: string;
   images: Images;
   orderDetails: Order;
+  weight: string;
 }
 
 export type GetAllProductResponse = Product[];

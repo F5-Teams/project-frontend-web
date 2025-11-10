@@ -30,6 +30,7 @@ const OrderPage = () => {
 
   const handleApprove = async (order: Order) => {
     const orderId = order.id;
+
     const body = {
       status: "APPROVED",
       note: order.note || "",
@@ -57,7 +58,7 @@ const OrderPage = () => {
       },
 
       paymentMethod: order.payment.paymentMethod,
-      paymentStatus: "PENDING",
+      paymentStatus: "TRANSFER",
       orderDetails: order.orderDetails.map((item) => ({
         productId: item.product.id,
         quantity: item.quantity,
@@ -164,6 +165,8 @@ const OrderPage = () => {
         return "Hoàn thành";
       case "CANCELLED":
         return "Đã hủy";
+      case "FAILED":
+        return "Thất bại";
       default:
         return status;
     }

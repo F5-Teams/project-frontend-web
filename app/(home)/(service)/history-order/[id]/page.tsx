@@ -8,6 +8,7 @@ import {
   PackageCheck,
   Clock,
   ArrowLeftToLine,
+  X,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -15,6 +16,7 @@ import { useParams } from "next/navigation";
 
 const statusSteps = [
   { key: "PENDING", label: "Chờ xác nhận", icon: Clock },
+  { key: "CANCELLED", label: "Đã hủy", icon: X },
   { key: "APPROVED", label: "Đã xác nhận", icon: ClipboardCheck },
   { key: "SHIPPING", label: "Đang giao hàng", icon: Truck },
   { key: "COMPLETED", label: "Hoàn thành", icon: PackageCheck },

@@ -5,7 +5,7 @@ import { Modal } from "antd";
 import Image from "next/image";
 import Logo from "@/public/logo/HappyPaws Logo.svg";
 import dayjs from "dayjs";
-import { Car, CreditCard, ShoppingCart, User } from "lucide-react";
+import { Car, ShoppingCart, User } from "lucide-react";
 import { Order } from "@/services/orders/getAllOrder/type";
 import { getImageUrl } from "@/utils/getImageUrl";
 
@@ -35,6 +35,8 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
         return "Hoàn thành";
       case "CANCELLED":
         return "Đã hủy";
+      case "FAILED":
+        return "Thất bại";
       default:
         return status;
     }
@@ -106,29 +108,10 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
               {Number(order.shipping.shippingFee).toLocaleString("vi-VN")} đ
             </p>
             <p>
-              <b>Thu hộ COD:</b>{" "}
-              {Number(order.shipping.codAmount).toLocaleString("vi-VN")} đ
+              <b>Giá:</b> {Number(order.totalPrice).toLocaleString("vi-VN")} đ
             </p>
             <p>
               <b>Ghi chú:</b> {order.note || order.shipping.note || "Không có"}
-            </p>
-          </div>
-        </div>
-
-        <div>
-          <h3 className="flex gap-2 font-semibold text-gray-700 mb-2">
-            <CreditCard className="text-pink-500" /> Thanh toán
-          </h3>
-          <div className="bg-gray-50 rounded-lg p-4 border text-sm space-y-1">
-            <p>
-              <b>Phương thức:</b> {order.payment.paymentMethod}
-            </p>
-            <p>
-              <b>Trạng thái thanh toán:</b> {order.payment.status}
-            </p>
-            <p>
-              <b>Số tiền thanh toán:</b>{" "}
-              {Number(order.payment.amount).toLocaleString("vi-VN")} đ
             </p>
           </div>
         </div>
@@ -158,6 +141,15 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
         <div className="text-right text-lg font-semibold text-pink-600">
           Tổng thanh toán: {total.toLocaleString("vi-VN")}. đ
         </div>
+
+        {order.shipping.failureReason && (
+          <>
+            <div className="flex gap-2">
+              <p className="font-medium">Ghi chú từ shipper:</p>{" "}
+              <p> {order.shipping.failureReason}</p>
+            </div>
+          </>
+        )}
 
         {order.shipping.deliveryProofImage && (
           <img
