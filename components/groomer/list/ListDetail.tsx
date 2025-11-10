@@ -1,14 +1,17 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import type { Booking } from "@/services/groomer/list/type";
 import Image from "next/image";
+import ModalUpload from "./ModalUpload";
 
 type Props = {
   booking?: Booking | null;
 };
 
 export default function ListDetail({ booking }: Props) {
+  const [showModal, setShowModal] = useState(false);
+
   if (!booking) {
     return (
       <div className="p-6 bg-white rounded-md shadow-sm border h-full">
@@ -35,11 +38,7 @@ export default function ListDetail({ booking }: Props) {
         </div>
       </div>
 
-      {/* REPLACE existing grid with a 2-column layout:
-          - left: Booking header -> Status/Slot/Service/Price (spans 2 cols)
-          - right: Pet image fills the right area (spans 1 col) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm h-full">
-        {/* Left: booking info (spans 2 cols on md+) */}
         <div className="md:col-span-2 flex flex-col gap-4">
           <div>
             <div className="text-xs text-muted-foreground">Status</div>
@@ -74,9 +73,12 @@ export default function ListDetail({ booking }: Props) {
           </div>
 
           <div>
-            <div className="text-xs text-muted-foreground mb-2">
-              Hình ảnh (Trước)
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-xs text-muted-foreground">
+                Hình ảnh (Trước)
+              </div>
             </div>
+
             <div className="flex gap-2 flex-wrap">
               {(booking.Image ?? []).map((img) => (
                 <div
@@ -107,7 +109,6 @@ export default function ListDetail({ booking }: Props) {
           </div>
         </div>
 
-        {/* Right: pet image area fills entire right column */}
         <div className="md:col-span-1 flex flex-col items-stretch justify-start h-full">
           <div className="w-full h-full min-h-[240px] rounded-md overflow-hidden border relative">
             {booking.pet?.images &&
@@ -143,7 +144,25 @@ export default function ListDetail({ booking }: Props) {
       <div className="mt-auto text-xs text-muted-foreground">
         Đặt ngày:{" "}
         {booking.createdAt ? new Date(booking.createdAt).toLocaleString() : "—"}
+        <div className="flex justify-end mb-3">
+          <button
+            type="button"
+            onClick={() => setShowModal(true)}
+            className="text-sm bg-pink-600 text-white px-3 py-1 rounded-md hover:bg-pink-700"
+          >
+            Gửi ảnh
+          </button>
+        </div>
       </div>
+
+      {showModal && (
+        <ModalUpload
+          bookingId={booking.id}
+          imageType="AFTER"
+          onCancel={() => setShowModal(false)}
+          onDone={() => setShowModal(false)}
+        />
+      )}
     </div>
   );
 }

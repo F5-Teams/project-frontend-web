@@ -1,13 +1,12 @@
-// app/layout.tsx
-
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { poppins } from "../fonts/font";
 import { Providers } from "./_providers";
 import { Toaster } from "@/components/ui/sonner";
+import ScrollToTop from "@/components/shared/ScrollToTop";
 
-import ReduxProvider from "./ReduxProvider";
+// import ReduxProvider from "./ReduxProvider";
 
 const getPoppins = Poppins({
   variable: "--font-google-poppins",
@@ -32,6 +31,7 @@ export default function RootLayout({
     <html lang="vi" className={`${poppins.variable} ${getPoppins.variable}`}>
       <body className="antialiased">
         <Providers>
+          <ScrollToTop />
           {children}
           <Toaster
             toastOptions={{

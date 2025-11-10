@@ -6,22 +6,22 @@ import { useUploadBookingPhotos } from "@/services/groomer/booking/hooks";
 import type { UploadBookingPhotosPayload } from "@/services/groomer/booking/api";
 import { toast } from "sonner";
 import Image from "next/image";
-import { UploadCloud } from "lucide-react";
+import { UploadCloud, X } from "lucide-react";
 
-type ImageType = "BEFORE";
+type ImageType = "AFTER";
 
 type Props = {
   bookingId: number;
-  imageType?: ImageType; // default "BEFORE"
+  imageType?: ImageType; // default "AFTER"
   title?: string;
   submitLabel?: string;
   onDone?: () => void;
   onCancel?: () => void;
 };
 
-export default function StartServicePanel({
+export default function ModalUpload({
   bookingId,
-  imageType = "BEFORE",
+  imageType = "AFTER",
   title,
   submitLabel,
   onDone,
@@ -91,16 +91,25 @@ export default function StartServicePanel({
       <div className="absolute inset-0 bg-black/40" />
 
       <div className="relative z-10 w-[min(800px,96%)] bg-white rounded-xl p-6 shadow-lg border">
+        {/* Close button */}
+        <button
+          type="button"
+          onClick={() => onCancel?.()}
+          className="absolute top-3 right-3 rounded-full p-2 hover:bg-gray-100"
+          aria-label="Close"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
         <div className="flex items-center justify-center gap-2 mb-2">
           <h3 className="text-center text-2xl font-poppins-regular">
-            {title ?? "Ảnh minh chứng trước khi thực hiện"}
+            {title ?? "Ảnh minh chứng sau khi thực hiện"}
           </h3>
         </div>
 
         <p className="text-sm text-rose-600 mb-4 text-center">
-          Để đảm bảo minh bạch và an toàn dịch vụ, cần chụp ảnh pet (rõ mặt, đủ
-          sáng). Khi ảnh được xác nhận hợp lệ, các thao tác với booking mới được
-          mở.
+          Vui lòng chụp ảnh pet sau khi hoàn thành dịch vụ (rõ mặt, đủ sáng).
+          Ảnh sẽ được gắn nhãn AFTER.
         </p>
 
         <section className="mb-4">
@@ -117,7 +126,7 @@ export default function StartServicePanel({
           </label>
 
           <div className="text-xs font-poppins-light text-muted-foreground mt-2">
-            Hỗ trợ nhiều ảnh. Ảnh sẽ được upload lên server và gắn nhãn BEFORE.
+            Hỗ trợ nhiều ảnh. Ảnh sẽ được upload lên server và gắn nhãn AFTER.
           </div>
         </section>
 

@@ -157,7 +157,7 @@ export default function BookingsTimeline({ onSelect }: Props) {
           onDone={() => {
             setShowStartPanelBookingId(null);
             setExpandedId(null);
-            toast.success("Ảnh BEFORE đã gửi, bắt đầu thực hiện hoàn tất");
+            toast.success("Ảnh đã gửi, bắt đầu thực hiện hoàn tất");
           }}
         />
       )}

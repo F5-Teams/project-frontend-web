@@ -8,7 +8,7 @@ export default function HomeLayout({
 }) {
   return (
     <PushLayout>
-      <div className="bg-gradient-to-b from-pink-100 via-white to-yellow-100 min-h-screen flex flex-col overflow-x-hidden">
+      <div className="bg-linear-to-b from-pink-100 via-white to-yellow-100 min-h-screen flex flex-col overflow-x-hidden">
         <Header />
         <main className="flex-1 overflow-x-hidden pt-24">{children}</main>
         <Footer />
