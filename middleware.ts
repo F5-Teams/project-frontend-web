@@ -29,6 +29,11 @@ const publicPrefixes = [
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // Allow homepage to be public
+  if (pathname === "/") {
+    return NextResponse.next();
+  }
+
   if (publicPrefixes.some((p) => pathname === p || pathname.startsWith(p))) {
     return NextResponse.next();
   }
