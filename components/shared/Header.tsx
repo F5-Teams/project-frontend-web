@@ -18,8 +18,8 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { Bath, Hotel, PawPrint, ShoppingCart, Wallet } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { logout } from "@/utils/auth";
 import Image from "next/image";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { useCartSummary, useIsCartOpen } from "@/stores/cart.store";
@@ -28,7 +28,6 @@ import { useProductCartStore } from "@/stores/productCart.store";
 import { useGetUser } from "@/services/users/hooks";
 
 export default function Header() {
-  const router = useRouter();
   const cartSummary = useCartSummary();
   const isCartOpen = useIsCartOpen();
   const { items } = useProductCartStore();
@@ -36,26 +35,27 @@ export default function Header() {
   const [auth, setAuth] = useState<{
     token: string | null;
     user: { userName?: string; avatar?: string } | null;
+    role: string | null;
   }>({
     token: null,
     user: null,
+    role: null,
   });
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const token = localStorage.getItem("accessToken");
     const userRaw = localStorage.getItem("user");
+    const role = localStorage.getItem("role");
     setAuth({
       token,
       user: userRaw ? JSON.parse(userRaw) : null,
+      role,
     });
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("user");
-    setAuth({ token: null, user: null });
-    router.push("/");
+    logout("/");
   };
 
   return (
@@ -250,7 +250,7 @@ export default function Header() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 pr-2">
               <Link href="/wallet">
-                <div className="px-2 py-2 mx-1 my-1 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20 cursor-pointer hover:bg-gradient-to-r hover:from-primary/15 hover:to-primary/10 transition-all">
+                <div className="px-2 py-2 mx-1 my-1 bg-linear-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20 cursor-pointer hover:bg-linear-to-r hover:from-primary/15 hover:to-primary/10 transition-all">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
                       <p className="font-poppins-light text-xs text-muted-foreground mb-1">

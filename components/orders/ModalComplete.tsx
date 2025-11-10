@@ -79,8 +79,6 @@ const ModalComplete: React.FC<ModalCompleteProps> = ({
         failureReason: values.failed,
       };
 
-      console.log("PAYLODD", payloadFail);
-
       const payloadPatch = {
         status: "FAILED",
         note: order.note || "",
@@ -119,11 +117,15 @@ const ModalComplete: React.FC<ModalCompleteProps> = ({
         { id: order.id, body: payloadFail },
         {
           onSuccess: () => {
-            toast.success("Đơn hàng đã giao thất bại!");
-            form.resetFields();
-            onClose();
-            queryClient.invalidateQueries(["getAllOrder"]);
+            toast.error("Đơn hàng đã giao thất bại!");
+            setTimeout(() => {
+              form.resetFields();
+              onClose();
+              queryClient.invalidateQueries(["getAllOrder"]);
+              setLoading(false);
+            });
           },
+
           onError: (err) => {
             console.log("Error SUCCESS:", err);
           },

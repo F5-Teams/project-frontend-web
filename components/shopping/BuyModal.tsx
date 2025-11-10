@@ -96,7 +96,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
         productId: item.productId,
         quantity: item.quantity,
       })),
-      addressId: address,
+      addressId: Number(address),
       paymentMethod: "TRANSFER",
     };
 
@@ -116,6 +116,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
         }
       );
       queryClient.invalidateQueries(["createOrder"]);
+      form.resetFields();
       clearCart();
     } catch (error) {
       console.log(error);
@@ -223,6 +224,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
         </div>
         <h1 className="font-semibold mb-2">Ghi chú:</h1>
         <Input.TextArea
+          value={note}
           onChange={(e) => setNote(e.target.value)}
           rows={3}
         ></Input.TextArea>
@@ -233,6 +235,8 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
           onClick={() => {
             setLoading(false);
             isCancel();
+            setNote("");
+            form.resetFields();
           }}
           className="flex-1 py-2 rounded-xl border border-pink-500 cursor-pointer text-pink-600 font-semibold hover:bg-pink-50 transition"
         >
@@ -241,7 +245,11 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
 
         <Button
           type="primary"
-          onClick={handleSubmit}
+          onClick={() => {
+            handleSubmit();
+            setNote("");
+            form.resetFields();
+          }}
           loading={loading}
           className="flex-1! py-2! rounded-xl! text-white! bg-pink-500! hover:bg-pink-600!"
         >

@@ -9,6 +9,7 @@ import {
   Clock,
   ArrowLeftToLine,
   X,
+  Triangle,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -20,6 +21,7 @@ const statusSteps = [
   { key: "APPROVED", label: "Đã xác nhận", icon: ClipboardCheck },
   { key: "SHIPPING", label: "Đang giao hàng", icon: Truck },
   { key: "COMPLETED", label: "Hoàn thành", icon: PackageCheck },
+  { key: "FAILED", label: "Thất bại", icon: Triangle },
 ];
 
 export default function OrderDetailPage() {

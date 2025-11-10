@@ -18,6 +18,7 @@ const statusLabel = {
   APPROVED: "Đã xác nhận",
   SHIPPING: "Đang giao",
   COMPLETED: "Hoàn thành",
+  FAILED: "Thất bại",
 };
 
 const statusColor = {
@@ -26,6 +27,7 @@ const statusColor = {
   APPROVED: "bg-blue-100 text-blue-700",
   SHIPPING: "bg-purple-100 text-purple-700",
   COMPLETED: "bg-green-100 text-green-700",
+  FAILED: "bg-orange-100 text-orange-700",
 };
 
 export default function HistoryOrder() {
@@ -89,11 +91,7 @@ export default function HistoryOrder() {
               <div>
                 <div className="flex items-center gap-3">
                   <p className="text-orange-500 font-semibold">
-                    {(
-                      Number(order.totalPrice) +
-                      Number(order.shipping.shippingFee)
-                    ).toLocaleString("vi-VN")}{" "}
-                    đ
+                    {Number(order.payment.amount).toLocaleString("vi-VN")} đ
                   </p>
                   <span className="text-gray-400 text-lg">{`>`}</span>
                 </div>

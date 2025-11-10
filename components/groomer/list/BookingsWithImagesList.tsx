@@ -88,46 +88,6 @@ export default function BookingsWithImagesList({
                     No image
                   </div>
                 )}
-
-                {/* dropdown toggle */}
-                <div className="relative">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setOpenMenuFor((prev) => (prev === b.id ? null : b.id));
-                    }}
-                    className="ml-2 px-2 py-1 border rounded text-sm bg-gray-50"
-                    aria-expanded={openMenuFor === b.id}
-                  >
-                    ⋯
-                  </button>
-
-                  {openMenuFor === b.id && (
-                    <div
-                      onClick={(e) => e.stopPropagation()}
-                      className="absolute right-0 mt-2 w-40 bg-white border rounded-2xl shadow-sm z-10"
-                    >
-                      {/* <button
-                        className="w-full text-left px-3 py-2 hover:bg-gray-100 hover:rounded-2xl text-sm"
-                        onClick={() => {
-                          onRequestUpload?.(b.id, "AFTER");
-                          setOpenMenuFor(null);
-                        }}
-                      >
-                        Tải ảnh đang thực hiện dịch vụ
-                      </button> */}
-                      <button
-                        className="w-full text-left px-3 py-2 hover:bg-gray-100 hover:rounded-2xl text-sm"
-                        onClick={() => {
-                          onRequestUpload?.(b.id, "AFTER");
-                          setOpenMenuFor(null);
-                        }}
-                      >
-                        Tải ảnh đã hoàn thành dịch vụ
-                      </button>
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
           </div>

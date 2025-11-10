@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { logout } from "@/utils/auth";
 import { cn } from "@/lib/utils";
 import { IconKey, ICONS } from "./Icons";
 import Image from "next/image";
@@ -18,7 +19,6 @@ export type SidebarItem = {
 
 export function Sidebar({ items }: { items: SidebarItem[] }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
 
   const handleLogout = () => {
@@ -26,16 +26,14 @@ export function Sidebar({ items }: { items: SidebarItem[] }) {
       setShowLogoutConfirm(true);
       return;
     }
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("user");
-    router.replace("/");
+    logout("/");
   };
 
   return (
     <aside
       className={cn(
         "fixed top-0 left-0 w-64 h-screen text-pink-600 border-r border-pink-100 flex flex-col shadow-[4px_0_15px_-5px_rgba(0,0,0,0.05)]",
-        "bg-gradient-to-b from-[#FFE5EC] via-[#FFF4E0] to-[#FFD6E0]",
+        "bg-linear-to-b from-[#FFE5EC] via-[#FFF4E0] to-[#FFD6E0]",
         "animate-gradien z-50"
       )}
     >
@@ -109,7 +107,7 @@ function NavLinkItem({
       className={cn(
         "flex items-center gap-3 px-5 py-3 rounded-2xl transition-all duration-300 ease-out font-medium group",
         active
-          ? "bg-gradient-to-r from-pink-500 to-pink-400 text-white shadow-md scale-[1.02]"
+          ? "bg-linear-to-r from-pink-500 to-pink-400 text-white shadow-md scale-[1.02]"
           : "hover:bg-pink-100 hover:text-pink-700"
       )}
       role="link"

@@ -3,13 +3,15 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Calendar, Users, MessageSquare, CreditCard } from "lucide-react";
+import { logout } from "@/utils/auth";
+import { Home, Calendar } from "lucide-react";
 import Topbar from "@/components/groomer/Topbar";
 
 type Props = { children: React.ReactNode };
 
 export default function GroomerLayout({ children }: Props) {
   const pathname = usePathname() ?? "/";
+  // const router = useRouter();
 
   const navLinks = [
     { label: "Booking chờ thực hiện", href: "/groomer/dashboard", icon: Home },
@@ -19,6 +21,11 @@ export default function GroomerLayout({ children }: Props) {
       icon: Calendar,
     },
   ];
+
+  // Logout handler: clear storage + cookies then redirect to login
+  function handleLogout() {
+    logout("/");
+  }
 
   return (
     <div className="min-h-screen flex bg-slate-50">
@@ -62,7 +69,10 @@ export default function GroomerLayout({ children }: Props) {
         </div>
 
         <div className="p-4">
-          <button className="w-full flex items-center gap-2 justify-center px-3 py-2 border border-slate-200 rounded-md text-sm">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2 justify-center px-3 py-2 border border-slate-200 rounded-md text-sm bg-white hover:bg-slate-50"
+          >
             Logout
           </button>
         </div>
