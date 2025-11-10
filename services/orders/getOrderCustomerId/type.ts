@@ -68,6 +68,7 @@ export interface Shipping {
   note: string | null;
   status: string;
   orderId: number;
+  failureReason: string;
 }
 
 export interface Payment {

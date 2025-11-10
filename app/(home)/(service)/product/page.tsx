@@ -1,41 +1,41 @@
 "use client";
 import { motion } from "framer-motion";
-import {
-  ShoppingCart,
-  Package,
-  Truck,
-  Shield,
-  TriangleAlert,
-  Eye,
-} from "lucide-react";
+import { Package, Truck, Shield } from "lucide-react";
 import Image from "next/image";
 import bg from "@/public/images/care.jpg";
 import { useEffect, useState } from "react";
 import { Input, Spin } from "antd";
 import { Product } from "@/services/product/getProductPublic/type";
 import { useAllProduct } from "@/services/product/getProductPublic/hooks";
-import { useRouter } from "next/navigation";
+import { useProductCartStore } from "@/stores/productCart.store";
+import BuyModal from "@/components/shopping/BuyModal";
 
 export const ProductCard = ({ product }: { product: Product }) => {
   const [currentImage, setCurrentImage] = useState(0);
-  const route = useRouter();
-  console.log("PRO", product);
+  const addProduct = useProductCartStore((state) => state.addProduct);
+  const [openBuy, setOpenBuy] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  const clearCart = useProductCartStore((state) => state.clearCart);
   const nextImage = () =>
     setCurrentImage((prev) => (prev + 1) % product.images.length);
-
   const prevImage = () =>
     setCurrentImage((prev) =>
       prev === 0 ? product.images.length - 1 : prev - 1
     );
+  const maxStock = product?.stocks ?? 0;
+
+  const handleDecrease = () => setQuantity((prev) => Math.max(1, prev - 1));
+  const handleIncrease = () =>
+    setQuantity((prev) => Math.min(maxStock, prev + 1));
 
   return (
-    <div className="group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-500 overflow-hidden cursor-pointer hover:-translate-y-2">
-      <div className="relative h-64 overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col cursor-pointer">
+      <div className="relative h-60 w-full overflow-hidden">
         <Image
           src={product.images[currentImage]?.imageUrl || "/placeholder.svg"}
           alt={product.name}
           fill
-          className="object-cover transition-transform duration-500"
+          className="object-cover"
         />
         {product.images.length > 1 && (
           <>
@@ -54,27 +54,108 @@ export const ProductCard = ({ product }: { product: Product }) => {
           </>
         )}
       </div>
-      <div className="p-4">
-        <h3 className="text-lg font-poppins-medium text-slate-800 mb-2">
+
+      <div className="p-4 flex flex-col flex-1">
+        <h3 className="text-lg font-poppins-medium text-slate-800 mb-1">
           {product.name}
         </h3>
-        <p className="text-slate-600 font-poppins-regular text-sm mb-3 leading-relaxed">
+        <p className="text-slate-600 font-poppins-light text-sm mb-4">
           {product.description}
         </p>
-        <div className="flex items-center justify-between">
-          <span className="text-xl font-poppins-regular text-pink-600">
+
+        <div className="flex justify-between text-sm text-gray-700 mb-3">
+          <span className="font-poppins-medium">
+            <span className="font-poppins-light">Loại:</span> {product.type}
+          </span>
+          <span>
+            <span className="font-poppins-light">Số lượng:</span>{" "}
+            <span className="text-green-600 font-poppins-medium">
+              {product.stocks}
+            </span>
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center border rounded-xl overflow-hidden">
+            <button
+              onClick={handleDecrease}
+              disabled={quantity <= 1}
+              className={`px-2 py-1 text-lg font-bold ${
+                quantity <= 1
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-gray-200 hover:bg-gray-300"
+              }`}
+            >
+              −
+            </button>
+            <span className="px-6">{quantity}</span>
+            <button
+              onClick={handleIncrease}
+              disabled={quantity >= maxStock}
+              className={`px-2 py-1 text-lg font-poppins-light ${
+                quantity >= maxStock
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-gray-200 hover:bg-gray-300"
+              }`}
+            >
+              +
+            </button>
+          </div>
+          <span className="text-pink-600 font-poppins-medium text-2xl">
             {new Intl.NumberFormat("vi-VN").format(Number(product.price))} đ
           </span>
+        </div>
+
+        <div className="mt-auto flex gap-2">
+          <button
+            disabled={maxStock === 0}
+            onClick={() => {
+              addProduct({
+                productId: product.id,
+                name: product.name,
+                price: Number(product.price),
+                quantity,
+                imageUrl: product.images?.[0]?.imageUrl,
+                weight: product.weight,
+              });
+            }}
+            className={`h-10 text-sm cursor-pointer rounded-xl w-full font-poppins-light transition ${
+              maxStock === 0
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-[#f8daef] hover:bg-[#f5bee4] text-primary"
+            }`}
+          >
+            {maxStock === 0 ? "Hết hàng" : "Thêm vào giỏ hàng"}
+          </button>
 
           <button
-            onClick={() => route.push(`/product/${product?.id}`)}
-            className="flex items-center gap-2 mt-4 px-4 py-2 cursor-pointer rounded-lg text-pink-500 font-poppins-regular transition"
+            onClick={() => setOpenBuy(true)}
+            disabled={maxStock === 0}
+            className={`h-10 text-sm cursor-pointer rounded-xl w-full font-poppins-light transition ${
+              maxStock === 0
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-primary hover:bg-pink-600 text-white"
+            }`}
           >
-            {/* <Eye color="white" /> */}
-            <p>Xem chi tiết</p>
+            {maxStock === 0 ? "Hết hàng" : "Đặt ngay"}
           </button>
         </div>
       </div>
+      <BuyModal
+        isOpen={openBuy}
+        isCancel={() => setOpenBuy(false)}
+        clearCart={clearCart}
+        items={[
+          {
+            productId: product.id,
+            name: product.name,
+            price: Number(product.price),
+            quantity,
+            weight: product.weight,
+            imageUrl: product.images?.[0]?.imageUrl || "",
+          },
+        ]}
+      />
     </div>
   );
 };
@@ -162,16 +243,14 @@ const PetStorePage = () => {
         </div>
       </section>
 
-      {/* Filters (left) and Search (right) on the same row */}
       <div className="max-w-7xl mx-auto px-6 mt-10 flex flex-col md:flex-row items-center md:items-start justify-between gap-3">
-        {/* Filters */}
         <div className="flex flex-wrap font-poppins-light text-[14px] items-center gap-2">
           <p
             onClick={() => setSelect("All")}
             className={`px-2 py-1 rounded-xl cursor-pointer transition ${
               select === "All"
                 ? "bg-pink-500 text-white"
-                : "bg-gray-400 text-white hover:bg-gray-800"
+                : "bg-pink-200 text-white hover:bg-pink-600"
             }`}
           >
             All
@@ -190,7 +269,7 @@ const PetStorePage = () => {
                 className={`px-2 py-1 rounded-xl font-poppins-light cursor-pointer transition ${
                   select === item
                     ? "bg-pink-500 text-white"
-                    : "bg-gray-300 text-white hover:bg-gray-400"
+                    : "bg-pink-200 text-white hover:bg-pink-600"
                 }`}
               >
                 {item}
@@ -199,7 +278,6 @@ const PetStorePage = () => {
           ))}
         </div>
 
-        {/* Search */}
         <div className="w-full font-poppins-regular md:w-auto flex justify-end">
           <Input
             style={{ width: 250 }}
