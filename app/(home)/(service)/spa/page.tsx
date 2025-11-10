@@ -87,7 +87,7 @@ const PetCarePage = () => {
                 ></iframe>
               </div>
 
-              <div className="flex-1  leading-relaxed px-4">
+              <div className="flex-1 leading-relaxed px-4">
                 <p className="mb-6 font-poppins-medium text-xl text-pink-600">
                   Giải pháp chăm sóc cá nhân hoá, tối ưu chi phí!
                 </p>
@@ -309,7 +309,7 @@ const PetCarePage = () => {
                 </ul>
               </div>
               <div className="bg-white rounded-2xl shadow-lg p-8">
-                <p className="text-lg text-start font-poppins-regular text-black-500 leading-relaxed">
+                <p className="text-lg text-start font-poppins-regular text-black leading-relaxed">
                   “Cảm ơn PetCare đã chăm sóc bé Corgi của mình rất chu đáo.
                   Mình cực kỳ yên tâm khi gửi bé ở đây. Definitely recommend!”
                 </p>
