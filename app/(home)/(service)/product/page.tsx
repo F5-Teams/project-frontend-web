@@ -54,23 +54,23 @@ export const ProductCard = ({ product }: { product: Product }) => {
           </>
         )}
       </div>
-      <div className="p-6">
-        <h3 className="text-xl font-bold text-slate-800 mb-2">
+      <div className="p-4">
+        <h3 className="text-lg font-poppins-medium text-slate-800 mb-2">
           {product.name}
         </h3>
-        <p className="text-slate-600 text-sm mb-3 leading-relaxed">
+        <p className="text-slate-600 font-poppins-regular text-sm mb-3 leading-relaxed">
           {product.description}
         </p>
         <div className="flex items-center justify-between">
-          <span className="text-2xl font-poppins-regular text-pink-600">
+          <span className="text-xl font-poppins-regular text-pink-600">
             {new Intl.NumberFormat("vi-VN").format(Number(product.price))} đ
           </span>
 
           <button
             onClick={() => route.push(`/product/${product?.id}`)}
-            className="flex items-center gap-2 mt-4 px-4 py-2 cursor-pointer rounded-lg bg-pink-500 text-white font-medium hover:bg-pink-600 transition"
+            className="flex items-center gap-2 mt-4 px-4 py-2 cursor-pointer rounded-lg text-pink-500 font-poppins-regular transition"
           >
-            <Eye color="white" />
+            {/* <Eye color="white" /> */}
             <p>Xem chi tiết</p>
           </button>
         </div>
@@ -130,11 +130,11 @@ const PetStorePage = () => {
             transition={{ duration: 1 }}
             className="mb-12"
           >
-            <h1 className="text-4xl md:text-5xl font-medium font-poppins-medium text-white mb-6">
+            <h1 className="text-4xl md:text-5xl font-poppins-medium text-white mb-6">
               Cửa hàng <span className="text-pink-500">Thú Cưng</span> Chuyên
               Nghiệp
             </h1>
-            <p className="text-gray-300 max-w-3xl mx-auto text-lg leading-relaxed">
+            <p className="text-white max-w-3xl mx-auto text-lg leading-relaxed">
               Khám phá bộ sưu tập sản phẩm cao cấp và dịch vụ chăm sóc toàn diện
               dành cho thú cưng của bạn.
             </p>
@@ -162,49 +162,52 @@ const PetStorePage = () => {
         </div>
       </section>
 
-      <div className="flex justify-end gap-2.5 px-35 mt-5 ">
-        <Input
-          style={{ width: 250 }}
-          placeholder="Tìm sản phẩm ..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      <div className="flex gap-2 mt-5 px-37">
-        <p
-          onClick={() => setSelect("All")}
-          className={`px-2 py-1 rounded-xl font-medium cursor-pointer transition
-            ${
+      {/* Filters (left) and Search (right) on the same row */}
+      <div className="max-w-7xl mx-auto px-6 mt-10 flex flex-col md:flex-row items-center md:items-start justify-between gap-3">
+        {/* Filters */}
+        <div className="flex flex-wrap font-poppins-light text-[14px] items-center gap-2">
+          <p
+            onClick={() => setSelect("All")}
+            className={`px-2 py-1 rounded-xl cursor-pointer transition ${
               select === "All"
                 ? "bg-pink-500 text-white"
-                : "bg-gray-300 text-white hover:bg-gray-400"
+                : "bg-gray-400 text-white hover:bg-gray-800"
             }`}
-        >
-          All
-        </p>
-
-        {type?.map((item, index) => (
-          <motion.section
-            key={item}
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: 0.8, delay: index * 0.1 }}
           >
-            <p
-              onClick={() => setSelect(item)}
-              className={`px-2 py-1 rounded-xl font-medium cursor-pointer transition
-                ${
+            All
+          </p>
+
+          {type?.map((item, index) => (
+            <motion.section
+              key={item}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.8, delay: index * 0.1 }}
+            >
+              <p
+                onClick={() => setSelect(item)}
+                className={`px-2 py-1 rounded-xl font-poppins-light cursor-pointer transition ${
                   select === item
                     ? "bg-pink-500 text-white"
                     : "bg-gray-300 text-white hover:bg-gray-400"
                 }`}
-            >
-              {item}
-            </p>
-          </motion.section>
-        ))}
+              >
+                {item}
+              </p>
+            </motion.section>
+          ))}
+        </div>
+
+        {/* Search */}
+        <div className="w-full font-poppins-regular md:w-auto flex justify-end">
+          <Input
+            style={{ width: 250 }}
+            placeholder="Tìm sản phẩm ..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
