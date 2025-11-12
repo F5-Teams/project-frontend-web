@@ -8,6 +8,7 @@ import { Button, Form, Input, Modal, Radio, Select } from "antd";
 import { useForm } from "antd/es/form/Form";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
+import AddressModal from "./AddressModal";
 
 interface CartItem {
   productId: number;
@@ -33,6 +34,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   const { data: user } = useGetUser();
   const [loading, setLoading] = useState(false);
   const [addressFee, setAddressFee] = useState<Address>();
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
   const { data: fee, mutateAsync: calculateFee } = useCalculateFee();
 
@@ -185,14 +187,31 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
               showSearch
               placeholder="Chọn địa chỉ"
               optionFilterProp="children"
-              onChange={(value) => {
-                setAddress(value);
-              }}
+              value={address}
+              onChange={(value) => setAddress(value)}
               className="mt-1 w-full"
+              dropdownRender={(menu) => (
+                <div>
+                  {menu}
+                  {address && (
+                    <div
+                      onClick={() => setIsAddressModalOpen(true)}
+                      className="text-center py-2 cursor-pointer border-t hover:bg-pink-50 text-pink-600 font-medium"
+                    >
+                      Thay đổi địa chỉ
+                    </div>
+                  )}
+                </div>
+              )}
             >
               {addressList.map((item: Address) => (
                 <Select.Option key={item.id} value={item.id}>
-                  {item.address} / {item.districtName} / {item.provinceName}
+                  <div className="flex gap-2">
+                    <p className="font-medium">
+                      {item.name} ({item.phone})
+                    </p>
+                    {item.address} / {item.districtName} / {item.provinceName}
+                  </div>
                 </Select.Option>
               ))}
             </Select>
@@ -256,6 +275,13 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
           Đặt hàng
         </Button>
       </div>
+
+      <AddressModal
+        open={isAddressModalOpen}
+        isCancel={() => setIsAddressModalOpen(false)}
+        addressList={addressList}
+        onSelect={(id) => setAddress(id)}
+      />
     </Modal>
   );
 };
