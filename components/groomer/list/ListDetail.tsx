@@ -84,10 +84,17 @@ export default function ListDetail({ booking }: Props) {
 
   return (
     <div className="p-4 bg-white rounded-xl shadow-sm border h-full flex flex-col gap-4">
-      <div>
+      <div className="flex justify-between">
         <div className="text-lg font-poppins-regular">
           Khách hàng: {booking.customer?.firstName ?? ""}{" "}
           {booking.customer?.lastName ?? ""}
+        </div>
+        <div className="font-poppins-light text-xs text-muted-foreground">
+          {" "}
+          Đặt ngày:{" "}
+          {booking.createdAt
+            ? new Date(booking.createdAt).toLocaleString()
+            : "—"}
         </div>
       </div>
 
@@ -95,31 +102,64 @@ export default function ListDetail({ booking }: Props) {
         <div className="md:col-span-2 flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <div className="text-xs text-muted-foreground mb-1">Buổi</div>
-              <div className=" font-poppins-light">
-                {booking.dropDownSlot ?? "—"}
-              </div>
-            </div>
-
-            <div>
-              <div className="text-xs text-muted-foreground mb-1">
-                Dịch vụ / Combo
+              <div className="text-sm text-muted-foreground mb-1">
+                {String(booking.type ?? "").toUpperCase() === "HOTEL"
+                  ? "Phòng"
+                  : "Buổi"}
               </div>
               <div className=" font-poppins-light">
-                {booking.combo
-                  ? booking.combo.name
-                  : booking.servicePrice ?? "—"}
-              </div>
-            </div>
-
-            <div>
-              <div className="text-[14px] font-poppins-light text-blackd">
-                Giá:{" "}
                 {(() => {
-                  const raw = booking.comboPrice ?? booking.servicePrice;
-                  if (!raw) return "—";
+                  const typeUpper = String(booking.type ?? "").toUpperCase();
+                  const roomName = booking.room?.name;
+                  if (typeUpper === "SPA") {
+                    const SLOT_LABELS: Record<string, string> = {
+                      MORNING: "Sáng (7:30 - 11:30)",
+                      AFTERNOON: "Trưa (12:30 - 16:30)",
+                      EVENING: "Chiều (17:00 - 19:00)",
+                    };
+                    const key = (booking.dropDownSlot ?? "")
+                      .trim()
+                      .toUpperCase();
+                    return key ? SLOT_LABELS[key] ?? booking.dropDownSlot : "—";
+                  }
+                  if (typeUpper === "HOTEL") {
+                    return roomName ?? "—";
+                  }
+                  return booking.dropDownSlot ?? "—";
+                })()}
+              </div>
+            </div>
+
+            <div>
+              <div className="text-sm text-muted-foreground mb-1">Dịch vụ</div>
+              <div className=" font-poppins-light">
+                {(() => {
+                  const typeUpper = String(booking.type ?? "").toUpperCase();
+                  if (typeUpper === "HOTEL") {
+                    return "Khách sạn thú cưng";
+                  }
+                  return booking.combo
+                    ? booking.combo.name
+                    : booking.servicePrice ?? "—";
+                })()}
+              </div>
+            </div>
+
+            <div>
+              <div className="text-[14px] font-poppins-light text-black">
+                Thành tiền:{" "}
+                {(() => {
+                  const payments = booking.payments as
+                    | Array<{ totalAmount?: string | number }>
+                    | undefined
+                    | null;
+                  const totalAmount = payments?.[0]?.totalAmount;
+
+                  const raw =
+                    totalAmount ?? booking.comboPrice ?? booking.servicePrice;
+                  if (raw == null) return "—";
                   const numeric = Number(raw);
-                  if (isNaN(numeric)) return raw;
+                  if (Number.isNaN(numeric)) return String(raw);
                   return formatCurrency(numeric);
                 })()}
               </div>
@@ -236,7 +276,7 @@ export default function ListDetail({ booking }: Props) {
                 if (afterImages.length === 0) {
                   return (
                     <div className="text-sm font-poppins-light text-muted-foreground">
-                      Chưa có ảnh
+                      Không có ảnh
                     </div>
                   );
                 }
@@ -355,19 +395,19 @@ export default function ListDetail({ booking }: Props) {
       </div>
 
       <div className="mt-auto font-poppins-light text-xs text-muted-foreground">
-        Đặt ngày:{" "}
-        {booking.createdAt ? new Date(booking.createdAt).toLocaleString() : "—"}
-        {afterImagesAll.length === 0 && booking.status === "ON_SERVICE" && (
-          <div className="flex justify-end mb-3">
-            <button
-              type="button"
-              onClick={() => setShowModal(true)}
-              className="text-sm bg-pink-600 text-white px-3 py-1 rounded-md hover:bg-pink-700"
-            >
-              Gửi ảnh
-            </button>
-          </div>
-        )}
+        {afterImagesAll.length === 0 &&
+          booking.status === "ON_SERVICE" &&
+          String(booking.type ?? "").toUpperCase() === "SPA" && (
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowModal(true)}
+                className="text-sm bg-pink-600 text-white px-3 py-1 rounded-md hover:bg-pink-700"
+              >
+                Gửi ảnh
+              </button>
+            </div>
+          )}
       </div>
 
       {showModal && (

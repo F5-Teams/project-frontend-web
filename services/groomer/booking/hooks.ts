@@ -18,6 +18,12 @@ export const GROOMER_CONFIRMED_BOOKINGS_KEY = [
 
 export const GROOMER_MY_BOOKINGS_KEY = ["groomer", "bookings", "all"] as const;
 
+export const GROOMER_ON_SERVICE_BOOKINGS_KEY = [
+  "groomer",
+  "bookings",
+  "on-service",
+] as const;
+
 export function useMyBookings() {
   return useQuery<Booking[]>({
     queryKey: GROOMER_MY_BOOKINGS_KEY,
@@ -35,12 +41,10 @@ export function useConfirmedBookings() {
   });
 }
 
-// Live variant: periodically refetch to keep numbers up-to-date (e.g., dashboards)
 export function useConfirmedBookingsLive(intervalMs = 30_000) {
   return useQuery<Booking[]>({
     queryKey: GROOMER_CONFIRMED_BOOKINGS_KEY,
     queryFn: getConfirmedBookings,
-    // Treat data as immediately stale so focus refetches run, but interval will handle periodic updates
     staleTime: 0,
     refetchInterval: intervalMs,
     refetchIntervalInBackground: true,
@@ -59,6 +63,24 @@ export function useMyBookingsLive(intervalMs = 30_000) {
   });
 }
 
+// Only ON_SERVICE bookings (derived from getMyBookings)
+export function useOnServiceBookings(options?: {
+  live?: boolean;
+  intervalMs?: number;
+}) {
+  const { live = false, intervalMs = 30_000 } = options ?? {};
+  return useQuery<Booking[]>({
+    queryKey: GROOMER_ON_SERVICE_BOOKINGS_KEY,
+    queryFn: getMyBookings,
+    select: (data) =>
+      data.filter((b) => String(b.status).toUpperCase() === "ON_SERVICE"),
+    staleTime: live ? 0 : 1000 * 60 * 5,
+    refetchInterval: live ? intervalMs : undefined,
+    refetchIntervalInBackground: live || undefined,
+    refetchOnWindowFocus: true,
+  });
+}
+
 export function useStartOnService(options?: { invalidateOnSuccess?: boolean }) {
   const qc = useQueryClient();
   return useMutation<void, unknown, number>({
@@ -66,6 +88,8 @@ export function useStartOnService(options?: { invalidateOnSuccess?: boolean }) {
     onSuccess: () => {
       if (options?.invalidateOnSuccess !== false) {
         qc.invalidateQueries({ queryKey: GROOMER_CONFIRMED_BOOKINGS_KEY });
+        qc.invalidateQueries({ queryKey: GROOMER_ON_SERVICE_BOOKINGS_KEY });
+        qc.invalidateQueries({ queryKey: GROOMER_MY_BOOKINGS_KEY });
       }
     },
   });
@@ -82,6 +106,8 @@ export function useUploadBookingPhotos() {
       uploadBookingPhotos(bookingId, payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: GROOMER_CONFIRMED_BOOKINGS_KEY });
+      qc.invalidateQueries({ queryKey: GROOMER_ON_SERVICE_BOOKINGS_KEY });
+      qc.invalidateQueries({ queryKey: GROOMER_MY_BOOKINGS_KEY });
     },
   });
 }
@@ -96,6 +122,8 @@ export function useCompleteBooking() {
     mutationFn: ({ bookingId, payload }) => completeBooking(bookingId, payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: GROOMER_CONFIRMED_BOOKINGS_KEY });
+      qc.invalidateQueries({ queryKey: GROOMER_ON_SERVICE_BOOKINGS_KEY });
+      qc.invalidateQueries({ queryKey: GROOMER_MY_BOOKINGS_KEY });
     },
   });
 }

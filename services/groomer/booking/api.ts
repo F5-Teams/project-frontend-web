@@ -28,7 +28,6 @@ export async function uploadBookingPhotos(
   await api.put(`/groomer/my-bookings/${bookingId}/photos`, payload);
 }
 
-// New complete service endpoint: marks booking COMPLETED and stores provided photos
 export interface CompleteBookingPayload {
   imageUrls: string[];
   note?: string;

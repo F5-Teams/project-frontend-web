@@ -2,7 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import { uploadFile } from "@/utils/uploadFIle";
-import { useUploadBookingPhotos } from "@/services/groomer/booking/hooks";
+import {
+  useStartOnService,
+  useUploadBookingPhotos,
+} from "@/services/groomer/booking/hooks";
 import type { UploadBookingPhotosPayload } from "@/services/groomer/booking/api";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -17,6 +20,8 @@ type Props = {
   submitLabel?: string;
   onDone?: () => void;
   onCancel?: () => void;
+  // If true, will call start-onservice API first, then upload photos
+  runStartOnServiceFirst?: boolean;
 };
 
 export default function StartServicePanel({
@@ -26,12 +31,14 @@ export default function StartServicePanel({
   submitLabel,
   onDone,
   onCancel,
+  runStartOnServiceFirst = false,
 }: Props) {
   const [files, setFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [note, setNote] = useState("");
   const uploadMutation = useUploadBookingPhotos();
+  const startMutation = useStartOnService();
 
   useEffect(() => {
     const urls = files.map((f) => URL.createObjectURL(f));
@@ -59,6 +66,18 @@ export default function StartServicePanel({
 
     setUploading(true);
     try {
+      // If requested, start the service before uploading photos
+      if (runStartOnServiceFirst) {
+        try {
+          await startMutation.mutateAsync(bookingId);
+        } catch (e) {
+          console.error(e);
+          toast.error("Không thể bắt đầu thực hiện");
+          setUploading(false);
+          return;
+        }
+      }
+
       const uploadedUrls: string[] = [];
       for (const f of files) {
         const res = await uploadFile(f);
@@ -72,7 +91,6 @@ export default function StartServicePanel({
       };
 
       await uploadMutation.mutateAsync({ bookingId, payload });
-      toast.success("Ảnh đã được lưu vào hồ sơ booking.");
       onDone?.();
     } catch (err) {
       console.error(err);
@@ -162,6 +180,16 @@ export default function StartServicePanel({
         </div>
 
         <div className="flex items-center justify-end gap-3">
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={uploading}
+              className="px-3 py-2 bg-white text-slate-700 border rounded-md font-poppins-light text-sm disabled:opacity-50 hover:bg-slate-50"
+            >
+              Hủy
+            </button>
+          )}
           <button
             type="button"
             onClick={handleSubmit}

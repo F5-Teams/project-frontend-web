@@ -76,7 +76,10 @@ export default function BookingDetail({
     : "—";
   const customerPhone = booking.customer?.phoneNumber ?? "—";
   const comboName = booking.combo?.name ?? null;
-  const serviceInfo = comboName ?? "Khách sạn thú cưng";
+  const typeUpper = String(booking.type ?? "").toUpperCase();
+  const roomName = booking.room?.name;
+  const serviceInfo =
+    typeUpper === "HOTEL" ? "Khách sạn thú cưng" : comboName ?? "—";
 
   const SLOT_LABELS: Record<string, string> = {
     MORNING: "Sáng (7:30 - 11:30)",
@@ -160,10 +163,12 @@ export default function BookingDetail({
 
         <div>
           <div className="text-xs mb-1 font-poppins-regular text-gray-500">
-            Khung giờ
+            {typeUpper === "SPA" ? "Khung giờ" : "Phòng"}
           </div>
           <div className="font-poppins-regular text-[15px]">
-            {formatSlot(booking.dropDownSlot)}
+            {typeUpper === "SPA"
+              ? formatSlot(booking.dropDownSlot)
+              : roomName ?? "—"}
           </div>
         </div>
 

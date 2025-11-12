@@ -1,6 +1,7 @@
 export interface ImageItem {
   id: number;
   imageUrl: string;
+  type?: "BEFORE" | "DURING" | "AFTER" | string | null;
 }
 
 export interface Pet {
@@ -53,7 +54,15 @@ export interface Combo {
 
 export interface Payment {
   id: number;
-  [key: string]: unknown;
+  totalAmount?: string | number;
+  status?: string;
+  date?: string;
+  paymentMethodId?: number;
+  bookingId?: number;
+  paymentMethod?: {
+    id: number;
+    name?: string;
+  } | null;
 }
 
 export type Slot = "MORNING" | "AFTERNOON" | "EVENING" | string;
@@ -64,18 +73,30 @@ export interface Booking {
   dropDownSlot: Slot;
   checkInDate?: string | null;
   checkOutDate?: string | null;
+  type?: string | null;
   status: string;
   note?: string;
   servicePrice?: string | null;
   comboPrice?: string | null;
   createdAt: string;
   comboId?: number | null;
+  roomId?: number | null;
   customerId?: number;
   groomerId?: number;
   petId?: number;
   pet?: Pet | null;
   customer?: CustomerShort | null;
   combo?: Combo | null;
+  room?: {
+    id: number;
+    name: string;
+    class?: string;
+    price?: string | null;
+    status?: string | null;
+    description?: string | null;
+    size?: string | null;
+    images?: ImageItem[] | null;
+  } | null;
   Image?: ImageItem[];
   payments?: Payment[];
 }

@@ -1,10 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import {
-  useConfirmedBookings,
-  useStartOnService,
-} from "@/services/groomer/booking/hooks";
+import React, { useState } from "react";
+import { useConfirmedBookings } from "@/services/groomer/booking/hooks";
 import { Booking } from "@/services/groomer/booking/type";
 import { formatDMY } from "@/utils/date";
 import StartServicePanel from "@/components/groomer/dashboard/StartServicePanel";
@@ -38,33 +35,10 @@ function formatSlot(raw?: string | null) {
 
 export default function BookingsTimeline({ onSelect, filterDate }: Props) {
   const { data: bookings, isLoading, isError } = useConfirmedBookings();
-  // Disable immediate invalidation so booking stays visible to upload BEFORE photo
-  const startMutation = useStartOnService({ invalidateOnSuccess: false });
-
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [showStartPanelBookingId, setShowStartPanelBookingId] = useState<
     number | null
   >(null);
-  // Sau khi gọi API bắt đầu (ON_SERVICE) thì hiển thị nút đăng ảnh BEFORE
-  const [awaitingBeforePhotoBookingId, setAwaitingBeforePhotoBookingId] =
-    useState<number | null>(null);
-
-  // Restore awaiting state if user changed tab / remounted component
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const stored = window.localStorage.getItem(
-      "groomer.awaitingBeforePhotoBookingId"
-    );
-    if (stored) {
-      const idNum = Number(stored);
-      if (!Number.isNaN(idNum)) {
-        setAwaitingBeforePhotoBookingId(idNum);
-      }
-    }
-  }, []);
-
-  // react-query mutation uses 'status' (idle | pending | success | error)
-  const isStarting = startMutation.status === "pending";
 
   if (isLoading) {
     return (
@@ -104,21 +78,8 @@ export default function BookingsTimeline({ onSelect, filterDate }: Props) {
       )
     : bookings;
 
-  async function handleStart(bookingId: number) {
-    try {
-      await startMutation.mutateAsync(bookingId);
-      toast.success("Đã chuyển sang trạng thái đang thực hiện.");
-      setAwaitingBeforePhotoBookingId(bookingId);
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(
-          "groomer.awaitingBeforePhotoBookingId",
-          String(bookingId)
-        );
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Không thể bắt đầu thực hiện");
-    }
+  function openStartPanel(bookingId: number) {
+    setShowStartPanelBookingId(bookingId);
   }
 
   return (
@@ -172,9 +133,11 @@ export default function BookingsTimeline({ onSelect, filterDate }: Props) {
                     Ngày đặt:{" "}
                     {b.bookingDate ? formatDMY(new Date(b.bookingDate)) : "-"}
                   </div>
-                  <div className="text-xs mt-1 font-poppins-regular">
-                    {formatSlot(b.dropDownSlot)}
-                  </div>
+                  {String(b.type ?? "").toUpperCase() === "SPA" && (
+                    <div className="text-xs mt-1 font-poppins-regular">
+                      {formatSlot(b.dropDownSlot)}
+                    </div>
+                  )}
                 </div>
               </button>
 
@@ -185,36 +148,15 @@ export default function BookingsTimeline({ onSelect, filterDate }: Props) {
                       Thao tác
                     </div>
 
-                    {b.status === "CONFIRMED" &&
-                      awaitingBeforePhotoBookingId !== b.id && (
-                        <button
-                          type="button"
-                          onClick={() => handleStart(b.id)}
-                          disabled={isStarting}
-                          className="px-3 py-2 bg-primary text-white rounded-2xl font-poppins-light text-sm disabled:opacity-50"
-                        >
-                          {isStarting ? "Đang xử lý..." : "Bắt đầu thực hiện"}
-                        </button>
-                      )}
-
-                    {(b.status === "ON_SERVICE" ||
-                      awaitingBeforePhotoBookingId === b.id) && (
+                    {b.status === "CONFIRMED" && (
                       <button
                         type="button"
-                        onClick={() => setShowStartPanelBookingId(b.id)}
-                        className="px-3 py-2 bg-amber-500 text-white rounded-2xl font-poppins-light text-sm"
+                        onClick={() => openStartPanel(b.id)}
+                        className="px-3 py-2 bg-primary text-white rounded-2xl font-poppins-light text-sm"
                       >
-                        Đăng ảnh trước khi thực hiện
+                        Bắt đầu thực hiện
                       </button>
                     )}
-
-                    {b.status !== "CONFIRMED" &&
-                      b.status !== "ON_SERVICE" &&
-                      awaitingBeforePhotoBookingId !== b.id && (
-                        <div className="text-xs text-muted-foreground">
-                          Không thể bắt đầu: status ≠ CONFIRMED
-                        </div>
-                      )}
                   </div>
                 </div>
               )}
@@ -226,19 +168,11 @@ export default function BookingsTimeline({ onSelect, filterDate }: Props) {
       {showStartPanelBookingId && (
         <StartServicePanel
           bookingId={showStartPanelBookingId}
+          runStartOnServiceFirst={true}
           onCancel={() => setShowStartPanelBookingId(null)}
           onDone={() => {
             setShowStartPanelBookingId(null);
-            setAwaitingBeforePhotoBookingId(null);
-            if (typeof window !== "undefined") {
-              window.localStorage.removeItem(
-                "groomer.awaitingBeforePhotoBookingId"
-              );
-            }
-            toast.success("Ảnh đã được tải lên");
-            // After successful upload, now refresh bookings to reflect possible status or images
-            // Manually trigger invalidation
-            // (lazy import to avoid circular) - we rely on query client via mutation hook pattern; simplest: reload page or refetch via window location
+            toast.success("Đã bắt đầu và tải ảnh thành công");
           }}
         />
       )}
