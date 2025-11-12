@@ -43,11 +43,11 @@ export function Sidebar({ items }: { items: SidebarItem[] }) {
           alt="Logo"
           src={Logo}
           className="object-contain"
-          width={55}
-          height={55}
+          width={100}
+          height={100}
           style={{ maxHeight: "56px" }}
         />
-        <span className="tracking-wide">HappyPaws</span>
+        <span className="tracking-wide">Dashboard</span>
       </div>
 
       {/* Nav items */}
@@ -79,7 +79,7 @@ export function Sidebar({ items }: { items: SidebarItem[] }) {
         >
           {showLogoutConfirm ? "Xác nhận đăng xuất?" : "Đăng xuất"}
         </button>
-        <div className="text-center text-xs text-pink-500 font-medium opacity-80">
+        <div className="text-center text-xs text-primary font-medium opacity-80">
           Made with ♥ by HappyPaws
         </div>
       </div>
@@ -108,7 +108,7 @@ function NavLinkItem({
         "flex items-center gap-3 px-5 py-3 rounded-2xl transition-all duration-300 ease-out font-medium group",
         active
           ? "bg-linear-to-r from-pink-500 to-pink-400 text-white shadow-md scale-[1.02]"
-          : "hover:bg-pink-100 hover:text-pink-700"
+          : " hover:text-pink-700"
       )}
       role="link"
       aria-current={active ? "page" : undefined}
@@ -151,7 +151,7 @@ function CollapsibleGroup({
     "flex w-full items-center gap-3 px-5 py-3 rounded-2xl transition-all duration-300 ease-out font-medium",
     open || someChildActive
       ? "bg-pink-100/70 text-pink-700"
-      : "hover:bg-pink-100 hover:text-pink-700"
+      : "hover:text-pink-700"
   );
 
   return (

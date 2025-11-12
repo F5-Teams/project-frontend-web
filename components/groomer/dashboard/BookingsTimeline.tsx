@@ -12,9 +12,31 @@ import { toast } from "sonner";
 
 type Props = {
   onSelect?: (id: number) => void;
+  filterDate?: Date | null; // if provided, only show bookings on this day
 };
 
-export default function BookingsTimeline({ onSelect }: Props) {
+function isSameDay(a: Date, b: Date) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+// Slot label mapping (business hours)
+const SLOT_LABELS: Record<string, string> = {
+  MORNING: "Sáng (7h30 - 11h30)",
+  AFTERNOON: "Trưa (12h30 - 16h30)",
+  EVENING: "Chiều (17h - 19h)",
+};
+
+function formatSlot(raw?: string | null) {
+  if (!raw) return "—";
+  const key = raw.trim().toUpperCase();
+  return SLOT_LABELS[key] ?? raw;
+}
+
+export default function BookingsTimeline({ onSelect, filterDate }: Props) {
   const { data: bookings, isLoading, isError } = useConfirmedBookings();
   // Disable immediate invalidation so booking stays visible to upload BEFORE photo
   const startMutation = useStartOnService({ invalidateOnSuccess: false });
@@ -76,6 +98,12 @@ export default function BookingsTimeline({ onSelect }: Props) {
     );
   }
 
+  const filtered = filterDate
+    ? bookings.filter((b) =>
+        b.bookingDate ? isSameDay(new Date(b.bookingDate), filterDate) : false
+      )
+    : bookings;
+
   async function handleStart(bookingId: number) {
     try {
       await startMutation.mutateAsync(bookingId);
@@ -98,7 +126,7 @@ export default function BookingsTimeline({ onSelect }: Props) {
       <h4 className="font-medium mb-4">Bookings</h4>
 
       <div className="space-y-3">
-        {bookings.map((b: Booking) => {
+        {filtered.map((b: Booking) => {
           const isExpanded = expandedId === b.id;
           return (
             <div
@@ -121,15 +149,20 @@ export default function BookingsTimeline({ onSelect }: Props) {
                     </div>
                     <div className="text-sm font-poppins-regular text-muted-foreground">
                       Khách hàng:{" "}
-                      {b.customer
-                        ? `${b.customer.firstName ?? ""} ${
-                            b.customer.lastName ?? ""
-                          }`.trim()
-                        : "—"}
+                      <span className="text-black">
+                        {" "}
+                        {b.customer
+                          ? `${b.customer.firstName ?? ""} ${
+                              b.customer.lastName ?? ""
+                            }`.trim()
+                          : "—"}
+                      </span>
                     </div>
                     <div className="text-xs font-poppins-regular text-muted-foreground">
-                      Dịch vụ / Combo:{" "}
-                      {b.combo?.name ?? b.servicePrice ?? b.comboPrice ?? "—"}
+                      Dịch vụ:{" "}
+                      <span className="text-black">
+                        {b.combo?.name ?? "Khách sạn thú cưng"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -139,8 +172,8 @@ export default function BookingsTimeline({ onSelect }: Props) {
                     Ngày đặt:{" "}
                     {b.bookingDate ? formatDMY(new Date(b.bookingDate)) : "-"}
                   </div>
-                  <div className="text-xs mt-1 font-medium">
-                    {b.dropDownSlot ?? "-"}
+                  <div className="text-xs mt-1 font-poppins-regular">
+                    {formatSlot(b.dropDownSlot)}
                   </div>
                 </div>
               </button>

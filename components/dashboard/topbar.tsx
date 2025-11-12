@@ -1,67 +1,81 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React from "react";
 import Image from "next/image";
+import { Bell, Settings, Search } from "lucide-react";
+import { useMe } from "@/services/profile/hooks";
 
-import type { User } from "@/components/models/register";
-import { ICONS } from "./Icons";
+export default function Topbar() {
+  const { data: user } = useMe();
 
-export function Topbar() {
-  const Bell = ICONS.bell;
-  const [me, setMe] = useState<User | null>(null);
+  const name =
+    user?.firstName || user?.lastName
+      ? `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim()
+      : user?.userName ?? "Unknown User";
 
-  useEffect(() => {
-    try {
-      const raw =
-        typeof window !== "undefined" ? localStorage.getItem("user") : null;
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as User;
-      setMe(parsed);
-    } catch {
-      // ignore
-    }
-  }, []);
+  const avatar = user?.avatar ?? undefined;
 
-  const fullName = (() => {
-    const fn = (me?.firstName || "").trim();
-    const ln = (me?.lastName || "").trim();
-    const name = `${fn} ${ln}`.trim();
-    return name || me?.userName || "User";
-  })();
-
-  // Ưu tiên avatar từ BE; nếu rỗng dùng avatar tạo từ tên
-  const avatarUrl =
-    (me?.avatar && me.avatar.trim()) ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      fullName
-    )}&background=FF66A3&color=fff`;
+  const initials = String(name)
+    .split(" ")
+    .map((s) => s?.[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
   return (
-    <header className="h-16 border-b border-pink-100 bg-gradient-to-b from-[#FFE5EC] via-[#FFF4E0] to-[#FFD6E0] text-pink-600 sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
-        <h1 className="text-lg font-semibold" />
-        <div className="flex items-center gap-3">
-          {/* <button className="relative rounded-full p-2 border border-transparent hover:border-pink-200">
-            <Bell className="size-5 text-pink-600" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 text-[10px] bg-pink-600 text-white rounded-full grid place-content-center">
-              3
-            </span>
-          </button> */}
+    <header className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200">
+      {/* left: search icon */}
+      <div className="flex items-center gap-3 w-full max-w-3xl">
+        {/* <button
+          aria-label="Search"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 hover:shadow-sm"
+        >
+          <Search className="w-5 h-5 text-slate-500" />
+          <span className="text-sm text-slate-500 hidden sm:inline">
+            Search
+          </span>
+        </button> */}
+      </div>
 
-          <div className="flex items-center gap-3">
-            <div className="leading-tight">
-              <div className="text-sm font-medium text-pink-700">
-                {fullName}
-              </div>
-            </div>
+      {/* right: notifications, settings, avatar */}
+      <div className="flex items-center gap-4">
+        {/* <button
+          aria-label="Notifications"
+          className="p-2 rounded-full hover:bg-slate-100"
+        >
+          <Bell className="w-5 h-5" />
+        </button>
+
+        <button
+          aria-label="Settings"
+          className="p-2 rounded-full hover:bg-slate-100"
+        >
+          <Settings className="w-5 h-5" />
+        </button> */}
+
+        <div className="flex items-center gap-3">
+          {avatar ? (
             <Image
-              src={avatarUrl}
-              alt="avatar"
+              src={avatar}
+              alt={name}
               width={40}
               height={40}
-              className="w-10 h-10 rounded-full object-cover"
-              unoptimized
+              className="w-10 h-10 rounded-full object-cover bg-slate-200"
             />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-sm font-medium">
+              {initials}
+            </div>
+          )}
+
+          <div className="">
+            <div className="font-poppins-medium text-md leading-none mb-2">
+              {name}
+            </div>
+            <div className="font-poppins-light text-xs text-muted-foreground leading-none">
+              {user?.userName}
+            </div>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  getMyBookings,
   getConfirmedBookings,
   startBookingOnService,
   uploadBookingPhotos,
@@ -15,11 +16,46 @@ export const GROOMER_CONFIRMED_BOOKINGS_KEY = [
   "confirmed",
 ] as const;
 
+export const GROOMER_MY_BOOKINGS_KEY = ["groomer", "bookings", "all"] as const;
+
+export function useMyBookings() {
+  return useQuery<Booking[]>({
+    queryKey: GROOMER_MY_BOOKINGS_KEY,
+    queryFn: getMyBookings,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: true,
+  });
+}
+
 export function useConfirmedBookings() {
   return useQuery<Booking[]>({
     queryKey: GROOMER_CONFIRMED_BOOKINGS_KEY,
     queryFn: getConfirmedBookings,
     staleTime: 1000 * 60 * 30,
+  });
+}
+
+// Live variant: periodically refetch to keep numbers up-to-date (e.g., dashboards)
+export function useConfirmedBookingsLive(intervalMs = 30_000) {
+  return useQuery<Booking[]>({
+    queryKey: GROOMER_CONFIRMED_BOOKINGS_KEY,
+    queryFn: getConfirmedBookings,
+    // Treat data as immediately stale so focus refetches run, but interval will handle periodic updates
+    staleTime: 0,
+    refetchInterval: intervalMs,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: true,
+  });
+}
+
+export function useMyBookingsLive(intervalMs = 30_000) {
+  return useQuery<Booking[]>({
+    queryKey: GROOMER_MY_BOOKINGS_KEY,
+    queryFn: getMyBookings,
+    staleTime: 0,
+    refetchInterval: intervalMs,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: true,
   });
 }
 
