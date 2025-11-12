@@ -175,6 +175,14 @@ export default function Header() {
                 NHẬN NUÔI
               </NavigationMenuLink>
             </NavigationMenuItem> */}
+            <NavigationMenuItem>
+              <NavigationMenuLink
+                href="/policy"
+                className="relative w-fit -mt-px font-poppins-light text-[14px] sm:text-[15px] md:text-[16px] 2xl:text-[18px] text-foreground text-center leading-6 tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
+              >
+                CHÍNH SÁCH
+              </NavigationMenuLink>
+            </NavigationMenuItem>
 
             <NavigationMenuItem>
               <NavigationMenuLink
