@@ -13,9 +13,13 @@ import {
   ApiServiceLink,
 } from "@/services/profile/profile-schedule/types";
 import ServiceTagList from "./ServiceTagList";
+import FancyRateButton from "@/components/profile/calendar/FancyRateButton";
+import { useGetBookingFeedback } from "@/services/profile/feedback/hooks";
+import { Star } from "lucide-react";
 
 type Props = {
   booking?: CalendarBooking | ApiBooking | null;
+  onRequestFeedback?: (booking: ApiBooking | CalendarBooking) => void;
 };
 
 function isApiBooking(b: unknown): b is ApiBooking {
@@ -30,7 +34,24 @@ function isApiBooking(b: unknown): b is ApiBooking {
   );
 }
 
-export function BookingDetailPanel({ booking }: Props) {
+export function BookingDetailPanel({ booking, onRequestFeedback }: Props) {
+  const api = isApiBooking(booking) ? booking : null;
+
+  const bookingId: number | null = React.useMemo(() => {
+    if (!booking) return null;
+    const raw: unknown = api
+      ? (api as ApiBooking).id
+      : (booking as CalendarBooking).id;
+    if (typeof raw === "number") return raw;
+    if (typeof raw === "string") {
+      const n = Number(raw);
+      return Number.isNaN(n) ? null : n;
+    }
+    return null;
+  }, [api, booking]);
+
+  const { data: feedback } = useGetBookingFeedback(bookingId);
+
   if (!booking) {
     return (
       <div className="bg-[#FFA6D7] rounded-2xl p-4 font-poppins-light text-sm text-black">
@@ -40,8 +61,6 @@ export function BookingDetailPanel({ booking }: Props) {
       </div>
     );
   }
-
-  const api = isApiBooking(booking) ? booking : null;
 
   const petObj: ApiPet | CalendarBooking["pet"] | null = api
     ? api.pet ?? null
@@ -81,39 +100,35 @@ export function BookingDetailPanel({ booking }: Props) {
     ? comboObj.serviceLinks
     : [];
 
-  function getComboImage(c: unknown): string | null {
-    if (!c || typeof c !== "object") return null;
-    const obj = c as Record<string, unknown>;
+  // function getComboImage(c: unknown): string | null {
+  //   if (!c || typeof c !== "object") return null;
+  //   const obj = c as Record<string, unknown>;
+  //   if ("imageUrl" in obj && typeof obj.imageUrl === "string") {
+  //     return obj.imageUrl;
+  //   }
+  //   const sl = obj["serviceLinks"];
+  //   if (Array.isArray(sl) && sl.length > 0) {
+  //     const first = sl[0] as Record<string, unknown> | undefined;
+  //     const svc = first?.["service"];
+  //     if (
+  //       svc &&
+  //       typeof svc === "object" &&
+  //       typeof (svc as Record<string, unknown>)["imageUrl"] === "string"
+  //     ) {
+  //       return (svc as Record<string, unknown>)["imageUrl"] as string;
+  //     }
+  //   }
+  //   const services = obj["services"];
+  //   if (Array.isArray(services) && services.length > 0) {
+  //     const s0 = services[0] as Record<string, unknown> | undefined;
+  //     if (s0 && typeof s0["imageUrl"] === "string") {
+  //       return s0["imageUrl"] as string;
+  //     }
+  //   }
+  //   return null;
+  // }
 
-    if ("imageUrl" in obj && typeof obj.imageUrl === "string") {
-      return obj.imageUrl;
-    }
-
-    const sl = obj["serviceLinks"];
-    if (Array.isArray(sl) && sl.length > 0) {
-      const first = sl[0] as Record<string, unknown> | undefined;
-      const svc = first?.["service"];
-      if (
-        svc &&
-        typeof svc === "object" &&
-        typeof (svc as Record<string, unknown>)["imageUrl"] === "string"
-      ) {
-        return (svc as Record<string, unknown>)["imageUrl"] as string;
-      }
-    }
-
-    const services = obj["services"];
-    if (Array.isArray(services) && services.length > 0) {
-      const s0 = services[0] as Record<string, unknown> | undefined;
-      if (s0 && typeof s0["imageUrl"] === "string") {
-        return s0["imageUrl"] as string;
-      }
-    }
-
-    return null;
-  }
-
-  const comboImage: string | null = getComboImage(comboObj);
+  // const comboImage: string | null = getComboImage(comboObj);
 
   const rawStart =
     api?.slot?.startDate ??
@@ -207,20 +222,62 @@ export function BookingDetailPanel({ booking }: Props) {
             </div>
           </div>
 
-          <StatusBadge
-            status={api?.status ?? (booking as CalendarBooking).status}
-          />
+          <div className="flex items-center gap-3">
+            <StatusBadge
+              status={api?.status ?? (booking as CalendarBooking).status}
+            />
+          </div>
         </div>
 
         {roomObj || roomNameFromMeta ? (
-          <div className="text-md text-black space-y-2 mt-4">
-            <div>
-              Hạng:{" "}
-              <span className="font-poppins-medium">
-                {roomObj?.name ?? roomNameFromMeta}
-              </span>
-            </div>
+          <div className="text-md text-black space-y-2 mt-4 ">
+            <div className="flex items-center justify-between ">
+              <div>
+                {" "}
+                Hạng:{" "}
+                <span className="font-poppins-medium">
+                  {roomObj?.name ?? roomNameFromMeta}
+                </span>
+              </div>
 
+              {String(api?.status ?? (booking as CalendarBooking).status ?? "")
+                .toUpperCase()
+                .replace(/\s+/g, "_") === "COMPLETED" &&
+                !feedback && (
+                  <FancyRateButton
+                    onClick={() =>
+                      booking &&
+                      onRequestFeedback?.(
+                        booking as ApiBooking | CalendarBooking
+                      )
+                    }
+                  >
+                    Đánh giá
+                  </FancyRateButton>
+                )}
+            </div>
+            {feedback ? (
+              <div className="mt-3 rounded-xl border bg-white/70 backdrop-blur shadow-lg p-3">
+                <div className="flex items-center gap-1 mb-1">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      size={18}
+                      className={
+                        i < (feedback?.rating ?? 0)
+                          ? "text-amber-300 fill-amber-300"
+                          : "text-slate-300"
+                      }
+                    />
+                  ))}
+                </div>
+                <div className="text-sm text-black/80 whitespace-pre-wrap">
+                  {String(feedback.comment ?? "").trim() ||
+                    "Không có nhận xét."}
+                </div>
+              </div>
+            ) : null}
+            {/* 
             {roomObj?.imageUrl && (
               <div className="pt-2">
                 <Image
@@ -231,7 +288,7 @@ export function BookingDetailPanel({ booking }: Props) {
                   className="w-full max-w-xs rounded-md object-cover border"
                 />
               </div>
-            )}
+            )} */}
           </div>
         ) : comboObj ? (
           <div className="text-sm text-black space-y-2 mt-4">

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
 export default function useCountUp(target: number, duration = 800) {
-  const [value, setValue] = useState(0);
+  // Initialize with current target to avoid flashing 0 (e.g., when returning from background tabs)
+  const [value, setValue] = useState(target);
   const rafRef = useRef<number | null>(null);
   const startRef = useRef<number | null>(null);
   const startValueRef = useRef(0);

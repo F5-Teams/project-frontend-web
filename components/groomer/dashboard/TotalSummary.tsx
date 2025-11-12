@@ -1,9 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import useCountUp from "@/utils/useCountUp";
-import { useConfirmedBookings } from "@/services/groomer/booking/hooks";
+import { useMyBookingsLive } from "@/services/groomer/booking/hooks";
 import { Booking } from "@/services/groomer/booking/type";
 
 type Props = {
@@ -12,23 +12,22 @@ type Props = {
 
 function parseBookingDate(raw?: string | null) {
   if (!raw) return null;
-  // preserve previous behavior for plain date strings but return timestamp (ms)
   if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
-    return Date.parse(raw + "T00:00:00Z"); // treat date-only as UTC midnight
+    return Date.parse(raw + "T00:00:00Z");
   }
-  return Date.parse(raw); // returns ms since epoch (handles ISO with timezone)
+  return Date.parse(raw);
 }
 
 export default function TotalSummary({ bookings: propBookings }: Props) {
-  const { data: confirmedBookings } = useConfirmedBookings();
+  // Auto refresh every 30s (runs in background too)
+  const { data: myBookings, refetch } = useMyBookingsLive(30_000);
 
-  const source = propBookings ?? confirmedBookings ?? [];
+  const source = propBookings ?? myBookings ?? [];
 
   const now = new Date();
   const year = now.getUTCFullYear();
-  const month = now.getUTCMonth(); // use UTC month to match UTC timestamps from API
+  const month = now.getUTCMonth();
 
-  // UTC boundaries (ms)
   const monthStartUTC = Date.UTC(year, month, 1, 0, 0, 0, 0);
   const monthEndUTC = Date.UTC(year, month + 1, 1, 0, 0, 0, 0);
 
@@ -55,14 +54,16 @@ export default function TotalSummary({ bookings: propBookings }: Props) {
       };
     });
 
-    console.debug("TotalSummary debug", {
-      sourceCount: source?.length ?? 0,
-      bookingsThisMonth: arr.length,
-      monthStartUTC: new Date(monthStartUTC).toISOString(),
-      monthEndUTC: new Date(monthEndUTC).toISOString(),
-      nowUTC: new Date().toISOString(),
-      items: debugItems,
-    });
+    if (process.env.NODE_ENV === "development") {
+      console.debug("TotalSummary debug", {
+        sourceCount: source?.length ?? 0,
+        bookingsThisMonth: arr.length,
+        monthStartUTC: new Date(monthStartUTC).toISOString(),
+        monthEndUTC: new Date(monthEndUTC).toISOString(),
+        nowUTC: new Date().toISOString(),
+        items: debugItems,
+      });
+    }
     return arr;
   }, [source, monthStartUTC, monthEndUTC]);
 
@@ -79,6 +80,24 @@ export default function TotalSummary({ bookings: propBookings }: Props) {
   const animatedTotal = useCountUp(totalThisMonth);
   const animatedConfirmed = useCountUp(confirmedCount);
   const animatedOnService = useCountUp(onServiceCount);
+
+  // Ensure data refreshes when user returns to the tab or window regains focus
+  useEffect(() => {
+    const onFocus = () => {
+      refetch();
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        refetch();
+      }
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [refetch]);
 
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">

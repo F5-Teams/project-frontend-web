@@ -1,6 +1,11 @@
 import api from "@/config/axios";
 import { Booking } from "./type";
 
+export async function getMyBookings(): Promise<Booking[]> {
+  const { data } = await api.get<Booking[]>("/groomer/my-bookings");
+  return data;
+}
+
 export async function getConfirmedBookings(): Promise<Booking[]> {
   const { data } = await api.get<Booking[]>("/groomer/my-bookings/confirmed");
   return data;
@@ -12,11 +17,10 @@ export async function startBookingOnService(bookingId: number): Promise<void> {
 
 export interface UploadBookingPhotosPayload {
   imageUrls: string[];
-  imageType: "BEFORE" | "DURING" | "AFTER"; // kept for BEFORE flow, AFTER completion will use 'AFTER'
+  imageType: "BEFORE" | "DURING" | "AFTER";
   note?: string;
 }
 
-// Previous endpoint for incremental photo upload (still used for BEFORE images)
 export async function uploadBookingPhotos(
   bookingId: number,
   payload: UploadBookingPhotosPayload
@@ -24,11 +28,10 @@ export async function uploadBookingPhotos(
   await api.put(`/groomer/my-bookings/${bookingId}/photos`, payload);
 }
 
-// New complete service endpoint: marks booking COMPLETED and stores provided photos
 export interface CompleteBookingPayload {
-  imageUrls: string[]; // before or after photos (API requires at least one)
+  imageUrls: string[];
   note?: string;
-  imageType?: "BEFORE" | "AFTER"; // optional, backend example shows AFTER
+  imageType?: "BEFORE" | "AFTER";
 }
 
 export async function completeBooking(

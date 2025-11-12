@@ -8,6 +8,9 @@ export function useMyBookings() {
   return useQuery<Booking[]>({
     queryKey: GROOMER_MY_BOOKINGS_KEY,
     queryFn: getMyBookings,
-    staleTime: 1000 * 60 * 30,
+    // Always fetch fresh when entering the page so the list shows immediately
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
   });
 }

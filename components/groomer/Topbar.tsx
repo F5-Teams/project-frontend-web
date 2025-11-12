@@ -5,13 +5,6 @@ import Image from "next/image";
 import { Bell, Settings, Search } from "lucide-react";
 import { useMe } from "@/services/profile/hooks";
 
-// const ROLE_MAP: Record<number, string> = {
-//   1: "admin",
-//   2: "staff",
-//   3: "groomer",
-//   4: "customer",
-// };
-
 export default function Topbar() {
   const { data: user } = useMe();
 
