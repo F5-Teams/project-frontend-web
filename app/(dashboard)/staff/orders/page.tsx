@@ -145,19 +145,60 @@ const OrderPage = () => {
     setOpenComplete(true);
   };
 
-  const handleCancel = async (value: Order) => {
-    console.log("IDDD", value.id);
+  const handleCancel = async (order: Order) => {
+    console.log("IDDD", order.id);
+    console.log("CUS", order.customerId);
 
-    await postOrderCancel(value.id, {
-      onSuccess: () => {
-        toast.success("Hủy đơn hàng thành công!");
-        setIsDeleteOpen(false);
-        setSelectedOrder(undefined);
-        queryClient.invalidateQueries(["getAllOrder"]);
+    await postOrderCancel(
+      { id: order.id, customerId: order.customerId },
+      {
+        onSuccess: () => {
+          toast.success("Hoàn tiền thành công!");
+          setIsDeleteOpen(false);
+          setSelectedOrder(undefined);
+          queryClient.invalidateQueries(["getAllOrder"]);
+        },
+        onError: () => toast.error("Xóa đơn hàng thất bại!"),
+        onSettled: () => setLoadingDelete(false),
+      }
+    );
+
+    const body = {
+      status: "REFUND",
+      note: order.note || "",
+      customerId: order.customerId,
+
+      shipping: {
+        toName: order.shipping.toName,
+        toPhone: order.shipping.toPhone,
+        toAddress: order.shipping.toAddress,
+        toWardCode: order.shipping.toWardCode,
+        toDistrictId: order.shipping.toDistrictId,
+        toWardName: order.shipping.toWardName,
+        toDistrictName: order.shipping.toDistrictName,
+        toProvinceName: order.shipping.toProvinceName,
+        serviceTypeId: order.shipping.serviceTypeId,
+        paymentTypeId: order.shipping.paymentTypeId,
+        requiredNote: order.shipping.requiredNote,
+        length: order.shipping.length,
+        width: order.shipping.width,
+        height: order.shipping.height,
+        codAmount: Number(order.shipping.codAmount) || 0,
+        insuranceValue: Number(order.shipping.insuranceValue) || 0,
+        note: order.note || "",
+        status: "PENDING",
       },
-      onError: () => toast.error("Xóa đơn hàng thất bại!"),
-      onSettled: () => setLoadingDelete(false),
-    });
+
+      paymentMethod: order.payment.paymentMethod,
+      paymentStatus: "TRANSFER",
+      orderDetails: order.orderDetails.map((item) => ({
+        productId: item.product.id,
+        quantity: item.quantity,
+      })),
+    };
+    await patchOrder({ id: order.id, body });
+    toast.success("Duyệt đơn hàng thành công!");
+    queryClient.invalidateQueries(["getAllOrder"]);
   };
 
   const getPaymentLabel = (method?: string) => {
@@ -185,10 +226,14 @@ const OrderPage = () => {
         return "Đã hủy";
       case "FAILED":
         return "Thất bại";
+      case "REFUND":
+        return "Hoàn tiền";
       default:
         return status;
     }
   };
+
+  console.log("first", allOrder);
 
   const columns = [
     {
@@ -353,7 +398,7 @@ const OrderPage = () => {
                 size="small"
                 onClick={() => handleCancel(record)}
               >
-                Hủy đơn
+                Hoàn tiền
               </Button>
             </>
           )}

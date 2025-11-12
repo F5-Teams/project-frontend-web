@@ -4,7 +4,6 @@ import { OrderCustomer } from "@/services/orders/getOrderCustomerId/type";
 import { useGetUser } from "@/services/users/hooks";
 import { Button, Modal } from "antd";
 import Image from "next/image";
-import Link from "next/link";
 import Logo from "@/public/logo/HappyPaws Logo.svg";
 import { X } from "lucide-react";
 import { useState } from "react";
@@ -34,84 +33,138 @@ export default function HistoryOrder() {
   const { data: user } = useGetUser();
   const { data: orders } = useOrderCustomer(user?.id);
   const postOrderCancelMutation = usePostOrderCancel();
+  const queryClient = useQueryClient();
+
   const [open, setOpen] = useState(false);
   const [id, setId] = useState<number>();
-  const queryClient = useQueryClient();
+  const [status, setStatus] = useState<string>("ALL");
+
+  const filteredOrders =
+    status === "ALL"
+      ? orders
+      : orders?.filter((order) => order.status === status);
+
+  console.log("DATA", orders);
   return (
     <div className="px-20 py-6 space-y-6">
-      <h1 className="text-2xl font-semibold">Đơn hàng của tôi</h1>
-      <p className="text-gray-500">Tổng {orders?.length || 0} đơn hàng</p>
+      <div className="flex gap-13 bg-white w-[80%] m-auto px-10 py-3 justify-center rounded-2xl mb-5">
+        {[
+          { key: "ALL", label: "Tất cả" },
+          { key: "PENDING", label: "Chờ xác nhận" },
+          { key: "APPROVED", label: "Đã xác nhận" },
+          { key: "SHIPPING", label: "Vận chuyển" },
+          { key: "COMPLETED", label: "Hoàn thành" },
+          { key: "CANCELLED", label: "Đã hủy" },
+          { key: "REFUND", label: "Trả hàng/hoàn tiền" },
+        ].map((item) => (
+          <button
+            key={item.key}
+            onClick={() => setStatus(item.key)}
+            className={`cursor-pointer hover:text-pink-500 transition-colors ${
+              status === item.key ? "text-pink-500 font-semibold" : ""
+            }`}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
 
       <div className="space-y-10 px-40">
-        {orders?.map((order: OrderCustomer) => {
-          const firstItem = order.orderDetails[0];
-          const moreCount = order.orderDetails.length - 1;
-          const firstImage =
-            firstItem?.product?.images?.[0]?.imageUrl || "/placeholder.png";
-          return (
-            <Link
-              href={`/history-order/${order.id}`}
-              key={order.id}
-              className="flex items-center justify-between bg-white p-5 rounded-2xl border border-gray-100 hover:shadow-md transition-all"
-            >
-              <div className="flex items-center gap-5">
-                <div className="relative">
-                  <Image
-                    src={firstImage}
-                    width={80}
-                    height={80}
-                    className="rounded-xl object-cover"
-                    alt={firstItem.product.name}
-                  />
-                  {moreCount > 0 && (
-                    <span className="absolute -bottom-2 -right-2 bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">
-                      +{moreCount}
-                    </span>
+        {filteredOrders?.length ? (
+          filteredOrders.map((order: OrderCustomer) => {
+            const firstItem = order.orderDetails[0];
+            const moreCount = order.orderDetails.length - 1;
+            const firstImage =
+              firstItem?.product?.images?.[0]?.imageUrl || "/placeholder.png";
+
+            return (
+              <div
+                key={order.id}
+                className="bg-white p-5 rounded-2xl border border-gray-100 hover:shadow-md transition-all"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-5">
+                    <div className="relative">
+                      <Image
+                        src={firstImage}
+                        width={80}
+                        height={80}
+                        className="rounded-xl object-cover"
+                        alt={firstItem?.product?.name || "Sản phẩm"}
+                      />
+                      {moreCount > 0 && (
+                        <span className="absolute -bottom-2 -right-2 bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">
+                          +{moreCount}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-sm text-gray-400">#{order.id}</p>
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full font-medium ${
+                          statusColor[order.status]
+                        }`}
+                      >
+                        {statusLabel[order.status] || order.status}
+                      </span>
+                      <p className="font-medium text-gray-800">
+                        {firstItem?.product?.name}
+                      </p>
+                      <p className="text-xs text-gray-500">HappyPaws Store</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <p className="text-orange-500 font-semibold">
+                        {Number(order?.payment?.amount || 0).toLocaleString(
+                          "vi-VN"
+                        )}{" "}
+                        đ
+                      </p>
+                      <span className="text-gray-400 text-lg">{`>`}</span>
+                    </div>
+
+                    {order.status === "PENDING" && (
+                      <button
+                        onClick={() => {
+                          setOpen(true);
+                          setId(order.id);
+                        }}
+                        className="mt-8 py-1 text-[13px] text-white rounded-xl w-full bg-pink-500 hover:bg-pink-600 cursor-pointer font-medium transition px-2"
+                      >
+                        Hủy đơn
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <p className="text-gray-600 mt-5 text-sm">
+                  Tiền ship:{" "}
+                  {Number(order?.shipping?.shippingFee || 0).toLocaleString(
+                    "vi-VN"
                   )}
-                </div>
-
-                <div className="space-y-1">
-                  <p className="text-sm text-gray-400">#{order.id}</p>
-
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full font-medium ${
-                      statusColor[order.status]
-                    }`}
-                  >
-                    {statusLabel[order.status]}
-                  </span>
-
-                  <p className="font-medium text-gray-800">
-                    {firstItem.product.name}
+                  đ
+                </p>
+                <div className="h-[0.5px] w-full mt-4 bg-gray-300"></div>
+                <div className="flex justify-between mt-5 font-medium">
+                  <p>Tổng cộng:</p>
+                  <p className="text-green-600">
+                    {Number(order?.payment?.amount || 0).toLocaleString(
+                      "vi-VN"
+                    )}{" "}
+                    đ
                   </p>
-                  <p className="text-xs text-gray-500">HappyPaws Store</p>
                 </div>
               </div>
-
-              <div>
-                <div className="flex items-center gap-3">
-                  <p className="text-orange-500 font-semibold">
-                    {Number(order.payment.amount).toLocaleString("vi-VN")} đ
-                  </p>
-                  <span className="text-gray-400 text-lg">{`>`}</span>
-                </div>
-                {order.status === "PENDING" && (
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setOpen(true);
-                      setId(order.id);
-                    }}
-                    className="mt-8 py-1 text-[13px] text-white rounded-xl w-[100%] bg-pink-500 hover:bg-pink-600 cursor-pointer font-medium transition px-2 "
-                  >
-                    Hủy đơn
-                  </button>
-                )}
-              </div>
-            </Link>
-          );
-        })}
+            );
+          })
+        ) : (
+          <p className="text-center text-gray-500 mt-10">
+            Không có đơn hàng nào
+          </p>
+        )}
       </div>
 
       <Modal
@@ -166,19 +219,23 @@ export default function HistoryOrder() {
             <Button
               type="primary"
               danger
+              loading={postOrderCancelMutation.isPending}
               onClick={() => {
-                postOrderCancelMutation.mutate(id, {
-                  onSuccess: () => {
-                    toast.success("Hủy đơn thành công!");
-                    setOpen(false);
-                    queryClient.invalidateQueries(["orderCancel"]);
-                  },
-                  onError: () => {
-                    toast.error("Hủy đơn thất bại!");
-                  },
-                });
+                postOrderCancelMutation.mutate(
+                  { id, customerId: user?.id },
+                  {
+                    onSuccess: () => {
+                      toast.success("Hủy đơn hàng thành công!");
+                      setOpen(false);
+                      queryClient.invalidateQueries(["orderCancel"]);
+                    },
+                    onError: () => {
+                      toast.error("Hủy đơn hàng thất bại!");
+                    },
+                  }
+                );
               }}
-              className="rounded-md! px-5! py-1.5! font-mediu!m bg-pink-500! hover:bg-pink-600! transition-all"
+              className="rounded-md px-5 py-1.5 font-medium bg-pink-500 hover:bg-pink-600 transition-all"
             >
               Xác nhận
             </Button>
