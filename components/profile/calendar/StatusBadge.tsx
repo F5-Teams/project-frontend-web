@@ -7,19 +7,16 @@ import { cn } from "@/lib/utils";
 export type StatusCanonical =
   | "PENDING"
   | "CONFIRMED"
-  | "ONSERVICE"
+  | "ON_SERVICE"
   | "COMPLETED"
   | "CANCELLED";
 
 function normalizeStatus(s?: string | null): StatusCanonical | undefined {
   const key = (s ?? "").toUpperCase();
-  if (
-    ["PENDING", "CONFIRMED", "ONSERVICE", "COMPLETED", "CANCELLED"].includes(
-      key
-    )
-  ) {
+  if (["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"].includes(key)) {
     return key as StatusCanonical;
   }
+  if (key === "ONSERVICE" || key === "ON_SERVICE") return "ON_SERVICE";
   return undefined;
 }
 
@@ -32,7 +29,7 @@ const MAP: Record<StatusCanonical, { label: string; cls: string }> = {
     label: "Đã xác nhận",
     cls: "bg-teal-100 text-teal-700 ring-teal-200",
   },
-  ONSERVICE: {
+  ON_SERVICE: {
     label: "Đang phục vụ",
     cls: "bg-blue-100 text-blue-700 ring-blue-200",
   },
@@ -48,16 +45,16 @@ const MAP: Record<StatusCanonical, { label: string; cls: string }> = {
 
 const DOT_COLORS: Record<StatusCanonical, string> = {
   PENDING: "bg-amber-400",
-  CONFIRMED: "bg-teal-500",
-  ONSERVICE: "bg-blue-500",
-  COMPLETED: "bg-emerald-500",
+  CONFIRMED: "bg-green-400",
+  ON_SERVICE: "bg-blue-500",
+  COMPLETED: "bg-emerald-600",
   CANCELLED: "bg-rose-500",
 };
 
 export const STATUS_ORDER: StatusCanonical[] = [
   "PENDING",
   "CONFIRMED",
-  "ONSERVICE",
+  "ON_SERVICE",
   "COMPLETED",
   "CANCELLED",
 ];
