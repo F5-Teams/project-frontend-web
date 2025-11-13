@@ -24,6 +24,7 @@ const publicPrefixes = [
   "/images",
   "/favicon.ico",
   "/about-us",
+  "/",
 ];
 
 export function middleware(req: NextRequest) {
