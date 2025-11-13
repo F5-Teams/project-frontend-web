@@ -9,6 +9,7 @@ import {
   Info,
   Menu,
   X,
+  MessageSquare,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -32,6 +33,7 @@ const mainNav: NavItem[] = [
   { href: "/profile/info", icon: Users, label: "Profile" },
   // { href: "/profile/bookings", icon: ClipboardList, label: "Bookings" },
   { href: "/profile/calendar", icon: CalendarIcon, label: "Calendar" },
+  { href: "/profile/chat", icon: MessageSquare, label: "Chat Tư Vấn" },
   // {
   //   href: "/profile/notifications",
   //   icon: Bell,
