@@ -7,6 +7,7 @@ import cat from "@/public/images/cat.jpg";
 import { useState } from "react";
 import { SelectPetsModal } from "@/components/modals/SelectPetsModal";
 import { SingleServiceBookingModal } from "@/components/modals/SingleServiceBookingModal";
+import { ComboDetailModal } from "@/components/modals/ComboDetailModal";
 import { useCartStore } from "@/stores/cart.store";
 import { BookingDraft } from "@/types/cart";
 import { useCombos } from "@/hooks/useCombos";
@@ -18,8 +19,14 @@ const PetCarePage = () => {
   // Modal states
   const [isSelectPetsOpen, setIsSelectPetsOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedServiceId, setSelectedServiceId] = useState<string>("");
   const [selectedPetIds, setSelectedPetIds] = useState<string[]>([]);
+
+  const handleShowDetail = (serviceId: string) => {
+    setSelectedServiceId(serviceId);
+    setIsDetailModalOpen(true);
+  };
 
   const handleBookService = (serviceId: string) => {
     setSelectedServiceId(serviceId);
@@ -173,6 +180,7 @@ const PetCarePage = () => {
                       duration: 0.8,
                       ease: "easeOut",
                     }}
+                    onClick={() => handleShowDetail(combo.id.toString())}
                     className="group relative rounded-xl sm:rounded-2xl border bg-white shadow-md p-4 sm:p-6 cursor-pointer overflow-hidden hover:-translate-y-2 hover:shadow-xl transition duration-500 flex flex-col h-full"
                   >
                     <div className="relative w-full h-40 sm:h-48 md:h-56 shrink-0">
@@ -257,9 +265,12 @@ const PetCarePage = () => {
                           ? "bg-pink-500 text-white hover:bg-pink-600"
                           : "bg-gray-300 text-gray-500 cursor-not-allowed"
                       }`}
-                      onClick={() =>
-                        combo.isActive && handleBookService(combo.id.toString())
-                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (combo.isActive) {
+                          handleBookService(combo.id.toString());
+                        }
+                      }}
                       disabled={!combo.isActive}
                     >
                       {combo.isActive ? "Đặt ngay" : "Hết chỗ"}
@@ -437,6 +448,13 @@ const PetCarePage = () => {
       </motion.section>
 
       {/* Modals */}
+      <ComboDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        combo={selectedService || null}
+        onBook={() => handleBookService(selectedServiceId)}
+      />
+
       <SelectPetsModal
         isOpen={isSelectPetsOpen}
         onClose={() => setIsSelectPetsOpen(false)}

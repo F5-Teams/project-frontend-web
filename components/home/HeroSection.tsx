@@ -48,14 +48,13 @@ const HeroSection = () => {
           yêu thương và thật riêng biệt.
         </p>
         {hasToken ? (
-          <button
-            type="button"
-            className="btn-primary text-[18px] opacity-80"
+          <Link
+            href="/spa"
+            className="btn-primary text-[18px] cursor-pointer"
             style={{ zIndex: 50, position: "relative", marginTop: "18px" }}
-            title="Bạn đã đăng nhập"
           >
             ĐẶT LỊCH NGAY CHO BÉ
-          </button>
+          </Link>
         ) : (
           <Link
             href="/login"
