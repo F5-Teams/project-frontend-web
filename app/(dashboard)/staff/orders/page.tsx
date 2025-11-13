@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 import React, { useState } from "react";
 import { Eye, Trash2 } from "lucide-react";
 import { patchOrder } from "@/services/orders/patchOrder/api";
-import { Order } from "@/services/orders/getAllOrder/type";
+import { Order, Payment } from "@/services/orders/getAllOrder/type";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePostOrderGhn } from "@/services/orders/postOrderGhn/hooks";
 import { usePostOrderGhnCancel } from "@/services/orders/postOrderGhnCancel/hooks";
@@ -15,6 +15,7 @@ import ModalDeleteOrder from "@/components/orders/ModalDeleteOrder";
 import { useDeleteOrder } from "@/services/orders/deleteOrder/hooks";
 import ModalComplete from "@/components/orders/ModalComplete";
 import { toast } from "sonner";
+import { usePostOrderCancel } from "@/services/orders/postOrderCancel/hooks";
 
 const OrderPage = () => {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -27,9 +28,10 @@ const OrderPage = () => {
   const { mutate: postOrderGhn } = usePostOrderGhn();
   const { mutate: postOrderGhnCancel } = usePostOrderGhnCancel();
   const { mutate: deleteOrder } = useDeleteOrder();
-
+  const { mutate: postOrderCancel } = usePostOrderCancel();
   const handleApprove = async (order: Order) => {
     const orderId = order.id;
+
     const body = {
       status: "APPROVED",
       note: order.note || "",
@@ -57,12 +59,14 @@ const OrderPage = () => {
       },
 
       paymentMethod: order.payment.paymentMethod,
-      paymentStatus: "PENDING",
+      paymentStatus: "TRANSFER",
       orderDetails: order.orderDetails.map((item) => ({
         productId: item.product.id,
         quantity: item.quantity,
       })),
     };
+
+    console.log("PAY", body);
 
     try {
       await patchOrder({ id: orderId, body });
@@ -137,8 +141,64 @@ const OrderPage = () => {
     });
   };
 
-  const handleComplete = async (value: Order) => {
+  const handleComplete = async () => {
     setOpenComplete(true);
+  };
+
+  const handleCancel = async (order: Order) => {
+    console.log("IDDD", order.id);
+    console.log("CUS", order.customerId);
+
+    await postOrderCancel(
+      { id: order.id, customerId: order.customerId },
+      {
+        onSuccess: () => {
+          toast.success("Hoàn tiền thành công!");
+          setIsDeleteOpen(false);
+          setSelectedOrder(undefined);
+          queryClient.invalidateQueries(["getAllOrder"]);
+        },
+        onError: () => toast.error("Xóa đơn hàng thất bại!"),
+        onSettled: () => setLoadingDelete(false),
+      }
+    );
+
+    const body = {
+      status: "REFUND",
+      note: order.note || "",
+      customerId: order.customerId,
+
+      shipping: {
+        toName: order.shipping.toName,
+        toPhone: order.shipping.toPhone,
+        toAddress: order.shipping.toAddress,
+        toWardCode: order.shipping.toWardCode,
+        toDistrictId: order.shipping.toDistrictId,
+        toWardName: order.shipping.toWardName,
+        toDistrictName: order.shipping.toDistrictName,
+        toProvinceName: order.shipping.toProvinceName,
+        serviceTypeId: order.shipping.serviceTypeId,
+        paymentTypeId: order.shipping.paymentTypeId,
+        requiredNote: order.shipping.requiredNote,
+        length: order.shipping.length,
+        width: order.shipping.width,
+        height: order.shipping.height,
+        codAmount: Number(order.shipping.codAmount) || 0,
+        insuranceValue: Number(order.shipping.insuranceValue) || 0,
+        note: order.note || "",
+        status: "PENDING",
+      },
+
+      paymentMethod: order.payment.paymentMethod,
+      paymentStatus: "TRANSFER",
+      orderDetails: order.orderDetails.map((item) => ({
+        productId: item.product.id,
+        quantity: item.quantity,
+      })),
+    };
+    await patchOrder({ id: order.id, body });
+    toast.success("Duyệt đơn hàng thành công!");
+    queryClient.invalidateQueries(["getAllOrder"]);
   };
 
   const getPaymentLabel = (method?: string) => {
@@ -164,10 +224,16 @@ const OrderPage = () => {
         return "Hoàn thành";
       case "CANCELLED":
         return "Đã hủy";
+      case "FAILED":
+        return "Thất bại";
+      case "REFUND":
+        return "Hoàn tiền";
       default:
         return status;
     }
   };
+
+  console.log("first", allOrder);
 
   const columns = [
     {
@@ -198,17 +264,17 @@ const OrderPage = () => {
     },
     {
       title: "Tổng tiền",
-      dataIndex: "totalPrice",
-      width: 110,
-      render: (p: string, record: Order) => (
-        <span className="font-semibold text-pink-600">
-          {(
-            Number(p) + Number(record.shipping.shippingFee || 0)
-          ).toLocaleString("vi-VN")}{" "}
-          đ
-        </span>
-      ),
+      width: 120,
+      render: (_: any, record: Order) => {
+        const amount = record.payment?.amount ?? 0;
+        return (
+          <span className="font-semibold text-pink-600">
+            {Number(amount).toLocaleString("vi-VN")} đ
+          </span>
+        );
+      },
     },
+
     {
       title: "Thanh toán",
       dataIndex: "payment",
@@ -320,6 +386,19 @@ const OrderPage = () => {
                 }}
               >
                 Hoàn thành
+              </Button>
+            </>
+          )}
+
+          {record.status === "FAILED" && (
+            <>
+              <Button
+                className="bg-[#f15e6a]! text-white! hover:bg-[#dd3744]!"
+                danger
+                size="small"
+                onClick={() => handleCancel(record)}
+              >
+                Hoàn tiền
               </Button>
             </>
           )}

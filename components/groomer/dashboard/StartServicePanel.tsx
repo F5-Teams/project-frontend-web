@@ -2,14 +2,16 @@
 
 import React, { useEffect, useState } from "react";
 import { uploadFile } from "@/utils/uploadFIle";
-import { useUploadBookingPhotos } from "@/services/groomer/booking/hooks";
+import {
+  useStartOnService,
+  useUploadBookingPhotos,
+} from "@/services/groomer/booking/hooks";
 import type { UploadBookingPhotosPayload } from "@/services/groomer/booking/api";
 import { toast } from "sonner";
 import Image from "next/image";
 import { UploadCloud } from "lucide-react";
-import EvidenceNotice from "@/components/groomer/dashboard/EvidenceNotice";
 
-type ImageType = "BEFORE" | "DURING" | "AFTER";
+type ImageType = "BEFORE";
 
 type Props = {
   bookingId: number;
@@ -18,6 +20,8 @@ type Props = {
   submitLabel?: string;
   onDone?: () => void;
   onCancel?: () => void;
+  // If true, will call start-onservice API first, then upload photos
+  runStartOnServiceFirst?: boolean;
 };
 
 export default function StartServicePanel({
@@ -27,12 +31,14 @@ export default function StartServicePanel({
   submitLabel,
   onDone,
   onCancel,
+  runStartOnServiceFirst = false,
 }: Props) {
   const [files, setFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [note, setNote] = useState("");
   const uploadMutation = useUploadBookingPhotos();
+  const startMutation = useStartOnService();
 
   useEffect(() => {
     const urls = files.map((f) => URL.createObjectURL(f));
@@ -60,6 +66,18 @@ export default function StartServicePanel({
 
     setUploading(true);
     try {
+      // If requested, start the service before uploading photos
+      if (runStartOnServiceFirst) {
+        try {
+          await startMutation.mutateAsync(bookingId);
+        } catch (e) {
+          console.error(e);
+          toast.error("Không thể bắt đầu thực hiện");
+          setUploading(false);
+          return;
+        }
+      }
+
       const uploadedUrls: string[] = [];
       for (const f of files) {
         const res = await uploadFile(f);
@@ -73,7 +91,6 @@ export default function StartServicePanel({
       };
 
       await uploadMutation.mutateAsync({ bookingId, payload });
-      toast.success("Ảnh đã được lưu vào hồ sơ booking.");
       onDone?.();
     } catch (err) {
       console.error(err);
@@ -94,18 +111,14 @@ export default function StartServicePanel({
       <div className="relative z-10 w-[min(800px,96%)] bg-white rounded-xl p-6 shadow-lg border">
         <div className="flex items-center justify-center gap-2 mb-2">
           <h3 className="text-center text-2xl font-poppins-regular">
-            {title ??
-              (imageType === "AFTER"
-                ? "Tải ảnh sau khi thực hiện"
-                : "Ảnh minh chứng trước khi thực hiện")}
+            {title ?? "Ảnh minh chứng trước khi thực hiện"}
           </h3>
-          {/* <EvidenceNotice /> */}
         </div>
 
         <p className="text-sm text-rose-600 mb-4 text-center">
-          {imageType === "AFTER"
-            ? "Ảnh sẽ được lưu kèm thời gian và người thực hiện. Vui lòng chọn góc chụp thể hiện rõ công đoạn hiện tại."
-            : "Để đảm bảo minh bạch và an toàn dịch vụ, cần chụp ảnh pet (rõ mặt, đủ sáng). Khi ảnh được xác nhận hợp lệ, các thao tác với booking mới được mở."}
+          Để đảm bảo minh bạch và an toàn dịch vụ, cần chụp ảnh pet (rõ mặt, đủ
+          sáng). Khi ảnh được xác nhận hợp lệ, các thao tác với booking mới được
+          mở.
         </p>
 
         <section className="mb-4">
@@ -122,8 +135,7 @@ export default function StartServicePanel({
           </label>
 
           <div className="text-xs font-poppins-light text-muted-foreground mt-2">
-            Hỗ trợ nhiều ảnh. Ảnh sẽ được upload lên server và gắn nhãn{" "}
-            {imageType}.
+            Hỗ trợ nhiều ảnh. Ảnh sẽ được upload lên server.
           </div>
         </section>
 
@@ -168,26 +180,23 @@ export default function StartServicePanel({
         </div>
 
         <div className="flex items-center justify-end gap-3">
-          <button
-            type="button"
-            onClick={() => onCancel?.()}
-            className="px-3 py-2 bg-gray-100 text-gray-800 rounded-md text-sm"
-            disabled={uploading}
-          >
-            Huỷ
-          </button>
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={uploading}
+              className="px-3 py-2 bg-white text-slate-700 border rounded-md font-poppins-light text-sm disabled:opacity-50 hover:bg-slate-50"
+            >
+              Hủy
+            </button>
+          )}
           <button
             type="button"
             onClick={handleSubmit}
             disabled={uploading}
             className="px-3 py-2 bg-pink-600 text-white rounded-md font-poppins-light text-sm disabled:opacity-50"
           >
-            {uploading
-              ? "Đang gửi..."
-              : submitLabel ??
-                (imageType === "AFTER"
-                  ? "Tải ảnh sau khi thực hiện"
-                  : "Tải ảnh ngay")}
+            {uploading ? "Đang gửi..." : submitLabel ?? "Tải ảnh ngay"}
           </button>
         </div>
       </div>

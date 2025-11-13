@@ -3,12 +3,12 @@ import { Address } from "@/services/address/getAddress/type";
 import { useCalculateFee } from "@/services/calculateFee/hooks";
 import { postOrder } from "@/services/orders/postOrder/api";
 import { useGetUser } from "@/services/users/hooks";
-import { useCreateVnpay } from "@/services/vn-pay/createUrl/hooks";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button, Form, Input, message, Modal, Radio, Select } from "antd";
+import { Button, Form, Input, Modal, Radio, Select } from "antd";
 import { useForm } from "antd/es/form/Form";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
+import AddressModal from "./AddressModal";
 
 interface CartItem {
   productId: number;
@@ -28,13 +28,13 @@ interface DataProps {
 
 const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   const [form] = useForm();
-  const [option, setOption] = useState<string>("");
   const [note, setNote] = useState<string>("");
   const [phone, setPhone] = useState<string>("");
   const [address, setAddress] = useState<number>();
   const { data: user } = useGetUser();
   const [loading, setLoading] = useState(false);
   const [addressFee, setAddressFee] = useState<Address>();
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
   const { data: fee, mutateAsync: calculateFee } = useCalculateFee();
 
@@ -88,22 +88,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   }, [addressFee, calculateFee, totalWeight]);
 
   const handleSubmit = async () => {
-    if (!option) return alert("Vui lòng chọn phương thức thanh toán!");
     setLoading(true);
-
-    const paymentMethod = option === "COD" ? "CASH" : "TRANSFER";
-
-    const orderPayloadCash = {
-      status: "PENDING",
-      note: note,
-      customerId: user?.id,
-      orderDetails: items.map((item) => ({
-        productId: item.productId,
-        quantity: item.quantity,
-      })),
-      addressId: address,
-      paymentMethod: "CASH",
-    };
 
     const orderPayloadTransfer = {
       status: "PENDING",
@@ -113,18 +98,14 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
         productId: item.productId,
         quantity: item.quantity,
       })),
-      addressId: address,
+      addressId: Number(address),
       paymentMethod: "TRANSFER",
     };
 
     console.log("ORDER", orderPayloadTransfer);
 
     try {
-      if (paymentMethod === "CASH") {
-        await postOrder(orderPayloadCash);
-      } else if (paymentMethod === "TRANSFER") {
-        await postOrder(orderPayloadTransfer);
-      }
+      await postOrder(orderPayloadTransfer);
       toast.promise<{ name: string }>(
         () =>
           new Promise((resolve) =>
@@ -137,6 +118,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
         }
       );
       queryClient.invalidateQueries(["createOrder"]);
+      form.resetFields();
       clearCart();
     } catch (error) {
       console.log(error);
@@ -205,14 +187,31 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
               showSearch
               placeholder="Chọn địa chỉ"
               optionFilterProp="children"
-              onChange={(value) => {
-                setAddress(value);
-              }}
+              value={address}
+              onChange={(value) => setAddress(value)}
               className="mt-1 w-full"
+              dropdownRender={(menu) => (
+                <div>
+                  {menu}
+                  {address && (
+                    <div
+                      onClick={() => setIsAddressModalOpen(true)}
+                      className="text-center py-2 cursor-pointer border-t hover:bg-pink-50 text-pink-600 font-medium"
+                    >
+                      Thay đổi địa chỉ
+                    </div>
+                  )}
+                </div>
+              )}
             >
               {addressList.map((item: Address) => (
                 <Select.Option key={item.id} value={item.id}>
-                  {item.address} / {item.districtName} / {item.provinceName}
+                  <div className="flex gap-2">
+                    <p className="font-medium">
+                      {item.name} ({item.phone})
+                    </p>
+                    {item.address} / {item.districtName} / {item.provinceName}
+                  </div>
                 </Select.Option>
               ))}
             </Select>
@@ -237,17 +236,14 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
         </span>
       </div>
 
-      <div className="mt-5">
-        <h1 className="font-semibold mb-2">Chọn phương thức thanh toán</h1>
-        <Radio.Group onChange={(e) => setOption(e.target.value)} value={option}>
-          <div className="flex flex-col gap-2">
-            <Radio value="COD">Thanh toán khi nhận hàng (COD)</Radio>
-            <Radio value="BANK_TRANSFER">Thanh toán qua ví</Radio>
-          </div>
-        </Radio.Group>
-
+      <div className="mt-5 ">
+        <div className="flex gap-2">
+          <h1 className="font-semibold mb-2"> Phương thức thanh toán: </h1>
+          <h1 className=" mb-2"> Ví của tôi</h1>
+        </div>
         <h1 className="font-semibold mb-2">Ghi chú:</h1>
         <Input.TextArea
+          value={note}
           onChange={(e) => setNote(e.target.value)}
           rows={3}
         ></Input.TextArea>
@@ -258,6 +254,8 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
           onClick={() => {
             setLoading(false);
             isCancel();
+            setNote("");
+            form.resetFields();
           }}
           className="flex-1 py-2 rounded-xl border border-pink-500 cursor-pointer text-pink-600 font-semibold hover:bg-pink-50 transition"
         >
@@ -266,14 +264,24 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
 
         <Button
           type="primary"
-          onClick={handleSubmit}
+          onClick={() => {
+            handleSubmit();
+            setNote("");
+            form.resetFields();
+          }}
           loading={loading}
-          disabled={!option}
           className="flex-1! py-2! rounded-xl! text-white! bg-pink-500! hover:bg-pink-600!"
         >
           Đặt hàng
         </Button>
       </div>
+
+      <AddressModal
+        open={isAddressModalOpen}
+        isCancel={() => setIsAddressModalOpen(false)}
+        addressList={addressList}
+        onSelect={(id) => setAddress(id)}
+      />
     </Modal>
   );
 };

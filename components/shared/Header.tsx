@@ -18,17 +18,20 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { Bath, Hotel, PawPrint, ShoppingCart, Wallet } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { logout } from "@/utils/auth";
 import Image from "next/image";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { useCartSummary, useIsCartOpen } from "@/stores/cart.store";
 import { BagDrawer } from "../shopping/BagDrawer";
 import { useProductCartStore } from "@/stores/productCart.store";
 import { useGetUser } from "@/services/users/hooks";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 export default function Header() {
-  const router = useRouter();
   const cartSummary = useCartSummary();
   const isCartOpen = useIsCartOpen();
   const { items } = useProductCartStore();
@@ -36,36 +39,143 @@ export default function Header() {
   const [auth, setAuth] = useState<{
     token: string | null;
     user: { userName?: string; avatar?: string } | null;
+    role: string | null;
   }>({
     token: null,
     user: null,
+    role: null,
   });
+
+  const navRef = useRef<HTMLElement | null>(null);
+  const leftPillRef = useRef<HTMLDivElement | null>(null);
+  const bgRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const token = localStorage.getItem("accessToken");
     const userRaw = localStorage.getItem("user");
+    const role = localStorage.getItem("role");
     setAuth({
       token,
       user: userRaw ? JSON.parse(userRaw) : null,
+      role,
     });
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("user");
-    setAuth({ token: null, user: null });
-    router.push("/");
+    logout("/");
   };
+
+  useLayoutEffect(() => {
+    const navEl = navRef.current;
+    const pillEl = leftPillRef.current;
+    const bgEl = bgRef.current;
+    if (!navEl || !pillEl || !bgEl) return;
+
+    const reduce =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+
+    const setInitial = () => {
+      const navRect = navEl.getBoundingClientRect();
+      const pillRect = pillEl.getBoundingClientRect();
+
+      const x = pillRect.left - navRect.left;
+      const y = pillRect.top - navRect.top;
+
+      const navW = navRect.width;
+      const navH = navRect.height;
+      const pillW = pillRect.width;
+      const pillH = pillRect.height;
+
+      gsap.set(bgEl, {
+        x,
+        y,
+        width: navW,
+        height: pillH,
+        transformOrigin: "left center",
+        scaleX: pillW / navW,
+        borderRadius: 9999,
+        backgroundColor: "rgba(255,255,255,0.7)",
+        boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
+        backdropFilter: "blur(6px)",
+        zIndex: 0,
+      });
+    };
+
+    setInitial();
+
+    const ctx = gsap.context(() => {
+      if (reduce) {
+        // Nếu user không muốn animation: set thẳng nền full
+        const navRect = navEl.getBoundingClientRect();
+        gsap.set(bgEl, {
+          x: 0,
+          y: 0,
+          width: navRect.width,
+          height: navRect.height,
+          scaleX: 1,
+          borderRadius: 0,
+          backgroundColor: "rgba(255,255,255,0.9)",
+          backdropFilter: "blur(10px)",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.10)",
+        });
+        return;
+      }
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: document.documentElement, // cuộn trang
+          start: "top top",
+          end: "+=220", // độ dài hành trình bung nền
+          scrub: 0.6,
+        },
+        defaults: { ease: "power2.out" },
+      });
+
+      tl.to(bgEl, {
+        scaleX: 1,
+        borderRadius: 0,
+        height: () => navRef.current?.getBoundingClientRect().height || 72,
+        backgroundColor: "rgba(255,255,255,0.9)",
+        backdropFilter: "blur(10px)",
+        boxShadow: "0 10px 30px rgba(0,0,0,0.10)",
+        x: 0,
+        y: 0,
+      });
+
+      const onResize = () => {
+        ScrollTrigger.refresh();
+        setInitial();
+      };
+      window.addEventListener("resize", onResize);
+      ScrollTrigger.addEventListener("refreshInit", setInitial);
+
+      return () => {
+        window.removeEventListener("resize", onResize);
+        ScrollTrigger.removeEventListener("refreshInit", setInitial);
+      };
+    });
+
+    return () => ctx.revert();
+  }, [isCartOpen]);
 
   return (
     <nav
-      className={`fixed top-0 left-0 flex items-center justify-between px-16 py-4 z-100 transition-all duration-300 ease-in-out ${
+      ref={navRef}
+      className={`fixed top-0 left-0 right-0 flex items-center justify-between px-16 py-4 z-100 transition-all duration-300 ease-in-out ${
         isCartOpen ? "w-full lg:w-[calc(100%-560px)]" : "w-full"
       }`}
     >
       <div
-        className="inline-flex items-center gap-[60px] px-6 py-2 bg-white/70 backdrop-blur shadow-lg rounded-2xl"
+        ref={bgRef}
+        className="pointer-events-none absolute top-0 left-0"
+        aria-hidden
+      />
+
+      <div
+        ref={leftPillRef}
+        className="relative z-10 inline-flex items-center gap-[60px] px-6 py-2 rounded-full bg-transparent"
         style={{ height: "72px" }}
       >
         <Link href="/" className="cursor-pointer">
@@ -78,18 +188,15 @@ export default function Header() {
             style={{ maxHeight: "56px" }}
           />
         </Link>
+
         <NavigationMenu>
           <NavigationMenuList className="inline-flex items-start gap-8 relative">
             <NavigationMenuItem>
-              <NavigationMenuTrigger
-                className="font-poppins-light font-light text-[14px] sm:text-[15px] md:text-[16px] 
-                2xl:text-[18px] text-center leading-6 
-                tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors cursor-pointer"
-              >
-                <p className="cursor-pointer ">DỊCH VỤ</p>
+              <NavigationMenuTrigger className="font-poppins-light font-light text-[14px] sm:text-[15px] md:text-[16px] 2xl:text-[18px] text-center leading-6 tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors cursor-pointer">
+                <p className="cursor-pointer">DỊCH VỤ</p>
               </NavigationMenuTrigger>
               <NavigationMenuContent className="p-3 absolute left-1/2 -translate-x-1/2 border-none min-w-[280px] z-100 bg-white/90 backdrop-blur shadow-lg rounded-xl">
-                <ul className=" font-light grid gap-4">
+                <ul className="font-light grid gap-4">
                   <li>
                     <NavigationMenuLink asChild>
                       <Link
@@ -169,10 +276,10 @@ export default function Header() {
 
             <NavigationMenuItem>
               <NavigationMenuLink
-                href="#nhận-nuôi"
+                href="/policy"
                 className="relative w-fit -mt-px font-poppins-light text-[14px] sm:text-[15px] md:text-[16px] 2xl:text-[18px] text-foreground text-center leading-6 tracking-[0.048px] hover:text-primary hover:bg-transparent transition-colors"
               >
-                NHẬN NUÔI
+                CHÍNH SÁCH
               </NavigationMenuLink>
             </NavigationMenuItem>
 
@@ -188,7 +295,8 @@ export default function Header() {
         </NavigationMenu>
       </div>
 
-      <div className="inline-flex items-center gap-3 p-4 ml-auto">
+      {/* KHỐI PHẢI */}
+      <div className="relative z-10 inline-flex items-center gap-3 p-4 ml-auto">
         {/* Cart Icon */}
         <CartDrawer>
           <button className="relative cursor-pointer p-2 rounded-full hover:bg-gray-100 transition-colors group">
@@ -250,7 +358,7 @@ export default function Header() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 pr-2">
               <Link href="/wallet">
-                <div className="px-2 py-2 mx-1 my-1 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20 cursor-pointer hover:bg-gradient-to-r hover:from-primary/15 hover:to-primary/10 transition-all">
+                <div className="px-2 py-2 mx-1 my-1 bg-linear-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20 cursor-pointer hover:bg-linear-to-r hover:from-primary/15 hover:to-primary/10 transition-all">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
                       <p className="font-poppins-light text-xs text-muted-foreground mb-1">
@@ -276,7 +384,7 @@ export default function Header() {
                   Thông tin thú cưng
                 </DropdownMenuItem>
               </Link>
-              {user?.role.id === 4 && (
+              {user?.role?.id === 4 && (
                 <Link href="/history-order">
                   <DropdownMenuItem className="font-poppins-light text-[14px] focus:text-primary transition-all duration-200 hover:translate-x-1">
                     Lịch sử đơn hàng
@@ -296,7 +404,10 @@ export default function Header() {
             <Link href="/login" className="btn-primary cursor-pointer">
               Đăng nhập
             </Link>
-            <Link href="/register" className="btn-default cursor-pointer">
+            <Link
+              href="/register"
+              className="btn-default border-primary cursor-pointer"
+            >
               Đăng ký
             </Link>
           </>
