@@ -18,7 +18,7 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { Bath, Hotel, PawPrint, ShoppingCart, Wallet } from "lucide-react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { logout } from "@/utils/auth";
 import Image from "next/image";
 import { CartDrawer } from "@/components/cart/CartDrawer";
@@ -36,31 +36,13 @@ export default function Header() {
   const isCartOpen = useIsCartOpen();
   const { items } = useProductCartStore();
   const { data: user } = useGetUser();
-  const [auth, setAuth] = useState<{
-    token: string | null;
-    user: { userName?: string; avatar?: string } | null;
-    role: string | null;
-  }>({
-    token: null,
-    user: null,
-    role: null,
-  });
+  // Local auth state removed; we already rely on useGetUser()
 
   const navRef = useRef<HTMLElement | null>(null);
   const leftPillRef = useRef<HTMLDivElement | null>(null);
   const bgRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const token = localStorage.getItem("accessToken");
-    const userRaw = localStorage.getItem("user");
-    const role = localStorage.getItem("role");
-    setAuth({
-      token,
-      user: userRaw ? JSON.parse(userRaw) : null,
-      role,
-    });
-  }, []);
+  // No local auth bootstrap; header renders from `useGetUser()`
 
   const handleLogout = () => {
     logout("/");
@@ -88,17 +70,38 @@ export default function Header() {
       const pillW = pillRect.width;
       const pillH = pillRect.height;
 
+      const EXPAND_DISTANCE = 220;
+      const currentScroll =
+        typeof window !== "undefined"
+          ? window.scrollY || document.documentElement.scrollTop || 0
+          : 0;
+      const progress = Math.max(
+        0,
+        Math.min(currentScroll / EXPAND_DISTANCE, 1)
+      );
+
+      const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+      const targetX = lerp(x, 0, progress);
+      const targetY = lerp(y, 0, progress);
+      const targetHeight = lerp(pillH, navH, progress);
+      const targetScaleX = lerp(pillW / navW, 1, progress);
+
       gsap.set(bgEl, {
-        x,
-        y,
-        width: navW,
-        height: pillH,
+        x: targetX,
+        y: targetY,
+        // KHÔNG set width nữa, để CSS (left/right) xử lý
+        height: targetHeight,
         transformOrigin: "left center",
-        scaleX: pillW / navW,
-        borderRadius: 9999,
-        backgroundColor: "rgba(255,255,255,0.7)",
-        boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
-        backdropFilter: "blur(6px)",
+        scaleX: targetScaleX,
+        borderRadius: progress >= 0.98 ? 0 : 9999,
+        backgroundColor:
+          progress >= 0.98 ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.7)",
+        boxShadow:
+          progress >= 0.98
+            ? "0 10px 30px rgba(0,0,0,0.10)"
+            : "0 10px 25px rgba(0,0,0,0.08)",
+        backdropFilter: progress >= 0.98 ? "blur(10px)" : "blur(6px)",
         zIndex: 0,
       });
     };
@@ -109,10 +112,12 @@ export default function Header() {
       if (reduce) {
         // Nếu user không muốn animation: set thẳng nền full
         const navRect = navEl.getBoundingClientRect();
+        const viewportW =
+          typeof window !== "undefined" ? window.innerWidth : navRect.width;
         gsap.set(bgEl, {
           x: 0,
           y: 0,
-          width: navRect.width,
+          width: viewportW,
           height: navRect.height,
           scaleX: 1,
           borderRadius: 0,
@@ -163,13 +168,13 @@ export default function Header() {
   return (
     <nav
       ref={navRef}
-      className={`fixed top-0 left-0 right-0 flex items-center justify-between px-16 py-4 z-100 transition-all duration-300 ease-in-out ${
-        isCartOpen ? "w-full lg:w-[calc(100%-560px)]" : "w-full"
-      }`}
+      className={
+        "fixed top-0 inset-x-0 flex items-center justify-between px-16 py-4 z-100 transition-all duration-300 ease-in-out"
+      }
     >
       <div
         ref={bgRef}
-        className="pointer-events-none absolute top-0 left-0"
+        className="pointer-events-none fixed inset-x-0 top-0"
         aria-hidden
       />
 

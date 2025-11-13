@@ -233,7 +233,7 @@ const PetCarePage = () => {
                                   className="flex items-center gap-1.5 sm:gap-2"
                                 >
                                   <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-green-500 shrink-0" />
-                                  <span className="text-[12px] font-poppins-regular text-black truncate">
+                                  <span className="text-[14px] font-poppins-light text-black truncate">
                                     {serviceLink.service.name}
                                   </span>
                                 </div>

@@ -5,6 +5,7 @@ import { poppins } from "../fonts/font";
 import { Providers } from "./_providers";
 import { Toaster } from "@/components/ui/sonner";
 import ScrollToTop from "@/components/shared/ScrollToTop";
+import HappyPawsChat from "@/components/chat/HappyPawsChat";
 
 // import ReduxProvider from "./ReduxProvider";
 
@@ -28,11 +29,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi" className={`${poppins.variable} ${getPoppins.variable}`}>
+    <html
+      lang="vi"
+      className={`${poppins.variable} ${getPoppins.variable}`}
+      suppressHydrationWarning
+    >
       <body className="antialiased">
         <Providers>
           <ScrollToTop />
           {children}
+          {/* Global floating chat widget visible on all pages */}
+          <HappyPawsChat />
           <Toaster
             toastOptions={{
               duration: 5000,
