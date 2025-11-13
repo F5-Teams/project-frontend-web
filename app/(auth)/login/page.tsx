@@ -212,9 +212,8 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="flex justify-center text-gray-600">Or</p>
           {/* Link đăng ký */}
-          {/* <p className="mt-6 text-center font-poppins-light text-sm text-muted-foreground">
+          <p className="mt-6 text-center font-poppins-light text-sm text-muted-foreground">
             Bạn chưa có tài khoản?{" "}
             <Link
               href="/register"
@@ -222,7 +221,9 @@ export default function LoginPage() {
             >
               Đăng ký ngay
             </Link>
-          </p> */}
+          </p>
+          <p className="flex justify-center text-gray-600">Or</p>
+
           <button
             type="button"
             onClick={handleGoogleLogin}
