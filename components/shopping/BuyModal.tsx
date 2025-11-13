@@ -9,6 +9,7 @@ import { useForm } from "antd/es/form/Form";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import AddressModal from "./AddressModal";
+import { usePostOrder } from "@/services/orders/postOrder/hooks";
 
 interface CartItem {
   productId: number;
@@ -37,7 +38,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
   const { data: fee, mutateAsync: calculateFee } = useCalculateFee();
-
+  const { data: order } = usePostOrder();
   const { data: addressList = [] } = useGetAddress();
 
   const total = items.reduce(
@@ -129,6 +130,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
     isCancel();
   };
 
+  console.log("OROROR", order);
   return (
     <Modal
       open={isOpen}
