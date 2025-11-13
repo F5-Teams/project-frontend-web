@@ -45,6 +45,8 @@ interface RoomBookingModalProps {
   roomId: string;
   selectedPetIds: string[];
   room?: HotelRoom; // Room data to avoid duplicate API calls
+  initialCheckInDate?: Date | null;
+  initialCheckOutDate?: Date | null;
 }
 
 export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
@@ -54,6 +56,8 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
   roomId,
   selectedPetIds,
   room,
+  initialCheckInDate,
+  initialCheckOutDate,
 }) => {
   const [loading, setLoading] = useState(false);
   const [checkInDate, setCheckInDate] = useState<Date>();
@@ -79,41 +83,42 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
   const isWeekendStay =
     checkInDate && (checkInDate.getDay() === 0 || checkInDate.getDay() === 6);
 
-  // Reset state when modal opens
+  // Reset state and initialize dates when modal opens
   useEffect(() => {
     if (isOpen) {
-      setCheckInDate(undefined);
-      setCheckOutDate(undefined);
+      // Initialize with dates from parent component if available
+      setCheckInDate(initialCheckInDate || undefined);
+      setCheckOutDate(initialCheckOutDate || undefined);
       setNotes("");
       setErrors([]);
     }
-  }, [isOpen]);
+  }, [isOpen, initialCheckInDate, initialCheckOutDate]);
 
   const handleConfirm = () => {
     const validationErrors: string[] = [];
 
     if (!checkInDate) {
-      validationErrors.push("Please select check-in date");
+      validationErrors.push("Vui lòng chọn ngày nhận phòng");
     }
 
     if (!checkOutDate) {
-      validationErrors.push("Please select check-out date");
+      validationErrors.push("Vui lòng chọn ngày trả phòng");
     }
 
     if (checkInDate && checkOutDate) {
       if (checkOutDate <= checkInDate) {
-        validationErrors.push("Check-out date must be after check-in date");
+        validationErrors.push("Ngày trả phòng phải sau ngày nhận phòng");
       }
 
       if (nights < 1) {
-        validationErrors.push("Minimum 1 night stay required");
+        validationErrors.push("Bạn cần đặt ít nhất 1 đêm!");
       }
 
       // Check room availability from the room data passed as prop
       // Note: If room.isAvailable is undefined, we assume it's available
       // since it came from the available rooms API
       if (room && room.isAvailable === false) {
-        validationErrors.push("Room is currently not available");
+        validationErrors.push("Phòng này hiện không còn khả dụng!");
       }
     }
 
@@ -241,19 +246,7 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
             </div>
             <ul className="list-disc list-inside space-y-1 text-sm text-red-700">
               {errors.map((error, index) => (
-                <li key={index}>
-                  {error === "Please select check-in date"
-                    ? "Vui lòng chọn ngày nhận phòng"
-                    : error === "Please select check-out date"
-                    ? "Vui lòng chọn ngày trả phòng"
-                    : error === "Check-out date must be after check-in date"
-                    ? "Ngày trả phòng phải sau ngày nhận phòng"
-                    : error === "Minimum 1 night stay required"
-                    ? "Bạn cần đặt ít nhất 1 đêm!"
-                    : error === "Room is currently not available"
-                    ? "Phòng này hiện không còn khả dụng!"
-                    : error}
-                </li>
+                <li key={index}>{error}</li>
               ))}
             </ul>
           </div>
@@ -264,55 +257,69 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
           {/* Check-in Date */}
           <div className="space-y-3">
             <Label className="text-base font-medium">Ngày nhận phòng</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {checkInDate
-                    ? format(checkInDate, "PPP")
-                    : "Select check-in date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={checkInDate}
-                  onSelect={setCheckInDate}
-                  disabled={(date) => date < new Date()}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            {initialCheckInDate && checkInDate ? (
+              <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 font-poppins-regular flex items-center">
+                <CalendarIcon className="mr-2 h-4 w-4 text-gray-500" />
+                {format(checkInDate, "dd/MM/yyyy")}
+              </div>
+            ) : (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {checkInDate
+                      ? format(checkInDate, "PPP")
+                      : "Chọn ngày nhận phòng"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={checkInDate}
+                    onSelect={setCheckInDate}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
 
           {/* Check-out Date */}
           <div className="space-y-3">
             <Label className="text-base font-medium">Ngày trả phòng</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {checkOutDate
-                    ? format(checkOutDate, "PPP")
-                    : "Select check-out date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={checkOutDate}
-                  onSelect={setCheckOutDate}
-                  disabled={(date) => date <= (checkInDate || new Date())}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            {initialCheckOutDate && checkOutDate ? (
+              <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 font-poppins-regular flex items-center">
+                <CalendarIcon className="mr-2 h-4 w-4 text-gray-500" />
+                {format(checkOutDate, "dd/MM/yyyy")}
+              </div>
+            ) : (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {checkOutDate
+                      ? format(checkOutDate, "PPP")
+                      : "Chọn ngày trả phòng"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={checkOutDate}
+                    onSelect={setCheckOutDate}
+                    disabled={(date) => date <= (checkInDate || new Date())}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
         </div>
 

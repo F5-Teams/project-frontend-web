@@ -1,17 +1,14 @@
 "use client";
 
 import { useGetWallet } from "@/services/wallets/hooks";
-import { useState } from "react";
-import { Wallet as WalletIcon, Download, RefreshCw, Plus } from "lucide-react";
+import { Wallet as WalletIcon, Download, RefreshCw } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import Link from "next/link";
 import Header from "@/components/shared/Header";
-import { DepositModal } from "@/components/wallet/DepositModal";
 
 export default function WalletPage() {
   const { data: wallet, isLoading, refetch } = useGetWallet();
-  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -115,13 +112,6 @@ export default function WalletPage() {
                     {formatCurrency(wallet.balance)} ₫
                   </h2>
                 </div>
-                <button
-                  onClick={() => setIsDepositModalOpen(true)}
-                  className="bg-white/20 hover:bg-white/30 p-3 rounded-lg backdrop-blur transition-colors flex items-center gap-2"
-                  title="Nạp tiền"
-                >
-                  <Plus className="w-6 h-6" />
-                </button>
               </div>
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1 bg-white/10 backdrop-blur rounded-lg p-4">
@@ -232,10 +222,6 @@ export default function WalletPage() {
           </div>
         </div>
       </main>
-      <DepositModal
-        isOpen={isDepositModalOpen}
-        onClose={() => setIsDepositModalOpen(false)}
-      />
     </>
   );
 }

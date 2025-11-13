@@ -1,24 +1,53 @@
 "use client";
 import { motion } from "framer-motion";
-import { Check, LucideHome, Star, Loader2, AlertCircle } from "lucide-react";
+import {
+  Check,
+  LucideHome,
+  Star,
+  Loader2,
+  AlertCircle,
+  Calendar,
+} from "lucide-react";
 import Image from "next/image";
 import { cardVariants } from "@/constants";
 import { useState } from "react";
 import { SelectPetsModal } from "@/components/modals/SelectPetsModal";
 import { RoomBookingModal } from "@/components/modals/RoomBookingModal";
+import { HotelRoomDetailModal } from "@/components/modals/HotelRoomDetailModal";
+import { DateSelector } from "@/components/hotel/DateSelector";
 import { useCartStore } from "@/stores/cart.store";
 import { BookingDraft } from "@/types/cart";
 import { useHotelRooms } from "@/services/hotel";
 
 const PetHotelPage = () => {
   const { addItems } = useCartStore();
-  const { rooms, loading, error, refetch } = useHotelRooms();
+
+  // Date selection state
+  const [checkInDate, setCheckInDate] = useState<Date | null>(null);
+  const [checkOutDate, setCheckOutDate] = useState<Date | null>(null);
+
+  // Use the hook with date parameters
+  const { rooms, loading, error, refetch } = useHotelRooms(
+    checkInDate,
+    checkOutDate
+  );
 
   // Modal states
   const [isSelectPetsOpen, setIsSelectPetsOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState<string>("");
   const [selectedPetIds, setSelectedPetIds] = useState<string[]>([]);
+
+  const handleDateChange = (checkIn: Date | null, checkOut: Date | null) => {
+    setCheckInDate(checkIn);
+    setCheckOutDate(checkOut);
+  };
+
+  const handleShowDetail = (roomId: string) => {
+    setSelectedRoomId(roomId);
+    setIsDetailModalOpen(true);
+  };
 
   const handleBookRoom = (roomId: string) => {
     setSelectedRoomId(roomId);
@@ -40,6 +69,8 @@ const PetHotelPage = () => {
     const result = await addItems(bookingDrafts);
     if (result.success) {
       setIsBookingModalOpen(false);
+      // Refetch rooms to update availability status
+      refetch();
       // Optionally show success message or redirect
     }
   };
@@ -87,6 +118,13 @@ const PetHotelPage = () => {
         </div>
       </section>
 
+      {/* Date Selection Section */}
+      <section className="py-6">
+        <div className="max-w-5xl mx-auto px-6">
+          <DateSelector onDateChange={handleDateChange} />
+        </div>
+      </section>
+
       <section className="py-12 bg-[#fbedf6]">
         <div className="flex gap-2 justify-center">
           <h1 className="text-4xl mb-8 font-poppins-medium">Lựa chọn</h1>
@@ -95,7 +133,21 @@ const PetHotelPage = () => {
           </h1>
         </div>
         <div className="max-w-7xl mx-auto px-6">
-          {loading ? (
+          {/* Show message when dates are not selected */}
+          {!checkInDate || !checkOutDate ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="text-center">
+                <Calendar className="w-16 h-16 text-pink-400 mx-auto mb-4" />
+                <h3 className="text-xl font-poppins-medium text-slate-800 mb-2">
+                  Vui lòng chọn ngày đặt phòng
+                </h3>
+                <p className="text-slate-600 font-poppins-regular max-w-md mx-auto">
+                  Chọn ngày nhận phòng và trả phòng ở phần trên để xem danh sách
+                  phòng có sẵn
+                </p>
+              </div>
+            </div>
+          ) : loading ? (
             <div className="flex justify-center items-center py-20">
               <div className="flex flex-col items-center gap-4">
                 <Loader2 className="w-8 h-8 font-poppins-regular animate-spin text-pink-500" />
@@ -120,7 +172,7 @@ const PetHotelPage = () => {
               <div className="text-center">
                 <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600 font-poppins-regular">
-                  Không có phòng nào có sẵn
+                  Không có phòng nào có sẵn cho khoảng thời gian này
                 </p>
                 <button
                   onClick={refetch}
@@ -138,6 +190,9 @@ const PetHotelPage = () => {
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10"
             >
               {rooms.map((room, idx) => {
+                // Check availability based on availabilityStatus from backend
+                const isAvailable = room.availabilityStatus === "AVAILABLE";
+
                 const roomData = {
                   id: room.id.toString(),
                   name: room.name,
@@ -146,7 +201,8 @@ const PetHotelPage = () => {
                     `Phòng ${room.class} tiện nghi và an toàn`,
                   price: parseInt(room.price),
                   image: room.images?.[0]?.imageUrl || "/images/hotel1.jpg",
-                  isAvailable: room.isAvailable ?? true, // Use API value or default to true
+                  isAvailable: isAvailable,
+                  availabilityStatus: room.availabilityStatus,
                   totalAvailableRooms: 1,
                 };
 
@@ -155,6 +211,7 @@ const PetHotelPage = () => {
                     key={roomData.id}
                     custom={idx}
                     variants={cardVariants}
+                    onClick={() => handleShowDetail(roomData.id)}
                     className="group relative rounded-2xl border bg-white shadow-md p-4 cursor-pointer overflow-hidden hover:-translate-y-2 hover:shadow-xl transition duration-500 flex flex-col h-full"
                   >
                     <div className="relative w-full h-48 md:h-56 rounded-2xl overflow-hidden mb-2 shrink-0">
@@ -167,14 +224,11 @@ const PetHotelPage = () => {
                       <div className="absolute top-4 left-4 w-12 h-12 flex items-center justify-center rounded-full bg-linear-to-tr from-pink-400 to-blue-500 text-white shadow-lg">
                         <LucideHome className="w-6 h-6" />
                       </div>
-                      {roomData.isAvailable &&
-                        roomData.totalAvailableRooms > 0 && (
-                          <div className="absolute top-4 right-4 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-poppins-regular">
-                            Có sẵn
-                          </div>
-                        )}
-                      {(!roomData.isAvailable ||
-                        roomData.totalAvailableRooms === 0) && (
+                      {isAvailable ? (
+                        <div className="absolute top-4 right-4 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-poppins-regular">
+                          Có sẵn
+                        </div>
+                      ) : (
                         <div className="absolute top-4 right-4 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-poppins-regular">
                           Hết chỗ
                         </div>
@@ -206,23 +260,19 @@ const PetHotelPage = () => {
                     {/* Button - Always at bottom */}
                     <button
                       className={`mt-4 px-4 py-2 cursor-pointer rounded-lg transition font-poppins-regular shrink-0 w-full ${
-                        roomData.isAvailable && roomData.totalAvailableRooms > 0
+                        isAvailable
                           ? "bg-pink-500 text-white hover:bg-pink-600"
                           : "bg-gray-300 text-gray-500 cursor-not-allowed"
                       }`}
-                      onClick={() =>
-                        roomData.isAvailable &&
-                        roomData.totalAvailableRooms > 0 &&
-                        handleBookRoom(roomData.id)
-                      }
-                      disabled={
-                        !roomData.isAvailable ||
-                        roomData.totalAvailableRooms === 0
-                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (isAvailable) {
+                          handleBookRoom(roomData.id);
+                        }
+                      }}
+                      disabled={!isAvailable}
                     >
-                      {roomData.isAvailable && roomData.totalAvailableRooms > 0
-                        ? "Đặt ngay"
-                        : "Hết chỗ"}
+                      {isAvailable ? "Đặt ngay" : "Hết chỗ"}
                     </button>
                     <span className="hidden sm:inline-block mt-3 text-sm text-pink-600 font-poppins-medium opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
                       Xem chi tiết →
@@ -370,13 +420,37 @@ const PetHotelPage = () => {
       </section>
 
       {/* Modals */}
+      <HotelRoomDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        room={
+          selectedRoom
+            ? {
+                id: selectedRoom.id.toString(),
+                name: selectedRoom.name,
+                description:
+                  selectedRoom.description ||
+                  `Phòng ${selectedRoom.class} tiện nghi và an toàn`,
+                price: parseInt(selectedRoom.price),
+                capacity: selectedRoom.capacity?.standardAdult || 2,
+                isAvailable: selectedRoom.availabilityStatus === "AVAILABLE",
+                totalAvailableRooms: 1,
+                image: selectedRoom.images?.[0]?.imageUrl,
+                images: selectedRoom.images,
+              }
+            : null
+        }
+        onBook={() => handleBookRoom(selectedRoomId)}
+      />
+
       <SelectPetsModal
         isOpen={isSelectPetsOpen}
         onClose={() => setIsSelectPetsOpen(false)}
         onConfirm={handlePetsSelected}
         serviceId={selectedRoomId}
+        maxPets={1}
         title="Chọn thú cưng"
-        description="Chọn thú cưng để đặt phòng khách sạn"
+        description="Chọn thú cưng để đặt phòng khách sạn (chỉ chọn 1 thú cưng)"
       />
 
       <RoomBookingModal
@@ -386,6 +460,8 @@ const PetHotelPage = () => {
         roomId={selectedRoomId}
         selectedPetIds={selectedPetIds}
         room={selectedRoom}
+        initialCheckInDate={checkInDate}
+        initialCheckOutDate={checkOutDate}
       />
     </main>
   );
