@@ -49,6 +49,7 @@ const getRoomById = async (id: string) => {
       name: `Room ${id}`,
       class: "",
       price: "0",
+      status: "UNAVAILABLE",
       images: [],
     };
     roomCache.set(id, fallbackRoom);
@@ -78,16 +79,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  ShoppingCart,
-  Trash2,
-  Calendar,
-  Clock,
-  User,
-  Home,
-  Package,
-  X,
-} from "lucide-react";
+import { ShoppingCart, Trash2, User, Home, Package, X } from "lucide-react";
 import { format } from "date-fns";
 import { formatCurrency } from "@/utils/currency";
 import {
@@ -292,10 +284,11 @@ const ItemImage: React.FC<{
     return () => {
       isCancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item, combos]);
 
   return (
-    <div className="relative h-32 w-32 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
+    <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-lg bg-gray-100">
       <Image
         src={imageSrc}
         alt="Service image"
@@ -491,20 +484,24 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
     }
 
     if (React.isValidElement(children)) {
-      const originalOnClick = children.props
-        .onClick as React.MouseEventHandler<any> | undefined;
+      const child = children as React.ReactElement<Record<string, unknown>>;
+      const originalOnClick = (child.props as Record<string, unknown>)
+        .onClick as React.MouseEventHandler<HTMLElement> | undefined;
 
-      return React.cloneElement(children, {
-        onClick: (event: React.MouseEvent<any>) => {
-          if (typeof originalOnClick === "function") {
-            originalOnClick(event);
-          }
+      return React.cloneElement(
+        child as React.ReactElement<Record<string, unknown>>,
+        {
+          onClick: (event: React.MouseEvent<HTMLElement>) => {
+            if (typeof originalOnClick === "function") {
+              originalOnClick(event);
+            }
 
-          if (!event.defaultPrevented) {
-            setCartOpen(true);
-          }
-        },
-      });
+            if (!event.defaultPrevented) {
+              setCartOpen(true);
+            }
+          },
+        } as Partial<Record<string, unknown>>
+      );
     }
 
     return (
@@ -747,13 +744,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
       <AnimatePresence>
         {isOpen && (
           <>
-            {/* Backdrop - only visible on mobile/tablet */}
+            {/* Backdrop - overlay above page without pushing layout */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+              className="fixed inset-0 bg-black/50 z-200"
               onClick={() => setCartOpen(false)}
             />
 
@@ -763,13 +760,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed top-0 right-0 h-full w-[560px] sm:w-[560px] lg:w-[560px] bg-white shadow-2xl z-50 overflow-hidden flex flex-col"
+              className="fixed top-0 right-0 h-full w-[384px] sm:w-[384px] lg:w-[384px] bg-white shadow-2xl z-210 overflow-hidden flex flex-col"
             >
               {/* Header */}
               <div className="flex items-center justify-between p-3 sm:p-4 border-b bg-white sticky top-0 z-10">
                 <div className="flex items-center space-x-2">
                   <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 text-pink-500" />
-                  <span className="font-semibold text-sm sm:text-base">
+                  <span className="font-poppins-regular text-sm sm:text-base">
                     Giỏ hàng ({summary.totalItems})
                   </span>
                 </div>
@@ -777,30 +774,30 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
                   variant="ghost"
                   size="sm"
                   onClick={() => setCartOpen(false)}
-                  className="p-1 h-8 w-8 hover:bg-gray-100"
+                  className="p-1 h-8 w-8 hover:bg-gray-100 hover:rounded-2xl"
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
 
               {/* Body */}
-              <div className="flex-1 overflow-auto p-3 sm:p-4 space-y-3">
+              <div className="flex-1 overflow-auto p-2 sm:p-4 space-y-3">
                 {items.length > 0 && (
                   <>
-                    <div className="flex items-center justify-between rounded-xl border border-gray-100 bg-white px-3 py-2 text-xs sm:text-sm text-gray-600 shadow-sm">
+                    <div className="flex items-center justify-between rounded-xl border border-gray-100 bg-white px-3 py-1 text-xs sm:text-sm text-gray-600 shadow-sm">
                       <div className="flex items-center gap-2">
                         <Checkbox
                           checked={selectAllState}
                           onCheckedChange={toggleSelectAll}
                           aria-label="Chọn tất cả booking"
                         />
-                        <span className="font-medium text-gray-700">
+                        <span className="font-poppins-light text-black">
                           Chọn tất cả ({items.length})
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
                         {selectedIds.length > 0 && (
-                          <span className="text-[11px] sm:text-xs text-gray-400">
+                          <span className="text-[12px] sm:text-sm font-poppins-light text-gray-400">
                             Đã chọn {selectedIds.length}
                           </span>
                         )}
@@ -815,13 +812,15 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
                       </div>
                     </div>
                     {deleteError && (
-                      <div className="px-1 text-xs text-red-500">{deleteError}</div>
+                      <div className="px-1 text-xs text-red-500">
+                        {deleteError}
+                      </div>
                     )}
                   </>
                 )}
                 {items.length === 0 ? (
                   <Card>
-                    <CardContent className="py-8 text-center text-sm text-gray-500">
+                    <CardContent className="py-8 text-center font-poppins-regular text-sm text-gray-500">
                       Chưa có dịch vụ nào trong giỏ.
                     </CardContent>
                   </Card>
@@ -834,7 +833,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
                       <Card key={item.tempId}>
                         <CardContent className="p-3 sm:p-4">
                           <div className="flex items-stretch gap-3 sm:gap-4">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 ">
                               <Checkbox
                                 checked={checked}
                                 onCheckedChange={() =>
@@ -848,11 +847,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
                               <div className="flex flex-wrap items-start justify-between gap-2">
                                 <div className="flex items-center gap-2">
                                   {getItemIcon(item)}
-                                  <CardTitle className="text-sm font-semibold">
+                                  <CardTitle className="text-sm font-poppins-regular">
                                     <ItemTitleDisplay item={item} />
                                   </CardTitle>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 ">
                                   <ItemPriceDisplay tempId={item.tempId} />
                                   <Button
                                     variant="ghost"
@@ -867,8 +866,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
                               </div>
                               <div className="mt-2">
                                 <div className="rounded-xl border border-gray-100 bg-gray-50 px-3 py-2 text-xs text-gray-600 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
-                                  <div className="font-medium text-gray-700 dark:text-gray-100">
-                                    Pet: {petNames}
+                                  <div className="font-poppins-regular text-gray-700 dark:text-gray-100">
+                                    Pet:{" "}
+                                    <span className="text-black">
+                                      {" "}
+                                      {petNames}
+                                    </span>
                                   </div>
                                   {details.length > 0 && (
                                     <div className="mt-1 space-y-0.5">
@@ -891,16 +894,18 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
               {/* Footer */}
               <div className="border-t p-3 sm:p-4 bg-white">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm font-poppins-light text-gray-600">
                     Đã chọn ({selectedIds.length})
                   </span>
-                  <span className="font-semibold text-base">
+                  <span className="font-poppins-regular text-base">
                     {formatCurrency(selectedTotalPrice)}
                   </span>
                 </div>
                 <Button
-                  className="w-full"
-                  disabled={selectedIds.length === 0 || selectedTotalPrice === 0}
+                  className="w-full font-poppins-light"
+                  disabled={
+                    selectedIds.length === 0 || selectedTotalPrice === 0
+                  }
                   onClick={() => setIsCheckoutModalOpen(true)}
                 >
                   Thanh toán
@@ -980,3 +985,4 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
       {trigger}
     </>
   );
+};

@@ -29,7 +29,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi" className={`${poppins.variable} ${getPoppins.variable}`}>
+    <html
+      lang="vi"
+      className={`${poppins.variable} ${getPoppins.variable}`}
+      suppressHydrationWarning
+    >
       <body className="antialiased">
         <Providers>
           <ScrollToTop />

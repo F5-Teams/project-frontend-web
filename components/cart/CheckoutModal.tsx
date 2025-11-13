@@ -115,7 +115,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     const pricing = useCartItemPrice(tempId);
     return (
       <div className="text-right">
-        <div className="font-bold text-sm text-green-600">
+        <div className="font-poppins-regular text-[16px] text-green-600">
           {formatCurrency(pricing.price)}
         </div>
       </div>
@@ -297,7 +297,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[1100px] max-h-[95vh] overflow-y-auto bg-white text-sm sm:!max-w-none lg:!max-w-[1100px] xl:!max-w-[1100px]">
         <DialogHeader className="bg-white">
-          <DialogTitle className="text-lg font-semibold">
+          <DialogTitle className="text-lg font-poppins-light">
             Thanh toán
           </DialogTitle>
         </DialogHeader>
@@ -307,13 +307,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             {/* Order Summary */}
             <Card className="bg-white p-3">
               <CardHeader>
-                <CardTitle className="text-base">Tóm tắt đơn hàng</CardTitle>
+                <CardTitle className="text-base font-poppins-regular">
+                  Tóm tắt đơn hàng
+                </CardTitle>
               </CardHeader>
-              <CardContent className="flex flex-col gap-3">
-                <div className="max-h-[60vh] space-y-2 overflow-y-auto pr-1">
+              <CardContent className="flex flex-col gap-2">
+                <div className="max-h-[60vh] space-y-2 overflow-y-auto">
                   {bookings.length === 0 ? (
-                    <p className="text-center text-gray-500">
-                      Your cart is empty. Please add items to your cart.
+                    <p className="text-center font-poppins-light text-gray-500">
+                      Giỏ hàng của bạn đang trống. Vui lòng thêm sản phẩm vào
+                      giỏ hàng.
                     </p>
                   ) : (
                     bookings.map((item) => (
@@ -324,7 +327,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                         <div className="mb-1.5 flex items-start justify-between">
                           <div className="flex items-center space-x-1.5">
                             {getItemIcon(item)}
-                            <span className="text-sm font-medium">
+                            <span className="text-sm font-poppins-light">
                               {getItemTitle(item)}
                             </span>
                             <Badge
@@ -337,8 +340,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                           <ItemPriceDisplay tempId={item.tempId} />
                         </div>
 
-                        <div className="mb-1.5 text-[11px] text-gray-600">
-                          <span className="font-medium">Thú cưng:</span>{" "}
+                        <div className="mb-1.5 text-[12px] text-gray-600">
+                          <span className="font-poppins-regular">
+                            Thú cưng:
+                          </span>{" "}
                           {getPetName(item.petId)}
                         </div>
 
@@ -363,8 +368,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                         )}
 
                         {item.note && (
-                          <div className="mt-1.5 text-[11px] text-gray-600">
-                            <span className="font-medium">Ghi chú:</span>{" "}
+                          <div className="mt-1.5 text-[12px] text-gray-600">
+                            <span className="font-poppins-light">Ghi chú:</span>{" "}
                             {item.note}
                           </div>
                         )}
@@ -376,13 +381,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <Separator className="my-3" />
 
                 <div className="space-y-1.5">
-                  <div className="flex justify-between text-[13px]">
+                  <div className="flex justify-between text-[14px]">
                     <span>Tạm tính:</span>
-                    <span>{formatCurrency(totalPrice)}</span>
+                    <span className="font-poppins-light">
+                      {formatCurrency(totalPrice)}
+                    </span>
                   </div>
-                  <div className="flex justify-between border-t pt-1.5 text-base font-bold">
-                    <span>Tổng cộng:</span>
-                    <span className="text-green-600">
+                  <div className="flex justify-between border-t pt-1.5 text-base">
+                    <span className="font-poppins-regular">Tổng cộng:</span>
+                    <span className="text-green-600 font-poppins-regular">
                       {formatCurrency(totalPrice)}
                     </span>
                   </div>
@@ -394,18 +401,17 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               {/* Payment Method Selection */}
               <Card className="bg-white p-3">
                 <CardHeader>
-                  <CardTitle className="text-base">
+                  <CardTitle className="text-base font-poppins-regular">
                     Phương thức thanh toán
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-3">
+                <CardContent className="p-2">
                   <RadioGroup
                     value={selectedPaymentMethod}
                     onValueChange={setSelectedPaymentMethod}
-                    className="space-y-2.5"
                   >
                     {/* Option 1: Ví điện tử */}
-                    <div className="flex items-center space-x-2.5 rounded-lg border p-2.5 hover:bg-gray-50">
+                    <div className="flex items-center space-x-2.5 rounded-lg border p-1 hover:bg-gray-50">
                       <RadioGroupItem value="wallet" id="wallet" />
                       <div className="flex items-center space-x-2">
                         {/* Icon wallet */}
@@ -424,14 +430,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                         </svg>
                         <Label
                           htmlFor="wallet"
-                          className="cursor-pointer font-medium"
+                          className="cursor-pointer font-poppins-regular"
                         >
                           Ví điện tử
                         </Label>
                       </div>
                     </div>
                     {/* Option 2: Thanh toán khi đến cửa hàng */}
-                    <div className="flex items-center space-x-2.5 rounded-lg border p-2.5 hover:bg-gray-50">
+                    <div className="flex items-center space-x-2.5 rounded-lg border p-1 hover:bg-gray-50">
                       <RadioGroupItem value="cash" id="cash" />
                       <div className="flex items-center space-x-2">
                         {/* Icon cash on arrival */}
@@ -452,7 +458,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                         </svg>
                         <Label
                           htmlFor="cash"
-                          className="cursor-pointer font-medium"
+                          className="cursor-pointer font-poppins-regular"
                         >
                           Thanh toán khi đến cửa hàng
                         </Label>
@@ -467,7 +473,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <CardHeader>
                   <CardTitle className="text-base">Ghi chú thêm</CardTitle>
                 </CardHeader>
-                <CardContent className="flex flex-1 flex-col gap-3 p-3">
+                <CardContent className="flex flex-1 flex-col gap-3 p-3 font-poppins-light">
                   <Textarea
                     placeholder="Bạn có yêu cầu hoặc lưu ý thêm nào cho đơn này không..."
                     value={customerNotes}
@@ -509,7 +515,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   </AlertDescription>
                 </Alert>
               )}
-              <div className="flex justify-end gap-2.5">
+              <div className="flex justify-end gap-2.5 ">
                 <Button
                   variant="outline"
                   onClick={onClose}
@@ -524,7 +530,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 >
                   {isProcessing ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin " />
                       Đang xử lý...
                     </>
                   ) : (

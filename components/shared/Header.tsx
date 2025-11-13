@@ -18,7 +18,7 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { Bath, Hotel, PawPrint, ShoppingCart, Wallet } from "lucide-react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { logout } from "@/utils/auth";
 import Image from "next/image";
 import { CartDrawer } from "@/components/cart/CartDrawer";
@@ -36,31 +36,13 @@ export default function Header() {
   const isCartOpen = useIsCartOpen();
   const { items } = useProductCartStore();
   const { data: user } = useGetUser();
-  const [auth, setAuth] = useState<{
-    token: string | null;
-    user: { userName?: string; avatar?: string } | null;
-    role: string | null;
-  }>({
-    token: null,
-    user: null,
-    role: null,
-  });
+  // Local auth state removed; we already rely on useGetUser()
 
   const navRef = useRef<HTMLElement | null>(null);
   const leftPillRef = useRef<HTMLDivElement | null>(null);
   const bgRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const token = localStorage.getItem("accessToken");
-    const userRaw = localStorage.getItem("user");
-    const role = localStorage.getItem("role");
-    setAuth({
-      token,
-      user: userRaw ? JSON.parse(userRaw) : null,
-      role,
-    });
-  }, []);
+  // No local auth bootstrap; header renders from `useGetUser()`
 
   const handleLogout = () => {
     logout("/");
@@ -186,9 +168,9 @@ export default function Header() {
   return (
     <nav
       ref={navRef}
-      className={`fixed top-0 inset-x-0 flex items-center justify-between px-16 py-4 z-100 transition-all duration-300 ease-in-out ${
-        isCartOpen ? "lg:pr-[560px]" : ""
-      }`}
+      className={
+        "fixed top-0 inset-x-0 flex items-center justify-between px-16 py-4 z-100 transition-all duration-300 ease-in-out"
+      }
     >
       <div
         ref={bgRef}
@@ -357,28 +339,29 @@ export default function Header() {
           </button>
         </BagDrawer>
 
-        {auth.token ? (
+        {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-2 group cursor-pointer">
                 <span className="hidden sm:inline-block font-poppins-light text-sm group-hover:text-primary transition-colors">
-                  {auth.user?.userName || "thaoxinhdep"}
+                  {user.userName || "Người dùng"}
                 </span>
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-linear-to-br from-pink-400 to-yellow-300 flex items-center justify-center text-white font-semibold uppercase">
-                  {auth.user?.avatar ? (
+                  {user.avatar ? (
                     <Image
-                      src={auth.user.avatar}
+                      src={user.avatar}
                       alt="Avatar"
                       width={48}
                       height={48}
                       className="w-14 h-14 object-cover rounded-full"
                     />
                   ) : (
-                    auth.user?.userName?.[0] || "T"
+                    user.userName?.[0] || "U"
                   )}
                 </div>
               </button>
             </DropdownMenuTrigger>
+
             <DropdownMenuContent align="end" className="w-56 pr-2">
               <Link href="/wallet">
                 <div className="px-2 py-2 mx-1 my-1 bg-linear-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20 cursor-pointer hover:bg-linear-to-r hover:from-primary/15 hover:to-primary/10 transition-all">
@@ -388,7 +371,7 @@ export default function Header() {
                         Số dư ví
                       </p>
                       <p className="font-poppins-regular text-[14px] text-primary font-semibold">
-                        {user?.walletBalance?.toLocaleString("vi-VN")} ₫
+                        {user.walletBalance?.toLocaleString("vi-VN")} ₫
                       </p>
                     </div>
                     <div className="flex items-center justify-center bg-primary/20 rounded-lg p-2">
@@ -397,23 +380,27 @@ export default function Header() {
                   </div>
                 </div>
               </Link>
+
               <Link href="/profile">
                 <DropdownMenuItem className="font-poppins-light text-[14px] focus:text-primary transition-all duration-200 hover:translate-x-1">
                   Thông tin cá nhân
                 </DropdownMenuItem>
               </Link>
+
               <Link href="/profile-pet">
                 <DropdownMenuItem className="font-poppins-light text-[14px] focus:text-primary transition-all duration-200 hover:translate-x-1">
                   Thông tin thú cưng
                 </DropdownMenuItem>
               </Link>
-              {user?.role?.id === 4 && (
+
+              {user.role?.id === 4 && (
                 <Link href="/history-order">
                   <DropdownMenuItem className="font-poppins-light text-[14px] focus:text-primary transition-all duration-200 hover:translate-x-1">
                     Lịch sử đơn hàng
                   </DropdownMenuItem>
                 </Link>
               )}
+
               <DropdownMenuItem
                 onClick={handleLogout}
                 className="font-poppins-regular text-error text-[14px] transition-all duration-200 hover:translate-x-1 hover:text-error"

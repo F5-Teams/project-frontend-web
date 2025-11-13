@@ -6,6 +6,7 @@ import Image from "next/image";
 import React from "react";
 import Logo from "@/public/logo/HappyPaws Logo.svg";
 import { TriangleAlert } from "lucide-react";
+import { toast } from "sonner";
 
 interface ModalConfirmDeleteProps {
   initialState?: ProductAdmin | null;
@@ -17,23 +18,21 @@ export const ModalConfirmDelete = ({
   onOpen,
   onCancel,
 }: ModalConfirmDeleteProps) => {
-  const [messageApi, contextHolder] = message.useMessage();
   const queryClient = useQueryClient();
   const { mutateAsync: deleteProduct } = useDeleteProduct();
 
   const handleDelete = async () => {
     try {
       await deleteProduct({ id: initialState?.id });
-      messageApi.success("Xóa sản phẩm thành công!");
+      toast.success("Xoá thành công!");
       queryClient.invalidateQueries(["allProductAdmin"]);
       onCancel();
     } catch (err) {
-      messageApi.error("Có lỗi khi xóa sản phẩm!");
+      toast.error("Xoá thất bại!");
+
       console.error(err);
     }
   };
-
-  console.log("first", initialState);
 
   return (
     <Modal
@@ -48,7 +47,6 @@ export const ModalConfirmDelete = ({
         </Button>
       }
     >
-      {contextHolder}
       <div className="text-lg font-bold flex items-center gap-3">
         <Image
           alt="Logo"
