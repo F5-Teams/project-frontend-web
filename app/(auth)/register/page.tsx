@@ -8,7 +8,6 @@ import { RegisterFormData } from "@/components/models/register";
 import api from "@/config/axios";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
-
 import Image1 from "@/public/images/login_image.svg";
 import Image from "next/image";
 
@@ -16,6 +15,7 @@ export default function RegisterPage() {
   const router = useRouter();
 
   const [formData, setFormData] = useState<RegisterFormData>({
+    email: "",
     firstName: "",
     lastName: "",
     username: "",
@@ -59,19 +59,20 @@ export default function RegisterPage() {
     const registerPromise = api.post("auth/sign-up", submitData);
 
     try {
-      await toast.promise(registerPromise, {
-        loading: "Đang đăng ký…",
-        success: "Đăng ký thành công",
-        error: (err: any) =>
-          err?.response?.data?.message || "Đăng ký thất bại. Vui lòng thử lại.",
-      });
-
-      // navigate after successful registration
-      router.push("/login");
-    } catch (err: any) {
-      setError(
-        err?.response?.data?.message || "Đăng ký thất bại. Vui lòng thử lại."
+      // await the actual request, then show success toast immediately
+      await registerPromise;
+      toast.success(
+        "Đăng ký thành công! Vui lòng kiểm tra email để lấy mã xác thực."
       );
+
+      // navigate after successful registration to OTP verification
+      router.push(`/verify-otp?email=${encodeURIComponent(formData.email)}`);
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message || "Đăng ký thất bại. Vui lòng thử lại.";
+      // show toast error so user sees immediate feedback
+      toast.error(message);
+      setError(message);
       console.error("Registration error:", err);
     } finally {
       setIsLoading(false);
@@ -149,6 +150,23 @@ export default function RegisterPage() {
                 disabled={isLoading}
                 required
                 placeholder="Tên đăng nhập"
+              />
+            </div>
+
+            <div>
+              <label className="block text-md font-poppins-regular mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full text-sm font-poppins-light border border-ring rounded-lg px-3 py-2"
+                disabled={isLoading}
+                required
+                placeholder="ví dụ: email@domain.com"
+                autoComplete="email"
               />
             </div>
 

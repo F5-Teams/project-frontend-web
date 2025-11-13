@@ -22,6 +22,7 @@ import {
   Truck,
   UserRoundPlus,
   UserRoundCheck,
+  Clock,
 } from "lucide-react";
 
 export type IconKey =
@@ -45,6 +46,7 @@ export type IconKey =
   | "order"
   | "delivery"
   | "groomerCheck"
+  | "clock"
   | "groomer";
 
 export const ICONS: Record<IconKey, LucideIcon> = {
@@ -69,4 +71,5 @@ export const ICONS: Record<IconKey, LucideIcon> = {
   delivery: Truck,
   groomer: UserRoundPlus,
   groomerCheck: UserRoundCheck,
+  clock: Clock,
 };

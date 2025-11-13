@@ -7,7 +7,7 @@ export type BookingStatus =
   | "CONFIRMED"
   | "ON_SERVICE"
   | "CANCELLED"
-  | "COMPLETED"
+  | "COMPLETED";
 
 export type DropDownSlot = "MORNING" | "AFTERNOON" | "EVENING";
 
@@ -66,16 +66,22 @@ export interface Groomer {
 export interface Room {
   id: ID;
   name: string;
+  class: string;
+  price: string;
+  status: string;
+  description: string;
+  size: string;
 }
 
 export interface Slot {
   id: ID;
-  name?: string;
+  startDate: string | null;
+  endDate: string | null;
 }
 
 export interface Booking {
   id: ID;
-  bookingDate: string;      
+  bookingDate: string;
   dropDownSlot: DropDownSlot;
   checkInDate: string | null;
   checkOutDate: string | null;
@@ -101,6 +107,3 @@ export interface Booking {
   staff: Staff | null;
   groomer: Groomer | null;
 }
-
-
-
