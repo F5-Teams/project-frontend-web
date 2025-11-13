@@ -33,7 +33,7 @@ const OrderPage = () => {
     const orderId = order.id;
 
     const body = {
-      status: "APPROVED",
+      status: "PROCESSING",
       note: order.note || "",
       customerId: order.customerId,
 
@@ -145,60 +145,37 @@ const OrderPage = () => {
     setOpenComplete(true);
   };
 
-  const handleCancel = async (order: Order) => {
-    console.log("IDDD", order.id);
-    console.log("CUS", order.customerId);
-
-    await postOrderCancel(
+  const handleCancel = (order: Order) => {
+    postOrderCancel(
       { id: order.id, customerId: order.customerId },
       {
-        onSuccess: () => {
-          toast.success("Hoàn tiền thành công!");
-          setIsDeleteOpen(false);
-          setSelectedOrder(undefined);
-          queryClient.invalidateQueries(["getAllOrder"]);
+        onSuccess: async () => {
+          try {
+            const body = {
+              status: "REFUND",
+              note: order.note || "",
+              customerId: order.customerId,
+              shipping: { ...order.shipping, status: "PENDING" },
+              paymentMethod: order.payment.paymentMethod,
+              paymentStatus: "TRANSFER",
+              orderDetails: order.orderDetails.map((item) => ({
+                productId: item.product.id,
+                quantity: item.quantity,
+              })),
+            };
+
+            await patchOrder({ id: order.id, body });
+            toast.success("Hoàn tiền và cập nhật đơn thành công!");
+            queryClient.invalidateQueries(["getAllOrder"]);
+          } catch (err) {
+            toast.error("Cập nhật trạng thái đơn thất bại!");
+            console.log(err);
+          }
         },
-        onError: () => toast.error("Xóa đơn hàng thất bại!"),
+        onError: () => toast.error("Hoàn tiền thất bại!"),
         onSettled: () => setLoadingDelete(false),
       }
     );
-
-    const body = {
-      status: "REFUND",
-      note: order.note || "",
-      customerId: order.customerId,
-
-      shipping: {
-        toName: order.shipping.toName,
-        toPhone: order.shipping.toPhone,
-        toAddress: order.shipping.toAddress,
-        toWardCode: order.shipping.toWardCode,
-        toDistrictId: order.shipping.toDistrictId,
-        toWardName: order.shipping.toWardName,
-        toDistrictName: order.shipping.toDistrictName,
-        toProvinceName: order.shipping.toProvinceName,
-        serviceTypeId: order.shipping.serviceTypeId,
-        paymentTypeId: order.shipping.paymentTypeId,
-        requiredNote: order.shipping.requiredNote,
-        length: order.shipping.length,
-        width: order.shipping.width,
-        height: order.shipping.height,
-        codAmount: Number(order.shipping.codAmount) || 0,
-        insuranceValue: Number(order.shipping.insuranceValue) || 0,
-        note: order.note || "",
-        status: "PENDING",
-      },
-
-      paymentMethod: order.payment.paymentMethod,
-      paymentStatus: "TRANSFER",
-      orderDetails: order.orderDetails.map((item) => ({
-        productId: item.product.id,
-        quantity: item.quantity,
-      })),
-    };
-    await patchOrder({ id: order.id, body });
-    toast.success("Duyệt đơn hàng thành công!");
-    queryClient.invalidateQueries(["getAllOrder"]);
   };
 
   const getPaymentLabel = (method?: string) => {
@@ -216,8 +193,8 @@ const OrderPage = () => {
     switch (status) {
       case "PENDING":
         return "Đang chờ duyệt";
-      case "APPROVED":
-        return "Đã duyệt";
+      case "PROCESSING":
+        return "Đang chuẩn bị";
       case "SHIPPING":
         return "Đang giao hàng";
       case "COMPLETED":
@@ -302,12 +279,14 @@ const OrderPage = () => {
           color={
             s === "PENDING"
               ? "orange"
-              : s === "APPROVED"
+              : s === "PROCESSING"
               ? "blue"
               : s === "SHIPPING"
               ? "cyan"
               : s === "COMPLETED"
               ? "green"
+              : s === "REFUND"
+              ? "yellow"
               : "red"
           }
         >
@@ -355,7 +334,7 @@ const OrderPage = () => {
             </Button>
           )}
 
-          {record.status === "APPROVED" && (
+          {record.status === "PROCESSING" && (
             <Button
               type="default"
               size="small"

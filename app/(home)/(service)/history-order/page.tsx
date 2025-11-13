@@ -14,19 +14,21 @@ import { useQueryClient } from "@tanstack/react-query";
 const statusLabel = {
   PENDING: "Chờ xác nhận",
   CANCELLED: "Đã hủy",
-  APPROVED: "Đã xác nhận",
+  PROCESSING: "Đang chuẩn bị",
   SHIPPING: "Đang giao",
   COMPLETED: "Hoàn thành",
   FAILED: "Thất bại",
+  REFUND: "Hoàn tiền",
 };
 
 const statusColor = {
   PENDING: "bg-yellow-100 text-yellow-700",
   CANCELLED: "bg-red-100 text-red-700",
-  APPROVED: "bg-blue-100 text-blue-700",
+  PROCESSING: "bg-blue-100 text-blue-700",
   SHIPPING: "bg-purple-100 text-purple-700",
   COMPLETED: "bg-green-100 text-green-700",
   FAILED: "bg-orange-100 text-orange-700",
+  REFUND: "bg-orange-100 text-orange-700",
 };
 
 export default function HistoryOrder() {
@@ -47,11 +49,12 @@ export default function HistoryOrder() {
   console.log("DATA", orders);
   return (
     <div className="px-20 py-6 space-y-6">
-      <div className="flex gap-13 bg-white w-[80%] m-auto px-10 py-3 justify-center rounded-2xl mb-5">
+      <div className="flex gap-16 bg-white w-[85%] m-auto px-10 py-3 justify-center rounded-2xl mb-5">
         {[
           { key: "ALL", label: "Tất cả" },
-          { key: "PENDING", label: "Chờ xác nhận" },
-          { key: "APPROVED", label: "Đã xác nhận" },
+          { key: "PENDING", label: "Đang chờ" },
+
+          { key: "PROCESSING", label: "Đang chuẩn bị" },
           { key: "SHIPPING", label: "Vận chuyển" },
           { key: "COMPLETED", label: "Hoàn thành" },
           { key: "CANCELLED", label: "Đã hủy" },
