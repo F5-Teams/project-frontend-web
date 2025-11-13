@@ -47,7 +47,8 @@ export type IconKey =
   | "delivery"
   | "groomerCheck"
   | "clock"
-  | "groomer";
+  | "groomer"
+  | "chat";
 
 export const ICONS: Record<IconKey, LucideIcon> = {
   dashboard: LayoutDashboard,
@@ -72,4 +73,5 @@ export const ICONS: Record<IconKey, LucideIcon> = {
   groomer: UserRoundPlus,
   groomerCheck: UserRoundCheck,
   clock: Clock,
+  chat: MessageSquare,
 };
