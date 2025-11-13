@@ -27,8 +27,8 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
   onConfirm,
   serviceId,
   maxPets,
-  title = "Select Pets",
-  description = "Choose which pets will receive this service",
+  title = "Chọn thú cưng",
+  description = "Chọn thú cưng sẽ nhận dịch vụ này",
 }) => {
   const [selectedPetIds, setSelectedPetIds] = useState<string[]>([]);
   const [pets, setPets] = useState<Pet[]>([]);
@@ -45,7 +45,7 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
         // Get user from localStorage
         const user = JSON.parse(localStorage.getItem("user") || "null");
         if (!user?.id) {
-          setErrors(["Please login to view your pets"]);
+          setErrors(["Vui lòng đăng nhập để xem thú cưng của bạn"]);
           setLoading(false);
           return;
         }
@@ -56,7 +56,7 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
         // Transform API data to match component expectations
         const validPets = petsData.map((pet: any) => ({
           id: pet.id.toString(),
-          name: pet.name || "Unnamed Pet",
+          name: pet.name || "Chưa đặt tên",
           type: pet.species?.toLowerCase() || "other", // Map species to type
           avatar: pet.images?.[0]?.imageUrl || "", // Use first image as avatar
           age: pet.age || 0,
@@ -73,7 +73,7 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
         setPets(validPets);
       } catch (error: any) {
         console.error("Error fetching pets:", error);
-        setErrors(["Failed to load pets. Please try again."]);
+        setErrors(["Không thể tải danh sách thú cưng. Vui lòng thử lại."]);
       } finally {
         setLoading(false);
       }
@@ -95,17 +95,24 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
       const isSelected = prev.includes(petId);
 
       if (isSelected) {
+        // Unselect the pet
         return prev.filter((id) => id !== petId);
       } else {
-        // Check max pets limit
+        // Check if maxPets is 1 (hotel case - only 1 pet per room)
+        if (maxPets === 1) {
+          // Replace the current selection with the new pet
+          setErrors([]);
+          return [petId];
+        }
+
+        // Check max pets limit for other services
         if (maxPets && prev.length >= maxPets) {
           setErrors([
-            `Maximum ${maxPets} pet${
-              maxPets > 1 ? "s" : ""
-            } allowed for this service`,
+            `Chỉ được chọn tối đa ${maxPets} thú cưng cho dịch vụ này`,
           ]);
           return prev;
         }
+
         setErrors([]);
         return [...prev, petId];
       }
@@ -116,13 +123,11 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
     const validationErrors: string[] = [];
 
     if (selectedPetIds.length === 0) {
-      validationErrors.push("Please select at least one pet");
+      validationErrors.push("Vui lòng chọn ít nhất một thú cưng");
     }
 
     if (maxPets && selectedPetIds.length > maxPets) {
-      validationErrors.push(
-        `Maximum ${maxPets} pet${maxPets > 1 ? "s" : ""} allowed`
-      );
+      validationErrors.push(`Chỉ được chọn tối đa ${maxPets} thú cưng`);
     }
 
     if (validationErrors.length > 0) {
@@ -197,7 +202,7 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
         {loading && (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-            <span className="ml-2 text-gray-600">Loading pets...</span>
+            <span className="ml-2 text-gray-600">Đang tải...</span>
           </div>
         )}
 
@@ -207,7 +212,7 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
             {pets.map((pet) => {
               const isSelected = selectedPetIds.includes(pet.id);
               const isDisabled =
-                maxPets && selectedPetIds.length >= maxPets && !isSelected;
+                !!maxPets && selectedPetIds.length >= maxPets && !isSelected;
 
               return (
                 <div className="p-3" key={pet.id}>
@@ -261,13 +266,10 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
                           </div>
 
                           <div className="space-y-1 text-sm text-gray-600">
-                            <p>
-                              Age: {pet.age || 0} year
-                              {(pet.age || 0) !== 1 ? "s" : ""} old
-                            </p>
+                            <p>Tuổi: {pet.age || 0} năm</p>
                             {pet.notes && (
                               <p className="text-xs text-gray-500 truncate">
-                                Notes: {pet.notes}
+                                Ghi chú: {pet.notes}
                               </p>
                             )}
                           </div>
@@ -285,7 +287,7 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
         {!loading && pets.length === 0 && (
           <div className="text-center py-8">
             <p className="text-gray-500">
-              No pets found. Please add a pet first.
+              Không tìm thấy thú cưng. Vui lòng thêm thú cưng trước.
             </p>
           </div>
         )}
@@ -313,14 +315,14 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
         {/* Action buttons */}
         <div className="flex justify-end space-x-3 pt-4 border-t">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            Hủy
           </Button>
           <Button
             onClick={handleConfirm}
             disabled={selectedPetIds.length === 0}
             className="min-w-[100px]"
           >
-            Confirm ({selectedPetIds.length})
+            Xác nhận ({selectedPetIds.length})
           </Button>
         </div>
       </div>

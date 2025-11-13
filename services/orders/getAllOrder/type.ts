@@ -2,7 +2,7 @@ export interface Order {
   id: number;
   status:
     | "PENDING"
-    | "APPROVED"
+    | "PROCESSING"
     | "SHIPPING"
     | "COMPLETED"
     | "CANCELLED"
