@@ -1,36 +1,47 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import api from "@/config/axios";
 import type { Booking, Groomer } from "@/components/models/booking";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2, UserCheck, Search, X } from "lucide-react";
 
 export default function GroomerConfirmedPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [groomers, setGroomers] = useState<Groomer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
+  // Trạng thái edit từng booking (true = đang sửa)
   const [editing, setEditing] = useState<Record<number, boolean>>({});
+  // Lưu lựa chọn groomer tạm thời khi đang sửa
   const [selection, setSelection] = useState<Record<number, number | "">>({});
+  // Booking đang thực hiện gọi API phân công (để disable nút lưu)
   const [assigningId, setAssigningId] = useState<number | null>(null);
 
+  // 1. Danh sách những đơn đã xác nhận
   async function fetchConfirmedBookings() {
     const res = await api.get<Booking[]>("/bookings/staff/confirmed", {
       headers: { "Cache-Control": "no-cache" },
     });
-
-    return (Array.isArray(res.data) ? res.data : []).filter(
-      (b) => b.status === "CONFIRMED"
-    );
+    return (res.data ?? []).filter((b) => b.status === "CONFIRMED");
   }
 
+  const translateStatus = (s?: string | null) => {
+    if (!s) return "—";
+    switch (s) {
+      case "CONFIRMED":
+        return "Đã xác nhận";
+    }
+  };
+
+  // 2. Danh sách Groomers
   async function fetchGroomers() {
     const res = await api.get<Groomer[]>("/bookings/groomers", {
       headers: { "Cache-Control": "no-cache" },
     });
-    return Array.isArray(res.data) ? res.data : [];
+    return res.data ?? [];
   }
 
   useEffect(() => {
@@ -39,10 +50,12 @@ export default function GroomerConfirmedPage() {
       try {
         setLoading(true);
         setError(null);
+
         const [bookingsData, groomersData] = await Promise.all([
           fetchConfirmedBookings(),
           fetchGroomers(),
         ]);
+
         if (!mounted) return;
         setBookings(bookingsData);
         setGroomers(groomersData);
@@ -50,7 +63,7 @@ export default function GroomerConfirmedPage() {
         if (!mounted) return;
         setError(e?.response?.data?.message || e?.message || "Lỗi tải dữ liệu");
       } finally {
-        if (mounted) setLoading(false);
+        mounted && setLoading(false);
       }
     })();
     return () => {
@@ -58,33 +71,28 @@ export default function GroomerConfirmedPage() {
     };
   }, []);
 
-  const displayGroomerName = (g?: Groomer | null) =>
-    g ? `${g.firstName ?? ""} ${g.lastName ?? ""}`.trim() || "—" : "—";
-
-  // Chọn || Đổi Groomer cho booking
+  // 3. Phân công Groomer
   async function assignGroomer(bookingId: number) {
     const groomerId = selection[bookingId];
-    if (!groomerId || typeof groomerId !== "number") {
-      alert("Vui lòng chọn groomer.");
-      return;
-    }
+    if (!groomerId || typeof groomerId !== "number")
+      return alert("Hãy chọn groomer.");
 
     try {
       setAssigningId(bookingId);
+
       await api.put(`/bookings/${bookingId}/assign`, { groomerId });
 
-      // Cập nhật local state
       const assigned = groomers.find((g) => g.id === groomerId) || null;
+
+      // 4. CRUD Groomer cho Booking
       setBookings((prev) =>
-        prev.map((b) =>
-          b.id === bookingId ? ({ ...b, groomer: assigned } as any) : b
-        )
+        prev.map((b) => (b.id === bookingId ? { ...b, groomer: assigned } : b))
       );
 
-      // Reset trạng thái
-      setEditing((s) => ({ ...s, [bookingId]: false }));
-      setSelection((s) => {
-        const next = { ...s };
+      setEditing((prev) => ({ ...prev, [bookingId]: false }));
+
+      setSelection((prev) => {
+        const next = { ...prev };
         delete next[bookingId];
         return next;
       });
@@ -95,122 +103,132 @@ export default function GroomerConfirmedPage() {
     }
   }
 
+  // 5. Format hiển thị tên groomer hoặc customer
+  const displayName = (p?: { firstName?: string; lastName?: string } | null) =>
+    p ? `${p.firstName ?? ""} ${p.lastName ?? ""}`.trim() : "—";
+
+  const normalize = (s: string) =>
+    (s || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  // 6. Lọc danh sách theo tên
+  const filteredBookings = useMemo(() => {
+    if (!search) return bookings;
+    const q = normalize(search);
+    return bookings.filter((b) =>
+      normalize(displayName(b.customer)).includes(q)
+    );
+  }, [bookings, search]);
+
   return (
     <div className="space-y-6">
-      {/* Tiêu đề trang */}
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-800">
-          Đơn đã được xác nhận
+        <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">
+          Phân công nhân viên
         </h1>
       </header>
 
-      {/* Loading */}
+      <div className="relative w-full sm:max-w-md">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Tìm theo tên khách hàng…"
+          className="w-full rounded-lg border border-gray-300 bg-white text-gray-900 pl-9 pr-8 py-2 text-sm
+               focus:outline-none transition"
+        />
+
+        {search && (
+          <button
+            onClick={() => setSearch("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 hover:text-red-600 transition"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
       {loading && (
-        <div className="flex items-center gap-2 p-4 rounded-lg border bg-white text-gray-600 shadow-sm">
-          <Loader2 className="w-4 h-4 animate-spin" />
-          <span>Đang tải danh sách...</span>
+        <div className="flex items-center gap-2 p-4 rounded-lg border bg-white text-gray-600">
+          <Loader2 className="w-4 h-4 animate-spin" /> Đang tải dữ liệu...
         </div>
       )}
 
-      {/* Error */}
       {error && (
         <div className="p-4 rounded-lg border bg-red-50 text-red-700 text-sm">
           Lỗi tải dữ liệu: {error}
         </div>
       )}
 
-      {/* Table hiển thị dữ liệu */}
       {!loading && !error && (
-        <div className="overflow-hidden rounded-xl border bg-white shadow-md">
+        <div className="rounded-xl border bg-white shadow-md overflow-hidden">
           <table className="min-w-full text-sm">
-            <thead className="bg-gradient-to-r from-pink-100 to-pink-50 text-gray-700">
-              <tr className="text-left">
-                <th className="px-4 py-3 font-semibold w-[80px]">ID</th>
-                <th className="px-4 py-3 font-semibold">Thú cưng</th>
-                <th className="px-4 py-3 font-semibold">Khách hàng</th>
-                <th className="px-4 py-3 font-semibold">Dịch vụ</th>
-                <th className="px-4 py-3 font-semibold text-center">
-                  Trạng thái
-                </th>
-                <th className="px-4 py-3 font-semibold">Groomer</th>
-                <th className="px-4 py-3 font-semibold w-[200px] text-center">
-                  Thao tác
-                </th>
+            <thead className="bg-gray-100 text-gray-800">
+              <tr>
+                <th className="px-4 py-3 text-left w-[80px]">ID</th>
+                <th className="px-4 py-3 text-left">Thú cưng</th>
+                <th className="px-4 py-3 text-left">Khách hàng</th>
+                <th className="px-4 py-3 text-left">Dịch vụ</th>
+                <th className="px-4 py-3 text-center">Trạng thái</th>
+                <th className="px-4 py-3 text-left w-[160px]">Groomer</th>
+                <th className="px-4 py-3 text-center w-[200px]">Thao tác</th>
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-gray-100">
-              {bookings.map((b) => {
-                const serviceNames =
-                  b.combo?.serviceLinks?.map((sl) => sl.service?.name) ?? [];
-                const isEditing = !!editing[b.id];
-                const hasGroomer = !!b.groomer;
+            <tbody className="divide-y">
+              {filteredBookings.map((b) => {
+                const isEditing = editing[b.id];
+                const hasGroomer = Boolean(b.groomer);
 
                 return (
-                  <tr
-                    key={b.id}
-                    className="hover:bg-gray-50 transition-colors duration-150"
-                  >
-                    <td className="px-4 py-3 font-medium text-gray-800">
-                      {b.id}
-                    </td>
-
+                  <tr key={b.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 font-medium"># {b.id}</td>
                     <td className="px-4 py-3">{b.pet?.name ?? "—"}</td>
-
-                    <td className="px-4 py-3">
-                      {b.customer?.lastName
-                        ? `${b.customer.firstName ?? ""} ${
-                            b.customer.lastName ?? ""
-                          }`
-                        : b.customer?.firstName ?? "—"}
-                    </td>
+                    <td className="px-4 py-3">{displayName(b.customer)}</td>
 
                     <td className="px-4 py-3 text-gray-700">
-                      {b.combo ? (
-                        <span className="line-clamp-1">
-                          {b.combo.name}
-                          {serviceNames.length
-                            ? " • " + serviceNames.join(" • ")
-                            : ""}
-                        </span>
-                      ) : (
-                        "—"
-                      )}
+                      {[b.combo?.name, b.Room?.name]
+                        .filter(Boolean)
+                        .join(" • ") || "—"}
                     </td>
 
-                    {/* Trạng thái */}
                     <td className="px-4 py-3 text-center">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-700">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        {b.status}
+                      <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
+                        <CheckCircle2 className="w-3.5 h-3.5" />{" "}
+                        {translateStatus(b.status)}
                       </span>
                     </td>
 
-                    {/* Groomer */}
+                    {/* Cột Groomer */}
                     <td className="px-4 py-3">
                       {isEditing ? (
                         <select
                           className="w-full rounded-md border px-2 py-1 text-sm focus:ring-2 focus:ring-pink-300"
-                          value={
-                            selection[b.id] ?? (b.groomer as any)?.id ?? ""
-                          }
+                          value={selection[b.id] ?? b.groomer?.id ?? ""}
                           onChange={(e) =>
-                            setSelection((s) => ({
-                              ...s,
+                            setSelection((prev) => ({
+                              ...prev,
                               [b.id]: Number(e.target.value),
                             }))
                           }
                         >
-                          <option value="">— Chọn groomer —</option>
+                          <option value="">—Nhân viên—</option>
                           {groomers.map((g) => (
                             <option key={g.id} value={g.id}>
-                              {displayGroomerName(g)}
+                              {displayName(g)}
                             </option>
                           ))}
                         </select>
                       ) : hasGroomer ? (
-                        <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700">
-                          {displayGroomerName(b.groomer as any)}
+                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
+                          <UserCheck className="w-3.5 h-3.5" />{" "}
+                          {displayName(b.groomer)}
                         </span>
                       ) : (
                         <span className="text-gray-400 italic">
@@ -219,27 +237,31 @@ export default function GroomerConfirmedPage() {
                       )}
                     </td>
 
-                    {/* Thao tác */}
+                    {/* Cột Thao tác */}
                     <td className="px-4 py-3 text-center">
                       {isEditing ? (
-                        <div className="flex items-center justify-center gap-2">
+                        <div className="flex justify-center gap-2">
                           <button
                             onClick={() => assignGroomer(b.id)}
                             disabled={!selection[b.id] || assigningId === b.id}
-                            className="rounded-lg bg-pink-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-pink-700 disabled:opacity-60"
+                            className="rounded-lg bg-pink-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-pink-700 disabled:opacity-50"
                           >
                             {assigningId === b.id ? "Đang lưu..." : "Lưu"}
                           </button>
+
                           <button
                             onClick={() => {
-                              setEditing((s) => ({ ...s, [b.id]: false }));
-                              setSelection((s) => {
-                                const next = { ...s };
+                              setEditing((prev) => ({
+                                ...prev,
+                                [b.id]: false,
+                              }));
+                              setSelection((prev) => {
+                                const next = { ...prev };
                                 delete next[b.id];
                                 return next;
                               });
                             }}
-                            className="rounded-lg border px-3 py-1.5 text-xs hover:bg-gray-50"
+                            className="rounded-lg border px-3 py-1.5 text-xs hover:bg-gray-200"
                           >
                             Hủy
                           </button>
@@ -247,14 +269,13 @@ export default function GroomerConfirmedPage() {
                       ) : (
                         <button
                           onClick={() => {
-                            setEditing((s) => ({ ...s, [b.id]: true }));
-                            const currentId = (b.groomer as any)?.id;
-                            setSelection((s) => ({
-                              ...s,
-                              [b.id]: currentId ?? "",
+                            setEditing((prev) => ({ ...prev, [b.id]: true }));
+                            setSelection((prev) => ({
+                              ...prev,
+                              [b.id]: b.groomer?.id ?? "",
                             }));
                           }}
-                          className="rounded-lg border px-3 py-1.5 text-xs hover:bg-gray-50"
+                          className="rounded-lg bg-pink-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-pink-600"
                         >
                           {hasGroomer ? "Đổi groomer" : "Phân công"}
                         </button>
@@ -264,13 +285,15 @@ export default function GroomerConfirmedPage() {
                 );
               })}
 
-              {!bookings.length && (
+              {!filteredBookings.length && (
                 <tr>
                   <td
-                    className="px-4 py-8 text-center text-gray-500"
                     colSpan={7}
+                    className="px-4 py-8 text-center text-gray-500"
                   >
-                    Chưa có đơn nào được xác nhận.
+                    {bookings.length
+                      ? "Không có đơn nào khớp với từ khóa."
+                      : "Không có đơn đã xác nhận."}
                   </td>
                 </tr>
               )}

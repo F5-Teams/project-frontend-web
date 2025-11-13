@@ -5,6 +5,7 @@ import { poppins } from "../fonts/font";
 import { Providers } from "./_providers";
 import { Toaster } from "@/components/ui/sonner";
 import ScrollToTop from "@/components/shared/ScrollToTop";
+import HappyPawsChat from "@/components/chat/HappyPawsChat";
 
 // import ReduxProvider from "./ReduxProvider";
 
@@ -33,6 +34,8 @@ export default function RootLayout({
         <Providers>
           <ScrollToTop />
           {children}
+          {/* Global floating chat widget visible on all pages */}
+          <HappyPawsChat />
           <Toaster
             toastOptions={{
               duration: 5000,

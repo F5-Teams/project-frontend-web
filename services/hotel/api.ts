@@ -5,16 +5,19 @@ export interface HotelRoom {
   name: string;
   class: string;
   price: string;
+  status: string; // AVAILABLE, MAINTENANCE, etc.
   description?: string;
+  size?: string; // S, M, L
   images?: Array<{
     id: number;
     imageUrl: string;
   }>;
+  availabilityStatus?: "AVAILABLE" | "UNAVAILABLE"; // From date-based availability check
   // Additional fields that might be needed
   pricePerNight?: number;
   image?: string;
   category?: string;
-  isAvailable?: boolean;
+  isAvailable?: boolean; // Deprecated - use availabilityStatus instead
   capacity?: {
     maxAdult: number;
     maxChildren: number;
@@ -32,18 +35,61 @@ export interface HotelRoomResponse {
 }
 
 export const hotelApi = {
-  // Get available hotel rooms
-  getAvailableRooms: async (): Promise<HotelRoom[]> => {
+  // Get available hotel rooms with optional date filtering
+  getAvailableRooms: async (
+    checkInDate?: Date | null,
+    checkOutDate?: Date | null
+  ): Promise<HotelRoom[]> => {
     try {
-      const response = await api.get("/rooms/available");
+      let url = "/rooms/available";
+
+      // Add date query parameters if both dates are provided
+      if (checkInDate && checkOutDate) {
+        // Format dates to ISO string but preserve the local date (avoid timezone shift)
+        // Create new Date at midnight UTC with the same year/month/day as local date
+        const checkInUTC = new Date(
+          Date.UTC(
+            checkInDate.getFullYear(),
+            checkInDate.getMonth(),
+            checkInDate.getDate(),
+            0,
+            0,
+            0,
+            0
+          )
+        );
+        const checkOutUTC = new Date(
+          Date.UTC(
+            checkOutDate.getFullYear(),
+            checkOutDate.getMonth(),
+            checkOutDate.getDate(),
+            0,
+            0,
+            0,
+            0
+          )
+        );
+
+        const checkInISO = checkInUTC.toISOString();
+        const checkOutISO = checkOutUTC.toISOString();
+        url += `?checkInDate=${checkInISO}&checkOutDate=${checkOutISO}`;
+      }
+
+      const response = await api.get(url);
       // API returns array directly, not wrapped in response.data
       return response.data || [];
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error fetching hotel rooms:", error);
-      throw new Error(
-        error?.response?.data?.message ||
-          "Không thể tải danh sách phòng khách sạn"
-      );
+      let errorMessage = "Không thể tải danh sách phòng khách sạn";
+
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as {
+          response?: { data?: { message?: string } };
+        };
+        errorMessage = axiosError.response?.data?.message || errorMessage;
+      }
+
+      throw new Error(errorMessage);
     }
   },
 
@@ -59,11 +105,13 @@ export const hotelApi = {
       }
 
       return room;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error fetching hotel room:", error);
-      throw new Error(
-        error?.message || "Không thể tải thông tin phòng khách sạn"
-      );
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Không thể tải thông tin phòng khách sạn";
+      throw new Error(errorMessage);
     }
   },
 };
