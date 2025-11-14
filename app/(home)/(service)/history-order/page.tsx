@@ -12,9 +12,9 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
 const statusLabel = {
-  PENDING: "Chờ xác nhận",
+  PAID: "Đã thanh toán",
   CANCELLED: "Đã hủy",
-  PROCESSING: "Đang chuẩn bị",
+  APPROVED: "Đã duyệt",
   SHIPPING: "Đang giao",
   COMPLETED: "Hoàn thành",
   FAILED: "Thất bại",
@@ -22,9 +22,9 @@ const statusLabel = {
 };
 
 const statusColor = {
-  PENDING: "bg-yellow-100 text-yellow-700",
+  PAID: "bg-yellow-100 text-yellow-700",
   CANCELLED: "bg-red-100 text-red-700",
-  PROCESSING: "bg-blue-100 text-blue-700",
+  APPROVED: "bg-blue-100 text-blue-700",
   SHIPPING: "bg-purple-100 text-purple-700",
   COMPLETED: "bg-green-100 text-green-700",
   FAILED: "bg-orange-100 text-orange-700",
@@ -52,9 +52,9 @@ export default function HistoryOrder() {
       <div className="flex gap-16 bg-white w-[85%] m-auto px-10 py-3 justify-center rounded-2xl mb-5">
         {[
           { key: "ALL", label: "Tất cả" },
-          { key: "PENDING", label: "Đang chờ" },
+          { key: "PAID", label: "Đã thanh toán" },
 
-          { key: "PROCESSING", label: "Đang chuẩn bị" },
+          { key: "APPROVED", label: "Đã duyệt" },
           { key: "SHIPPING", label: "Vận chuyển" },
           { key: "COMPLETED", label: "Hoàn thành" },
           { key: "CANCELLED", label: "Đã hủy" },

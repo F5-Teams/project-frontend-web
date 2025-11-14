@@ -36,9 +36,10 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   const [loading, setLoading] = useState(false);
   const [addressFee, setAddressFee] = useState<Address>();
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-
+  const [vnpay, setVnpay] = useState<string>("");
   const { data: fee, mutateAsync: calculateFee } = useCalculateFee();
-  const { data: order } = usePostOrder();
+  const { mutateAsync: createOrder } = usePostOrder();
+
   const { data: addressList = [] } = useGetAddress();
 
   const total = items.reduce(
@@ -100,24 +101,15 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
         quantity: item.quantity,
       })),
       addressId: Number(address),
-      paymentMethod: "TRANSFER",
+      paymentMethod: "VNPAY",
     };
 
-    console.log("ORDER", orderPayloadTransfer);
-
     try {
-      await postOrder(orderPayloadTransfer);
-      toast.promise<{ name: string }>(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(() => resolve({ name: "Đặt hàng" }), 500)
-          ),
-        {
-          loading: "Loading...",
-          success: (data) => `${data.name} thành công!`,
-          error: "Error",
-        }
-      );
+      const response = await createOrder(orderPayloadTransfer);
+      console.log("✅ ORDER RESPONSE:", response);
+
+      window.location.href = response.vnpUrl;
+
       queryClient.invalidateQueries(["createOrder"]);
       form.resetFields();
       clearCart();
@@ -130,7 +122,6 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
     isCancel();
   };
 
-  console.log("OROROR", order);
   return (
     <Modal
       open={isOpen}
