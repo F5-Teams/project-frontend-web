@@ -33,7 +33,7 @@ const OrderPage = () => {
     const orderId = order.id;
 
     const body = {
-      status: "PROCESSING",
+      status: "APPROVED",
       note: order.note || "",
       customerId: order.customerId,
 
@@ -191,10 +191,10 @@ const OrderPage = () => {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case "PENDING":
-        return "Đang chờ duyệt";
-      case "PROCESSING":
-        return "Đang chuẩn bị";
+      case "PAID":
+        return "Đã thanh toán";
+      case "APPROVED":
+        return "Đã duyệt";
       case "SHIPPING":
         return "Đang giao hàng";
       case "COMPLETED":
@@ -277,9 +277,9 @@ const OrderPage = () => {
       render: (s: string) => (
         <Tag
           color={
-            s === "PENDING"
+            s === "PAID"
               ? "orange"
-              : s === "PROCESSING"
+              : s === "APPROVED"
               ? "blue"
               : s === "SHIPPING"
               ? "cyan"
@@ -323,7 +323,7 @@ const OrderPage = () => {
             <Eye size="16" />
           </Button>
 
-          {record.status === "PENDING" && (
+          {record.status === "PAID" && (
             <Button
               type="primary"
               size="small"
@@ -334,7 +334,7 @@ const OrderPage = () => {
             </Button>
           )}
 
-          {record.status === "PROCESSING" && (
+          {record.status === "APPROVED" && (
             <Button
               type="default"
               size="small"
