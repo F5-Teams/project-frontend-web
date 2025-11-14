@@ -81,7 +81,8 @@ const Footer = () => {
       </div>
 
       <div className="mt-12 border-t border-slate-700 pt-6 text-center text-sm text-white font-poppins-regular">
-        &copy; {new Date().getFullYear()} HappyPaws. All rights reserved.
+        &copy; {new Date().getFullYear()} HappyPaws. Bản quyền thuộc về
+        HappyPaws.
       </div>
     </footer>
   );
