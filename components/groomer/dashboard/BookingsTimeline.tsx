@@ -1,10 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  useConfirmedBookings,
-  useStartOnService,
-} from "@/services/groomer/booking/hooks";
+import { useConfirmedBookings } from "@/services/groomer/booking/hooks";
 import { Booking } from "@/services/groomer/booking/type";
 import { formatDMY } from "@/utils/date";
 import StartServicePanel from "@/components/groomer/dashboard/StartServicePanel";
@@ -12,19 +9,36 @@ import { toast } from "sonner";
 
 type Props = {
   onSelect?: (id: number) => void;
+  filterDate?: Date | null; // if provided, only show bookings on this day
 };
 
-export default function BookingsTimeline({ onSelect }: Props) {
-  const { data: bookings, isLoading, isError } = useConfirmedBookings();
-  const startMutation = useStartOnService();
+function isSameDay(a: Date, b: Date) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
 
+// Slot label mapping (business hours)
+const SLOT_LABELS: Record<string, string> = {
+  MORNING: "Sáng (7h30 - 11h30)",
+  AFTERNOON: "Trưa (12h30 - 16h30)",
+  EVENING: "Chiều (17h - 19h)",
+};
+
+function formatSlot(raw?: string | null) {
+  if (!raw) return "—";
+  const key = raw.trim().toUpperCase();
+  return SLOT_LABELS[key] ?? raw;
+}
+
+export default function BookingsTimeline({ onSelect, filterDate }: Props) {
+  const { data: bookings, isLoading, isError } = useConfirmedBookings();
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [showStartPanelBookingId, setShowStartPanelBookingId] = useState<
     number | null
   >(null);
-
-  // react-query mutation uses 'status' (idle | pending | success | error)
-  const isStarting = startMutation.status === "pending";
 
   if (isLoading) {
     return (
@@ -58,15 +72,14 @@ export default function BookingsTimeline({ onSelect }: Props) {
     );
   }
 
-  async function handleStart(bookingId: number) {
-    try {
-      await startMutation.mutateAsync(bookingId);
-      toast.success("Bắt đầu thực hiện. Vui lòng upload ảnh");
-      setShowStartPanelBookingId(bookingId);
-    } catch (err) {
-      console.error(err);
-      toast.error("Không thể bắt đầu thực hiện");
-    }
+  const filtered = filterDate
+    ? bookings.filter((b) =>
+        b.bookingDate ? isSameDay(new Date(b.bookingDate), filterDate) : false
+      )
+    : bookings;
+
+  function openStartPanel(bookingId: number) {
+    setShowStartPanelBookingId(bookingId);
   }
 
   return (
@@ -74,7 +87,7 @@ export default function BookingsTimeline({ onSelect }: Props) {
       <h4 className="font-medium mb-4">Bookings</h4>
 
       <div className="space-y-3">
-        {bookings.map((b: Booking) => {
+        {filtered.map((b: Booking) => {
           const isExpanded = expandedId === b.id;
           return (
             <div
@@ -92,56 +105,57 @@ export default function BookingsTimeline({ onSelect }: Props) {
                 <div className="flex items-start gap-3">
                   <div className="w-3 h-3 rounded-full mt-1 bg-rose-500" />
                   <div>
-                    <div className="font-medium">
+                    <div className="font-poppins-medium">
                       {b.pet?.name ?? `Booking #${b.id}`}
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-sm font-poppins-regular text-muted-foreground">
                       Khách hàng:{" "}
-                      {b.customer
-                        ? `${b.customer.firstName ?? ""} ${
-                            b.customer.lastName ?? ""
-                          }`.trim()
-                        : "—"}
+                      <span className="text-black">
+                        {" "}
+                        {b.customer
+                          ? `${b.customer.firstName ?? ""} ${
+                              b.customer.lastName ?? ""
+                            }`.trim()
+                          : "—"}
+                      </span>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      Dịch vụ / Combo:{" "}
-                      {b.combo?.name ?? b.servicePrice ?? b.comboPrice ?? "—"}
+                    <div className="text-xs font-poppins-regular text-muted-foreground">
+                      Dịch vụ:{" "}
+                      <span className="text-black">
+                        {b.combo?.name ?? "Khách sạn thú cưng"}
+                      </span>
                     </div>
                   </div>
                 </div>
 
                 <div className="text-right">
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm font-poppins-regular text-black">
                     Ngày đặt:{" "}
                     {b.bookingDate ? formatDMY(new Date(b.bookingDate)) : "-"}
                   </div>
-                  <div className="text-xs mt-1 font-medium">
-                    {b.dropDownSlot ?? "-"}
-                  </div>
-                  <div className="text-xs text-slate-600 mt-1">{b.status}</div>
+                  {String(b.type ?? "").toUpperCase() === "SPA" && (
+                    <div className="text-xs mt-1 font-poppins-regular">
+                      {formatSlot(b.dropDownSlot)}
+                    </div>
+                  )}
                 </div>
               </button>
 
               {isExpanded && (
-                <div className="px-3 pb-3 pt-0 bg-slate-50 border-t border-slate-100">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="text-sm text-muted-foreground">
-                      Bạn có muốn bắt đầu thực hiện booking này?
+                <div className="px-3 py-2 pt-0 bg-white/70 backdrop-blur-sm border-t border-slate-100">
+                  <div className="flex py-2 items-center justify-between gap-3">
+                    <div className=" font-poppins-regular text-sm text-black">
+                      Thao tác
                     </div>
 
-                    {b.status === "CONFIRMED" ? (
+                    {b.status === "CONFIRMED" && (
                       <button
                         type="button"
-                        onClick={() => handleStart(b.id)}
-                        disabled={isStarting}
-                        className="px-3 py-1 bg-amber-500 text-white rounded text-sm disabled:opacity-50"
+                        onClick={() => openStartPanel(b.id)}
+                        className="px-3 py-2 bg-primary text-white rounded-2xl font-poppins-light text-sm"
                       >
-                        {isStarting ? "Đang xử lý..." : "Bắt đầu thực hiện"}
+                        Bắt đầu thực hiện
                       </button>
-                    ) : (
-                      <div className="text-xs text-muted-foreground">
-                        Không thể bắt đầu: status ≠ CONFIRMED
-                      </div>
                     )}
                   </div>
                 </div>
@@ -154,10 +168,11 @@ export default function BookingsTimeline({ onSelect }: Props) {
       {showStartPanelBookingId && (
         <StartServicePanel
           bookingId={showStartPanelBookingId}
+          runStartOnServiceFirst={true}
+          onCancel={() => setShowStartPanelBookingId(null)}
           onDone={() => {
             setShowStartPanelBookingId(null);
-            setExpandedId(null);
-            toast.success("Ảnh BEFORE đã gửi, bắt đầu thực hiện hoàn tất");
+            toast.success("Đã bắt đầu và tải ảnh thành công");
           }}
         />
       )}

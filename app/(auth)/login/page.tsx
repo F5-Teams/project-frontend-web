@@ -9,10 +9,8 @@ import { Eye, EyeOff } from "lucide-react";
 import api from "@/config/axios";
 import { LoginFormData, AuthResponse } from "@/components/models/login";
 import Image1 from "@/public/images/login_image.svg";
+import LogoGoogle from "@/public/icons/google-color-svgrepo-com.svg";
 
-/* --------------------------------------------------
-   1. Cấu hình mapping Role theo ID & Route tương ứng
--------------------------------------------------- */
 const ROLE_BY_ID: Record<number, "admin" | "staff" | "groomer" | "customer"> = {
   1: "admin",
   2: "staff",
@@ -128,6 +126,9 @@ export default function LoginPage() {
     }
   };
 
+  const handleGoogleLogin = () => {
+    window.location.href = `http://localhost:8080/auth/google`;
+  };
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
       {/* Bên trái: Hình ảnh */}
@@ -220,6 +221,26 @@ export default function LoginPage() {
               Đăng ký ngay
             </Link>
           </p>
+          {/* Divider with centered label */}
+          <div className="my-4 flex items-center gap-3">
+            <div className="h-px flex-1 bg-gray-200" />
+            <span className="text-xs font-poppins-regular text-muted-foreground">
+              Hoặc
+            </span>
+            <div className="h-px flex-1 bg-gray-200" />
+          </div>
+
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            className="w-full cursor-pointer flex items-center justify-center gap-2 border border-gray-300 
+                         bg-white text-gray-700 py-2 rounded-lg hover:bg-gray-50 transition-all"
+          >
+            <Image src={LogoGoogle} alt="Google Logo" className="h-5 w-5" />
+            <span className="font-poppins-regular text-[15px]">
+              Đăng nhập với Google
+            </span>
+          </button>
         </div>
       </div>
     </div>

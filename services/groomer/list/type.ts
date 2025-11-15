@@ -39,18 +39,30 @@ export interface Booking {
   dropDownSlot?: string | null;
   checkInDate?: string | null;
   checkOutDate?: string | null;
+  type?: string | null;
   status?: string | null;
   note?: string | null;
   servicePrice?: string | null;
   comboPrice?: string | null;
   createdAt?: string | null;
   comboId?: number | null;
+  roomId?: number | null;
   customerId?: number | null;
   groomerId?: number | null;
   petId?: number | null;
   pet?: Pet | null;
   customer?: CustomerShort | null;
   combo?: Combo | null;
+  room?: {
+    id: number;
+    name: string;
+    class?: string | null;
+    price?: string | null;
+    status?: string | null;
+    description?: string | null;
+    size?: string | null;
+    images?: ImageItem[] | null;
+  } | null;
   Image?: ImageItem[] | null;
   payments?: unknown[] | null;
 }

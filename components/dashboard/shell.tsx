@@ -1,5 +1,5 @@
 import { Sidebar, SidebarItem } from "./sidebar";
-import { Topbar } from "./topbar";
+import Topbar from "./topbar";
 
 export function DashboardShell({
   items,
@@ -13,10 +13,8 @@ export function DashboardShell({
       <Sidebar items={items} />
       <div className="flex-1 ml-64 flex flex-col">
         <Topbar />
-        <main className="flex-1 p-6 bg-[#fffafc] min-h-screen overflow-y-auto">
-          <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
-            {children}
-          </div>
+        <main className="flex-1 bg-[#fffafc] min-h-screen overflow-y-auto">
+          <div className="max-w-7xl mx-auto space-y-6">{children}</div>
         </main>
       </div>
     </div>

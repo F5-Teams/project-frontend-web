@@ -76,8 +76,21 @@ export default function BookingDetail({
     : "—";
   const customerPhone = booking.customer?.phoneNumber ?? "—";
   const comboName = booking.combo?.name ?? null;
+  const typeUpper = String(booking.type ?? "").toUpperCase();
+  const roomName = booking.room?.name;
   const serviceInfo =
-    comboName ?? booking.servicePrice ?? booking.comboPrice ?? "—";
+    typeUpper === "HOTEL" ? "Khách sạn thú cưng" : comboName ?? "—";
+
+  const SLOT_LABELS: Record<string, string> = {
+    MORNING: "Sáng (7:30 - 11:30)",
+    AFTERNOON: "Trưa (12:30 - 16:30)",
+    EVENING: "Chiều (17:00 - 19:00)",
+  };
+  const formatSlot = (raw?: string | null) => {
+    if (!raw) return "—";
+    const key = raw.trim().toUpperCase();
+    return SLOT_LABELS[key] ?? raw;
+  };
 
   return (
     <div className={className ?? ""}>
@@ -125,8 +138,6 @@ export default function BookingDetail({
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="text-xs text-muted-foreground">{booking.status}</div>
-
           {onClose && (
             <button
               onClick={onClose}
@@ -142,8 +153,8 @@ export default function BookingDetail({
       {/* rest of booking detail unchanged (dates, customer, etc) */}
       <div className="mt-4 grid grid-cols-2 gap-4">
         <div>
-          <div className="text-xs text-muted-foreground">Ngày đặt</div>
-          <div className="font-medium">
+          <div className="text-xs mb-1 text-muted-foreground">Ngày đặt</div>
+          <div className="font-poppins-regular">
             {booking.bookingDate
               ? formatDMY(new Date(booking.bookingDate))
               : "—"}
@@ -151,25 +162,44 @@ export default function BookingDetail({
         </div>
 
         <div>
-          <div className="text-xs text-muted-foreground">Khung giờ</div>
-          <div className="font-medium">{booking.dropDownSlot ?? "—"}</div>
+          <div className="text-xs mb-1 font-poppins-regular text-gray-500">
+            {typeUpper === "SPA" ? "Khung giờ" : "Phòng"}
+          </div>
+          <div className="font-poppins-regular text-[15px]">
+            {typeUpper === "SPA"
+              ? formatSlot(booking.dropDownSlot)
+              : roomName ?? "—"}
+          </div>
         </div>
 
         <div>
-          <div className="text-xs text-muted-foreground">Khách hàng</div>
-          <div className="font-medium">{customerName}</div>
-          <div className="text-xs text-muted-foreground">{customerPhone}</div>
+          <div className="text-xs mb-1 font-poppins-regular text-gray-500">
+            Khách hàng
+          </div>
+          <div className="font-poppins-regular mb-1">{customerName}</div>
+          <div className="text-xs mb-1 font-poppins-regular text-gray-500">
+            Số điện thoại:{" "}
+            <span className="text-black text-sm">{customerPhone}</span>
+          </div>
         </div>
 
         <div>
-          <div className="text-xs text-muted-foreground">Dịch vụ / Combo</div>
-          <div className="font-medium">{serviceInfo}</div>
+          <div className="text-xs font-poppins-regular text-gray-500">
+            Dịch vụ
+          </div>
+          <div className="font-poppins-regular">{serviceInfo}</div>
         </div>
       </div>
 
       <div className="mt-4">
-        <div className="text-xs text-muted-foreground">Ghi chú</div>
-        <div className="text-sm">{booking.note ?? "—"}</div>
+        <div className="text-xs font-poppins-regular text-gray-500">
+          Ghi chú
+        </div>
+        <div className="font-poppins-regular text-sm">
+          {booking.note && booking.note.trim() !== ""
+            ? booking.note
+            : "Không có ghi chú"}
+        </div>
       </div>
 
       <div className="mt-4 flex items-center gap-3">
@@ -188,13 +218,6 @@ export default function BookingDetail({
             No image
           </div>
         )}
-
-        <div className="flex-1 text-xs text-muted-foreground">
-          <div>
-            Ngày tạo:{" "}
-            {booking.createdAt ? formatDMY(new Date(booking.createdAt)) : "—"}
-          </div>
-        </div>
       </div>
 
       {/* Modal panel shown after startSuccessful => mandatory upload BEFORE */}

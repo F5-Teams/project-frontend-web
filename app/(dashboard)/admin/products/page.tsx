@@ -2,8 +2,8 @@
 import { motion } from "framer-motion";
 import { useAllProductAdmin } from "@/services/product/getProduct/hooks";
 import { ProductAdmin } from "@/services/product/getProduct/type";
-import { Input, Spin } from "antd";
-import { Calendar, Package, PencilOff, Trash } from "lucide-react";
+import { Select, Spin } from "antd";
+import { Calendar, Package, PencilOff, Search, Trash } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { ModalProduct } from "@/components/products/ModalProduct";
@@ -167,6 +167,7 @@ const Products = () => {
   const [type, setType] = useState<string[]>([]);
   const [select, setSelect] = useState<string>("All");
   const [search, setSearch] = useState<string>("");
+  const [choose, setChoose] = useState(false);
   const [open, setOpen] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductAdmin | null>(
@@ -208,64 +209,75 @@ const Products = () => {
 
   return (
     <div>
-      <div className="flex justify-between">
+      <div className="flex justify-between"></div>
+
+      <div className="flex justify-between gap-2.5 px-10 mt-5">
         <h1 className="text-xl font-bold tracking-tight text-gray-800">
           Danh sách sản phẩm
         </h1>
-        <button
-          onClick={() => {
-            setSelectedProduct(null);
-            setOpen(true);
-          }}
-          className="cursor-pointer bg-pink-500 text-white px-3 hover:bg-pink-600 py-1 rounded-xl"
-        >
-          Thêm sản phẩm
-        </button>
-      </div>
-
-      <div className="flex justify-end gap-2.5 px-10 mt-5">
-        <Input
-          style={{ width: 250 }}
-          placeholder="Tìm sản phẩm ..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      <div className="flex gap-2 mt-5 px-10">
-        <p
-          onClick={() => setSelect("All")}
-          className={`px-2 py-1 rounded-xl font-medium cursor-pointer transition
-            ${
-              select === "All"
-                ? "bg-pink-500 text-white"
-                : "bg-gray-300 text-white hover:bg-gray-400"
-            }`}
-        >
-          All
-        </p>
-
-        {type?.map((item, index) => (
-          <motion.section
-            key={item}
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: 0.8, delay: index * 0.1 }}
+        <div className="flex gap-2.5">
+          <button
+            onClick={() => {
+              setSelectedProduct(null);
+              setOpen(true);
+            }}
+            className="cursor-pointer bg-pink-500 text-white px-3 hover:bg-pink-600 py-1 rounded-2xl"
           >
-            <p
-              onClick={() => setSelect(item)}
-              className={`px-2 py-1 rounded-xl font-medium cursor-pointer transition
-                ${
-                  select === item
-                    ? "bg-pink-500 text-white"
-                    : "bg-gray-300 text-white hover:bg-gray-400"
-                }`}
+            +Thêm sản phẩm
+          </button>
+
+          <div className="flex relative">
+            <button
+              onClick={() => setChoose(!choose)}
+              className="flex items-center gap-1 cursor-pointer bg-pink-100 hover:bg-pink-200 
+               text-pink-700 font-medium px-4 py-2 rounded-full text-sm shadow-sm"
             >
-              {item}
-            </p>
-          </motion.section>
-        ))}
+              <svg
+                className={`w-6 h-8 transition-transform duration-200 ${
+                  choose ? "rotate-360" : "rotate-270"
+                }`}
+                viewBox="0 0 24 24"
+                fill="#ec4899"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M7 10l5 5 5-5H7z" />
+              </svg>
+              Bộ lọc
+            </button>
+
+            {choose && (
+              <div className="absolute right-0 mt-15 w-48 bg-white border border-gray-200 rounded-xl shadow-lg p-4 space-y-3 z-10">
+                <p className="text-gray-600 text-sm font-medium">
+                  Loại sản phẩm
+                </p>
+                <Select
+                  value={select}
+                  onChange={(value) => setSelect(value)}
+                  style={{ width: "100%" }}
+                  options={[
+                    { label: "Tất cả", value: "All" },
+                    ...type.map((t) => ({
+                      label: t || "Không xác định",
+                      value: t,
+                    })),
+                  ]}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Tìm sản phẩm ..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="border border-gray-300 text-sm rounded-full pl-9 pr-4 py-2.5 
+                       focus:outline-none focus:ring-2 focus:ring-pink-400 w-64"
+            />
+          </div>
+        </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

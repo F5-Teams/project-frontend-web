@@ -1,13 +1,13 @@
-// app/layout.tsx
-
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { poppins } from "../fonts/font";
 import { Providers } from "./_providers";
 import { Toaster } from "@/components/ui/sonner";
+import ScrollToTop from "@/components/shared/ScrollToTop";
+import HappyPawsChat from "@/components/chat/HappyPawsChat";
 
-import ReduxProvider from "./ReduxProvider";
+// import ReduxProvider from "./ReduxProvider";
 
 const getPoppins = Poppins({
   variable: "--font-google-poppins",
@@ -29,10 +29,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi" className={`${poppins.variable} ${getPoppins.variable}`}>
+    <html
+      lang="vi"
+      className={`${poppins.variable} ${getPoppins.variable}`}
+      suppressHydrationWarning
+    >
       <body className="antialiased">
         <Providers>
+          <ScrollToTop />
           {children}
+          {/* Global floating chat widget visible on all pages */}
+          <HappyPawsChat />
           <Toaster
             toastOptions={{
               duration: 5000,

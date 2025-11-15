@@ -16,6 +16,7 @@ export default function LandingPage() {
         <HowItWorksSection />
         <OurHappyClientsSection />
       </div>
+      {/* Floating chat widget moved to global layout */}
     </div>
   );
 }

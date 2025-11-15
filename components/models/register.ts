@@ -1,14 +1,14 @@
 export interface RegisterFormData {
+  email: string;
   firstName: string;
   lastName: string;
-  username: string;   
+  username: string;
   password: string;
   phoneNumber: string;
   address: string;
   gender: string;
   avatar: string;
 }
-
 
 export enum RoleId {
   Admin = 1,
@@ -31,11 +31,9 @@ export interface User {
   phoneNumber: string | null;
   address: string | null;
   avatar: string | null;
-  gender: boolean | null; 
+  gender: boolean | null;
   isActive: boolean;
-  createdAt: string; 
-  roleId: RoleId;        
+  createdAt: string;
+  roleId: RoleId;
   _count: UserCounts;
 }
-
-

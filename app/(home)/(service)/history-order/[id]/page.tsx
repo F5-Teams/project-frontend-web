@@ -8,6 +8,8 @@ import {
   PackageCheck,
   Clock,
   ArrowLeftToLine,
+  X,
+  Triangle,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -15,9 +17,11 @@ import { useParams } from "next/navigation";
 
 const statusSteps = [
   { key: "PENDING", label: "Chờ xác nhận", icon: Clock },
+  { key: "CANCELLED", label: "Đã hủy", icon: X },
   { key: "APPROVED", label: "Đã xác nhận", icon: ClipboardCheck },
   { key: "SHIPPING", label: "Đang giao hàng", icon: Truck },
   { key: "COMPLETED", label: "Hoàn thành", icon: PackageCheck },
+  { key: "FAILED", label: "Thất bại", icon: Triangle },
 ];
 
 export default function OrderDetailPage() {
@@ -38,6 +42,11 @@ export default function OrderDetailPage() {
     );
 
   const currentStep = statusSteps.findIndex((s) => s.key === order?.status);
+  const totalPrice =
+    order.orderDetails.reduce(
+      (acc, d) => acc + Number(d.product.price) * Number(d.quantity),
+      0
+    ) + Number(order?.shipping?.shippingFee || 0);
 
   return (
     <>
@@ -109,11 +118,26 @@ export default function OrderDetailPage() {
                 </div>
 
                 <span className="text-pink-500 font-semibold">
-                  {Number(d.product.price).toLocaleString()} đ
+                  {(
+                    Number(d.product.price) * Number(d.quantity)
+                  ).toLocaleString("vi-VN")}{" "}
+                  đ
                 </span>
               </div>
             );
           })}
+          <p className="text-gray-600 text-sm">
+            Tiền ship:
+            {Number(order?.shipping?.shippingFee).toLocaleString("vi-VN")}đ
+          </p>
+          <div className="h-[0.5px] w-full mt-4 bg-gray-300"></div>
+
+          <div className="flex justify-between mt-3 font-medium">
+            <p>Tổng cộng:</p>
+            <p className="text-green-600">
+              {totalPrice.toLocaleString("vi-VN")} đ
+            </p>
+          </div>
         </div>
 
         <div className="bg-white p-5 rounded-2xl shadow-sm">
@@ -122,7 +146,13 @@ export default function OrderDetailPage() {
           <p className="text-gray-600 text-sm">
             Số điện thoại: {order.shipping.toPhone}
           </p>
-          <p className="text-gray-600 text-sm">{order.shipping.toAddress}</p>
+          <p className="text-gray-600 text-sm">
+            Địa chỉ: {order.shipping.toAddress}
+          </p>
+          <p className="text-gray-600 text-sm">
+            Tiền ship:
+            {Number(order?.shipping?.shippingFee).toLocaleString("vi-VN")}đ
+          </p>
         </div>
       </div>
     </>

@@ -1,5 +1,5 @@
 "use client";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
 import Image1 from "@/public/images/sections/pexels-lilen-diaz-1025474869-29319218.jpg";
 import Image2 from "@/public/images/sections/hayffield-l-ZVdZw2p08y4-unsplash.jpg";
@@ -17,6 +17,17 @@ const typingTexts = [
 
 const HeroSection = () => {
   const displayText = useTypingEffect(typingTexts);
+  const [hasToken, setHasToken] = useState(false);
+
+  useEffect(() => {
+    try {
+      const possibleKeys = ["token", "accessToken", "authToken"];
+      const found = possibleKeys.some((k) => !!localStorage.getItem(k));
+      if (found) setHasToken(true);
+    } catch {
+      // ignore SSR/localStorage access errors
+    }
+  }, []);
 
   const circleRefs = useRef<(HTMLDivElement | null)[]>([]);
   useFloatingCircles(circleRefs);
@@ -36,13 +47,23 @@ const HeroSection = () => {
           Hãy để chúng tôi đồng hành và mang đến cho bé sự chăm sóc ân cần, đầy
           yêu thương và thật riêng biệt.
         </p>
-        <Link
-          href="/login"
-          className="btn-primary text-[18px] cursor-pointer"
-          style={{ zIndex: 50, position: "relative", marginTop: "18px" }}
-        >
-          ĐẶT LỊCH NGAY
-        </Link>
+        {hasToken ? (
+          <Link
+            href="/spa"
+            className="btn-primary text-[18px] cursor-pointer"
+            style={{ zIndex: 50, position: "relative", marginTop: "18px" }}
+          >
+            ĐẶT LỊCH NGAY CHO BÉ
+          </Link>
+        ) : (
+          <Link
+            href="/login"
+            className="btn-primary text-[18px] cursor-pointer"
+            style={{ zIndex: 50, position: "relative", marginTop: "18px" }}
+          >
+            ĐẶT LỊCH NGAY
+          </Link>
+        )}
       </div>
 
       <div className="absolute w-full h-[784px] -top-14 left-[34px]">

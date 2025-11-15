@@ -1,12 +1,12 @@
 "use client";
 
 import { useGetAllOrder } from "@/services/orders/getAllOrder/hooks";
-import { Button, Table, Tag, message } from "antd";
+import { Button, Table, Tag } from "antd";
 import dayjs from "dayjs";
 import React, { useState } from "react";
 import { Eye, Trash2 } from "lucide-react";
 import { patchOrder } from "@/services/orders/patchOrder/api";
-import { Order } from "@/services/orders/getAllOrder/type";
+import { Order, Payment } from "@/services/orders/getAllOrder/type";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePostOrderGhn } from "@/services/orders/postOrderGhn/hooks";
 import { usePostOrderGhnCancel } from "@/services/orders/postOrderGhnCancel/hooks";
@@ -14,6 +14,8 @@ import ModalViewOrder from "@/components/orders/ModalViewOrder";
 import ModalDeleteOrder from "@/components/orders/ModalDeleteOrder";
 import { useDeleteOrder } from "@/services/orders/deleteOrder/hooks";
 import ModalComplete from "@/components/orders/ModalComplete";
+import { toast } from "sonner";
+import { usePostOrderCancel } from "@/services/orders/postOrderCancel/hooks";
 
 const OrderPage = () => {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -23,13 +25,13 @@ const OrderPage = () => {
   const { data: allOrder } = useGetAllOrder();
   const [selectedOrder, setSelectedOrder] = useState<Order>();
   const queryClient = useQueryClient();
-  const [messageApi, contextHolder] = message.useMessage();
   const { mutate: postOrderGhn } = usePostOrderGhn();
   const { mutate: postOrderGhnCancel } = usePostOrderGhnCancel();
   const { mutate: deleteOrder } = useDeleteOrder();
-
+  const { mutate: postOrderCancel } = usePostOrderCancel();
   const handleApprove = async (order: Order) => {
     const orderId = order.id;
+
     const body = {
       status: "APPROVED",
       note: order.note || "",
@@ -57,18 +59,21 @@ const OrderPage = () => {
       },
 
       paymentMethod: order.payment.paymentMethod,
-      paymentStatus: "PENDING",
+      paymentStatus: "TRANSFER",
       orderDetails: order.orderDetails.map((item) => ({
         productId: item.product.id,
         quantity: item.quantity,
       })),
     };
 
+    console.log("PAY", body);
+
     try {
-      await patchOrder({ id: orderId, body: body });
-      messageApi.success("Duyệt đơn thành công!");
+      await patchOrder({ id: orderId, body });
+      toast.success("Duyệt đơn hàng thành công!");
       queryClient.invalidateQueries(["getAllOrder"]);
     } catch (error) {
+      toast.error("Duyệt đơn thất bại!");
       console.log(error);
     }
   };
@@ -76,56 +81,46 @@ const OrderPage = () => {
   const handleCreateGHN = (order: Order) => {
     postOrderGhn(order.id, {
       onSuccess: async (res) => {
-        console.log("GHN RESPONSE:", res);
-        try {
-          await patchOrder({
-            id: order.id,
-            body: { status: "SHIPPING" },
-          });
-
-          messageApi.success(
-            "Tạo vận đơn thành công! Đơn chuyển sang trạng thái SHIPPING."
-          );
-          queryClient.invalidateQueries(["getAllOrder"]);
-        } catch (err) {
-          console.log(err);
-          messageApi.error(
-            "Tạo vận đơn thành công nhưng đổi trạng thái thất bại!"
-          );
-        }
+        toast.promise(
+          (async () => {
+            await patchOrder({ id: order.id, body: { status: "SHIPPING" } });
+            queryClient.invalidateQueries(["getAllOrder"]);
+            return res.ghnOrderCode;
+          })(),
+          {
+            loading: "Đang xử lý...",
+            success: (code) => `Tạo vận đơn thành công! Mã GHN: ${code}`,
+            error: "Tạo vận đơn thất bại",
+          }
+        );
       },
       onError: (err: any) => {
         console.log("GHN ERROR:", err);
-        messageApi.error("Tạo vận đơn GHN thất bại!");
+        toast.error("Tạo vận đơn thất bại!");
       },
     });
   };
 
   const handleCancelGHN = (order: Order) => {
     postOrderGhnCancel(order.id, {
-      onSuccess: async (res) => {
-        console.log("GHN RESPONSE:", res);
-
+      onSuccess: async () => {
         try {
           await patchOrder({
             id: order.id,
             body: { status: "APPROVED" },
           });
-
-          messageApi.success(
-            "Hủy vận đơn thành công! Đơn chuyển sang trạng thái APPROVED."
+          toast.success(
+            "Hủy vận đơn thành công! Đơn chuyển về trạng thái ĐÃ DUYỆT."
           );
           queryClient.invalidateQueries(["getAllOrder"]);
         } catch (err) {
-          console.log(err);
-          messageApi.error(
-            "Tạo vận đơn thành công nhưng đổi trạng thái thất bại!"
+          toast.error(
+            "Hủy vận đơn thành công nhưng cập nhật trạng thái thất bại!"
           );
         }
       },
-      onError: (err: any) => {
-        console.log("GHN ERROR:", err);
-        messageApi.error("Hủy vận đơn GHN thất bại!");
+      onError: () => {
+        toast.error("Hủy vận đơn GHN thất bại!");
       },
     });
   };
@@ -136,26 +131,90 @@ const OrderPage = () => {
 
     deleteOrder(selectedOrder.id, {
       onSuccess: () => {
-        messageApi.success("Xóa đơn hàng thành công!");
+        toast.success("Xóa đơn hàng thành công!");
         setIsDeleteOpen(false);
         setSelectedOrder(undefined);
         queryClient.invalidateQueries(["getAllOrder"]);
       },
-      onError: (err: any) => {
-        console.error("DELETE ERROR:", err);
-        messageApi.error("Xóa đơn hàng thất bại!");
-      },
+      onError: () => toast.error("Xóa đơn hàng thất bại!"),
       onSettled: () => setLoadingDelete(false),
     });
   };
 
-  const handleComplete = async (value: Order) => {
-    console.log("VA", value);
+  const handleComplete = async () => {
     setOpenComplete(true);
   };
 
+  const handleCancel = (order: Order) => {
+    postOrderCancel(
+      { id: order.id, customerId: order.customerId },
+      {
+        onSuccess: async () => {
+          try {
+            const body = {
+              status: "REFUND",
+              note: order.note || "",
+              customerId: order.customerId,
+              shipping: { ...order.shipping, status: "PENDING" },
+              paymentMethod: order.payment.paymentMethod,
+              paymentStatus: "TRANSFER",
+              orderDetails: order.orderDetails.map((item) => ({
+                productId: item.product.id,
+                quantity: item.quantity,
+              })),
+            };
+
+            await patchOrder({ id: order.id, body });
+            toast.success("Hoàn tiền và cập nhật đơn thành công!");
+            queryClient.invalidateQueries(["getAllOrder"]);
+          } catch (err) {
+            toast.error("Cập nhật trạng thái đơn thất bại!");
+            console.log(err);
+          }
+        },
+        onError: () => toast.error("Hoàn tiền thất bại!"),
+        onSettled: () => setLoadingDelete(false),
+      }
+    );
+  };
+
+  const getPaymentLabel = (method?: string) => {
+    switch (method) {
+      case "CASH":
+        return "Tiền mặt";
+      case "TRANSFER":
+        return "Thanh toán qua ví";
+      default:
+        return "Không xác định";
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "PAID":
+        return "Đã thanh toán";
+      case "APPROVED":
+        return "Đã duyệt";
+      case "SHIPPING":
+        return "Đang giao hàng";
+      case "COMPLETED":
+        return "Hoàn thành";
+      case "CANCELLED":
+        return "Đã hủy";
+      case "FAILED":
+        return "Thất bại";
+      case "REFUND":
+        return "Hoàn tiền";
+      default:
+        return status;
+    }
+  };
+
+  console.log("first", allOrder);
+
   const columns = [
     {
+      width: 110,
       title: "Mã đơn",
       dataIndex: "id",
       render: (id: number) => <span className="font-semibold">#{id}</span>,
@@ -163,6 +222,7 @@ const OrderPage = () => {
     {
       title: "Khách hàng",
       dataIndex: "customer",
+      width: 150,
       render: (customer: any) =>
         customer ? (
           <span className="font-medium">
@@ -173,33 +233,41 @@ const OrderPage = () => {
         ),
     },
     {
-      title: "Số SP",
+      title: "Số sản phẩm",
+      width: 140,
+
       dataIndex: "orderDetails",
       render: (arr: any[]) => <Tag color="blue">{arr.length} món</Tag>,
     },
     {
       title: "Tổng tiền",
-      dataIndex: "totalPrice",
-      render: (p: string) => (
-        <span className="font-semibold text-pink-600">
-          {Number(p).toLocaleString("vi-VN")} đ
-        </span>
-      ),
+      width: 120,
+      render: (_: any, record: Order) => {
+        const amount = record.payment?.amount ?? 0;
+        return (
+          <span className="font-semibold text-pink-600">
+            {Number(amount).toLocaleString("vi-VN")} đ
+          </span>
+        );
+      },
     },
+
     {
       title: "Thanh toán",
       dataIndex: "payment",
       render: (pay: any) =>
         pay ? (
           <Tag color={pay.paymentMethod === "CASH" ? "purple" : "green"}>
-            {pay.paymentMethod}
+            {getPaymentLabel(pay.paymentMethod)}
           </Tag>
         ) : (
-          <Tag>Chưa có</Tag>
+          <Tag>Chưa thanh toán</Tag>
         ),
     },
     {
       title: "Ngày tạo",
+      width: 180,
+
       dataIndex: "createdAt",
       render: (date: string) => dayjs(date).format("DD/MM/YYYY HH:mm"),
     },
@@ -209,7 +277,7 @@ const OrderPage = () => {
       render: (s: string) => (
         <Tag
           color={
-            s === "PENDING"
+            s === "PAID"
               ? "orange"
               : s === "APPROVED"
               ? "blue"
@@ -217,10 +285,12 @@ const OrderPage = () => {
               ? "cyan"
               : s === "COMPLETED"
               ? "green"
+              : s === "REFUND"
+              ? "yellow"
               : "red"
           }
         >
-          {s}
+          {getStatusLabel(s)}
         </Tag>
       ),
     },
@@ -244,16 +314,16 @@ const OrderPage = () => {
           <Button
             type="text"
             size="small"
-            className=" hover:bg-red-50 p-1 h-7 w-7 "
+            className="hover:bg-gray-50 p-1 h-7 w-7"
             onClick={() => {
               setSelectedOrder(record);
               setIsViewOpen(true);
             }}
           >
-            <Eye size="16" className="cursor-pointer" />
+            <Eye size="16" />
           </Button>
 
-          {record.status === "PENDING" && (
+          {record.status === "PAID" && (
             <Button
               type="primary"
               size="small"
@@ -287,7 +357,6 @@ const OrderPage = () => {
               </Button>
               <Button
                 className="bg-[#47c7a0]! text-white! hover:bg-[#25b68b]!"
-                danger
                 type="primary"
                 size="small"
                 onClick={() => {
@@ -296,6 +365,19 @@ const OrderPage = () => {
                 }}
               >
                 Hoàn thành
+              </Button>
+            </>
+          )}
+
+          {record.status === "FAILED" && (
+            <>
+              <Button
+                className="bg-[#f15e6a]! text-white! hover:bg-[#dd3744]!"
+                danger
+                size="small"
+                onClick={() => handleCancel(record)}
+              >
+                Hoàn tiền
               </Button>
             </>
           )}
@@ -309,7 +391,6 @@ const OrderPage = () => {
       <h1 className="text-xl font-bold mb-4 text-gray-800">
         Danh sách đơn hàng
       </h1>
-      {contextHolder}
 
       <Table
         rowKey="id"
@@ -317,6 +398,7 @@ const OrderPage = () => {
         dataSource={allOrder || []}
         pagination={{ pageSize: 8 }}
       />
+
       <ModalViewOrder
         order={selectedOrder}
         open={isViewOpen}

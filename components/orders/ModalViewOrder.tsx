@@ -5,7 +5,7 @@ import { Modal } from "antd";
 import Image from "next/image";
 import Logo from "@/public/logo/HappyPaws Logo.svg";
 import dayjs from "dayjs";
-import { Car, CreditCard, ShoppingCart, User } from "lucide-react";
+import { Car, ShoppingCart, User } from "lucide-react";
 import { Order } from "@/services/orders/getAllOrder/type";
 import { getImageUrl } from "@/utils/getImageUrl";
 
@@ -21,8 +21,26 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
   onClose,
 }) => {
   if (!order) return null;
+  const total = Number(order.payment.amount);
 
-  console.log("URL", getImageUrl(order.shipping.deliveryProofImage));
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "PENDING":
+        return "Đang chờ duyệt";
+      case "APPROVED":
+        return "Đã duyệt";
+      case "SHIPPING":
+        return "Đang giao hàng";
+      case "COMPLETED":
+        return "Hoàn thành";
+      case "CANCELLED":
+        return "Đã hủy";
+      case "FAILED":
+        return "Thất bại";
+      default:
+        return status;
+    }
+  };
 
   return (
     <Modal
@@ -55,6 +73,9 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
           <p className="text-sm text-gray-500">
             Ngày tạo: {dayjs(order.createdAt).format("DD/MM/YYYY HH:mm")}
           </p>
+          <p className="text-sm text-gray-500">
+            Trạng thái: {getStatusLabel(order.status)}
+          </p>
         </div>
 
         <div>
@@ -69,9 +90,6 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
             <p>
               <b>Số điện thoại:</b> {order.shipping.toPhone}
             </p>
-            <p>
-              <b>Địa chỉ:</b> {order.shipping.toAddress}
-            </p>
           </div>
         </div>
 
@@ -81,26 +99,19 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
           </h3>
           <div className="bg-gray-50 rounded-lg p-4 border text-sm space-y-1">
             <p>
+              <b>Địa chỉ:</b> {order.shipping.toAddress},{" "}
+              {order.shipping.toWardName}, {order.shipping.toDistrictName},{" "}
+              {order.shipping.toProvinceName}
+            </p>
+            <p>
               <b>Phí vận chuyển:</b>{" "}
               {Number(order.shipping.shippingFee).toLocaleString("vi-VN")} đ
             </p>
             <p>
-              <b>Thu hộ COD:</b>{" "}
-              {Number(order.shipping.codAmount).toLocaleString("vi-VN")} đ
+              <b>Giá:</b> {Number(order.totalPrice).toLocaleString("vi-VN")} đ
             </p>
             <p>
-              <b>Ghi chú:</b> {order.note || "Không có"}
-            </p>
-          </div>
-        </div>
-
-        <div>
-          <h3 className="flex gap-2 font-semibold text-gray-700 mb-2">
-            <CreditCard className="text-pink-500" /> Thanh toán
-          </h3>
-          <div className="bg-gray-50 rounded-lg p-4 border text-sm">
-            <p>
-              <b>Phương thức:</b> {order.payment.paymentMethod}
+              <b>Ghi chú:</b> {order.note || order.shipping.note || "Không có"}
             </p>
           </div>
         </div>
@@ -128,13 +139,25 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
         </div>
 
         <div className="text-right text-lg font-semibold text-pink-600">
-          Tổng thanh toán: {Number(order.totalPrice).toLocaleString("vi-VN")} đ
+          Tổng thanh toán: {total.toLocaleString("vi-VN")}. đ
         </div>
-        <img
-          src={getImageUrl(order.shipping.deliveryProofImage)}
-          alt="Delivery Proof"
-          className="w-full max-h-[450px] object-contain rounded-md"
-        />
+
+        {order.shipping.failureReason && (
+          <>
+            <div className="flex gap-2">
+              <p className="font-medium">Ghi chú từ shipper:</p>{" "}
+              <p> {order.shipping.failureReason}</p>
+            </div>
+          </>
+        )}
+
+        {order.shipping.deliveryProofImage && (
+          <img
+            src={getImageUrl(order.shipping.deliveryProofImage)}
+            alt="Delivery Proof"
+            className="w-full max-h-[350px] object-contain rounded-md"
+          />
+        )}
       </div>
     </Modal>
   );

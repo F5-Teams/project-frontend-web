@@ -1,9 +1,15 @@
+import { useGetAddress } from "@/services/address/getAddress/hooks";
+import { Address } from "@/services/address/getAddress/type";
+import { useCalculateFee } from "@/services/calculateFee/hooks";
 import { postOrder } from "@/services/orders/postOrder/api";
 import { useGetUser } from "@/services/users/hooks";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button, Form, Input, message, Modal, Radio, Select } from "antd";
+import { Button, Form, Input, Modal, Radio, Select } from "antd";
 import { useForm } from "antd/es/form/Form";
 import React, { useEffect, useState } from "react";
+import { toast } from "sonner";
+import AddressModal from "./AddressModal";
+import { usePostOrder } from "@/services/orders/postOrder/hooks";
 
 interface CartItem {
   productId: number;
@@ -23,19 +29,24 @@ interface DataProps {
 
 const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   const [form] = useForm();
-  const [selectedBank, setSelectedBank] = useState<string>("");
-  const [option, setOption] = useState<string>("");
   const [note, setNote] = useState<string>("");
   const [phone, setPhone] = useState<string>("");
-  const [address, setAddress] = useState<string>("");
+  const [address, setAddress] = useState<number>();
   const { data: user } = useGetUser();
   const [loading, setLoading] = useState(false);
+  const [addressFee, setAddressFee] = useState<Address>();
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [vnpay, setVnpay] = useState<string>("");
+  const { data: fee, mutateAsync: calculateFee } = useCalculateFee();
+  const { mutateAsync: createOrder } = usePostOrder();
+
+  const { data: addressList = [] } = useGetAddress();
+
   const total = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
   const queryClient = useQueryClient();
-  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     setAddress(user?.address || "");
@@ -47,22 +58,41 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
     });
   }, [user]);
 
-  console.log("hihi", items);
+  useEffect(() => {
+    const filterAddress = addressList.find((item) => item.id === address);
+    setAddressFee(filterAddress);
+  }, [address, addressList]);
 
   const totalWeight = items.reduce(
     (sum, item) => sum + Number(item.weight) * item.quantity,
     0
   );
 
+  useEffect(() => {
+    if (!addressFee) return;
+    const payload: any = {
+      to_district_id: addressFee?.districtId,
+      to_ward_code: addressFee?.wardCode,
+      weight: totalWeight,
+      length: 20,
+      width: 15,
+      height: 10,
+      service_type_id: 2,
+      cod_amount: 0,
+      insurance_value: 0,
+    };
+
+    try {
+      calculateFee(payload);
+    } catch (error) {
+      console.log(error);
+    }
+  }, [addressFee, calculateFee, totalWeight]);
+
   const handleSubmit = async () => {
-    if (!option) return alert("Vui lòng chọn phương thức thanh toán!");
     setLoading(true);
 
-    const paymentMethod = option === "COD" ? "CASH" : "TRANSFER";
-
-    const codAmount = option === "COD" ? total : 0;
-
-    const orderPayload = {
+    const orderPayloadTransfer = {
       status: "PENDING",
       note: note,
       customerId: user?.id,
@@ -70,35 +100,18 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
         productId: item.productId,
         quantity: item.quantity,
       })),
-      shipping: {
-        toName: user?.firstName + " " + user?.lastName,
-        toPhone: phone,
-        toAddress: address,
-        toWardCode: "21211",
-        toDistrictId: 1444,
-        toWardName: "",
-        toDistrictName: "",
-        toProvinceName: "",
-        serviceTypeId: 2,
-        paymentTypeId: 1,
-        requiredNote: "CHOTHUHANG",
-        length: 20,
-        width: 15,
-        height: 10,
-        weight: totalWeight,
-        codAmount: codAmount,
-        insuranceValue: 0,
-        note: "",
-      },
-      paymentMethod,
+      addressId: Number(address),
+      paymentMethod: "VNPAY",
     };
 
-    console.log("AAA", orderPayload);
-
     try {
-      await postOrder(orderPayload);
-      messageApi.success("Đặt hàng thành công!");
+      const response = await createOrder(orderPayloadTransfer);
+      console.log("✅ ORDER RESPONSE:", response);
+
+      window.location.href = response.vnpUrl;
+
       queryClient.invalidateQueries(["createOrder"]);
+      form.resetFields();
       clearCart();
     } catch (error) {
       console.log(error);
@@ -117,8 +130,6 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       width={600}
       title={<span className="font-semibold text-lg">🛒 Order Summary</span>}
     >
-      {contextHolder}
-
       <div className="space-y-3 max-h-[300px] overflow-y-auto">
         {items.map((item) => (
           <div
@@ -145,23 +156,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
         ))}
       </div>
 
-      <div className="border-t mt-4 pt-3">
-        <div className="flex justify-between text-sm font-medium">
-          <span>Items ({items.length}):</span>
-          <span>{total.toLocaleString("vi-VN")} VNĐ</span>
-        </div>
-        <div className="flex justify-between text-sm font-medium mt-1">
-          <span>Total Deposit:</span>
-          <span>{(total / 2).toLocaleString("vi-VN")} VNĐ</span>
-        </div>
-        <div className="border-t border-gray-200 my-2" />
-        <div className="flex justify-between items-center mb-5">
-          <span className="font-semibold text-base">Total:</span>
-          <span className="text-green-600 font-bold text-lg">
-            {total.toLocaleString("vi-VN")} VNĐ
-          </span>
-        </div>
-      </div>
+      <div className="border-t border-gray-200 my-2" />
 
       <Form form={form}>
         <div className="flex">
@@ -178,56 +173,82 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
           </Form.Item>
         </div>
 
-        <div className="flex mt-5">
-          <h1 className="w-[30%]">Nhập địa chỉ:</h1>
-          <Form.Item
-            className="w-[60%]"
-            name="address"
-            rules={[{ required: true, message: "Vui lòng nhập địa chỉ!" }]}
-          >
-            <Input.TextArea onChange={(e) => setAddress(e.target.value)} />
+        <div className="flex ">
+          <h1 className="w-[30%]">Chọn địa chỉ:</h1>
+          <Form.Item className="w-[60%]">
+            <Select
+              showSearch
+              placeholder="Chọn địa chỉ"
+              optionFilterProp="children"
+              value={address}
+              onChange={(value) => setAddress(value)}
+              className="mt-1 w-full"
+              dropdownRender={(menu) => (
+                <div>
+                  {menu}
+                  {address && (
+                    <div
+                      onClick={() => setIsAddressModalOpen(true)}
+                      className="text-center py-2 cursor-pointer border-t hover:bg-pink-50 text-pink-600 font-medium"
+                    >
+                      Thay đổi địa chỉ
+                    </div>
+                  )}
+                </div>
+              )}
+            >
+              {addressList.map((item: Address) => (
+                <Select.Option key={item.id} value={item.id}>
+                  <div className="flex gap-2">
+                    <p className="font-medium">
+                      {item.name} ({item.phone})
+                    </p>
+                    {item.address} / {item.districtName} / {item.provinceName}
+                  </div>
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
         </div>
       </Form>
+      <div className="border-t border-gray-200 my-2" />
 
-      <div className="mt-5">
-        <h1 className="font-semibold mb-2">Chọn phương thức thanh toán</h1>
-        <Radio.Group onChange={(e) => setOption(e.target.value)} value={option}>
-          <div className="flex flex-col gap-2">
-            <Radio value="COD">Thanh toán khi nhận hàng (COD)</Radio>
-            <Radio value="BANK_TRANSFER">Chuyển khoản / Thanh toán trước</Radio>
-          </div>
-        </Radio.Group>
+      <div className="flex justify-between items-center mb-5">
+        <div className=" justify-between text-sm font-medium mt-1">
+          <p>Giá sản phẩm: {total.toLocaleString("vi-VN") || "0"} VNĐ </p>
+          <p>
+            Phí vận chuyển:{" "}
+            {fee?.data?.service_fee?.toLocaleString("vi-VN") || "0"} VNĐ{" "}
+          </p>
+        </div>
+      </div>
+      <div className="flex justify-between items-center mb-5">
+        <span className="font-semibold text-base">Tổng thanh toán:</span>
+        <span className="text-green-600 font-bold text-lg">
+          {(total + (fee?.data?.service_fee ?? 0)).toLocaleString("vi-VN")} VNĐ
+        </span>
+      </div>
 
+      <div className="mt-5 ">
+        <div className="flex gap-2">
+          <h1 className="font-semibold mb-2"> Phương thức thanh toán: </h1>
+          <h1 className=" mb-2"> Ví của tôi</h1>
+        </div>
         <h1 className="font-semibold mb-2">Ghi chú:</h1>
         <Input.TextArea
+          value={note}
           onChange={(e) => setNote(e.target.value)}
           rows={3}
         ></Input.TextArea>
       </div>
 
-      {option === "BANK_TRANSFER" && (
-        <div className="mt-5">
-          <p className="font-semibold mb-2">Chọn ngân hàng thanh toán:</p>
-          <Radio.Group
-            onChange={(e) => setSelectedBank(e.target.value)}
-            value={selectedBank}
-            className="flex flex-wrap gap-3"
-          >
-            <Radio.Button value="VCB">Vietcombank</Radio.Button>
-            <Radio.Button value="ACB">ACB</Radio.Button>
-            <Radio.Button value="TPB">TPBank</Radio.Button>
-            <Radio.Button value="MBB">MB Bank</Radio.Button>
-            <Radio.Button value="VPB">VPBank</Radio.Button>
-          </Radio.Group>
-        </div>
-      )}
-
       <div className="flex gap-3 mt-6">
         <button
           onClick={() => {
-            setLoading(false); // reset
+            setLoading(false);
             isCancel();
+            setNote("");
+            form.resetFields();
           }}
           className="flex-1 py-2 rounded-xl border border-pink-500 cursor-pointer text-pink-600 font-semibold hover:bg-pink-50 transition"
         >
@@ -236,14 +257,24 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
 
         <Button
           type="primary"
-          onClick={handleSubmit}
+          onClick={() => {
+            handleSubmit();
+            setNote("");
+            form.resetFields();
+          }}
           loading={loading}
-          disabled={!option}
           className="flex-1! py-2! rounded-xl! text-white! bg-pink-500! hover:bg-pink-600!"
         >
           Đặt hàng
         </Button>
       </div>
+
+      <AddressModal
+        open={isAddressModalOpen}
+        isCancel={() => setIsAddressModalOpen(false)}
+        addressList={addressList}
+        onSelect={(id) => setAddress(id)}
+      />
     </Modal>
   );
 };

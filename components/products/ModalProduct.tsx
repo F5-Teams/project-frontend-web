@@ -10,6 +10,7 @@ import { uploadFile } from "@/utils/uploadFIle";
 import { usePostProduct } from "@/services/product/postProduct/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePatchProduct } from "@/services/product/patchProduct/hooks";
+import { toast } from "sonner";
 
 interface ModalProductProps {
   initialState?: ProductAdmin | null;
@@ -33,10 +34,15 @@ export const ModalProduct = ({
   const queryClient = useQueryClient();
   const { mutateAsync: createProduct } = usePostProduct();
   const { mutateAsync: updateProduct } = usePatchProduct();
-  const [messageApi, contextHolder] = message.useMessage();
 
+  console.log("first", initialState);
   useEffect(() => {
-    if (initialState) {
+    if (!onOpen) {
+      form.resetFields();
+      return;
+    }
+
+    if (mode === "edit" && initialState) {
       form.setFieldsValue({
         name: initialState.name,
         description: initialState.description,
@@ -53,8 +59,10 @@ export const ModalProduct = ({
             }))
           : [],
       });
+    } else if (mode === "add") {
+      form.resetFields();
     }
-  }, [initialState, form]);
+  }, [onOpen, mode, initialState, form]);
 
   const onSubmit = async () => {
     const value = await form.validateFields();
@@ -112,11 +120,22 @@ export const ModalProduct = ({
     try {
       if (initialState) {
         await updateProduct({ id: initialState.id, body: payloadPatch });
-        messageApi.success("Cập nhật sản phẩm thành công!");
+        toast.success("Cập nhật thành công!");
+
         queryClient.invalidateQueries(["patchProduct"]);
       } else {
         await createProduct(payloadPost);
-        messageApi.success("Thêm sản phẩm thành công!");
+        toast.promise<{ name: string }>(
+          () =>
+            new Promise((resolve) =>
+              setTimeout(() => resolve({ name: "Thêm sản phẩm" }), 2000)
+            ),
+          {
+            loading: "Loading...",
+            success: (data) => `${data.name} thành công!`,
+            error: "Error",
+          }
+        );
         queryClient.invalidateQueries(["allProductAdmin"]);
       }
       setTimeout(() => {
@@ -145,7 +164,6 @@ export const ModalProduct = ({
         </Button>
       }
     >
-      {contextHolder}
       <div className="w-full">
         <div className="text-lg font-bold flex items-center gap-3">
           <Image
@@ -160,7 +178,7 @@ export const ModalProduct = ({
         </div>
         <div className="w-[80%] m-auto h-[1px] mt-3 mb-3 bg-gray-400"></div>
         <h1 className="flex justify-center text-2xl mb-4 font-medium">
-          Thêm sản phẩm
+          {initialState ? "Cập nhật sản phẩm" : "Thêm sản phẩm"}
         </h1>
         <Form form={form} layout="vertical">
           <div className="flex gap-2 w-full">
@@ -216,7 +234,7 @@ export const ModalProduct = ({
           <div className="flex gap-2 w-full">
             <Form.Item
               label="Chọn loại sản phẩm"
-              className="flex-1"
+              className="w-[50%]"
               name="type"
               rules={[
                 { required: true, message: "Vui lòng chọn loại sản phẩm" },
@@ -231,29 +249,30 @@ export const ModalProduct = ({
               />
             </Form.Item>
 
-            <Form.Item
+            {/* <Form.Item
               label="Nhập ghi chú"
               className="flex-1"
               name="note"
               rules={[{ required: true, message: "Vui lòng nhập ghi chú" }]}
             >
               <Input placeholder="Nhập ghi chú..." />
+            </Form.Item> */}
+            <Form.Item
+              label="Upload Photo"
+              name="images"
+              valuePropName="fileList"
+              getValueFromEvent={(e) =>
+                Array.isArray(e) ? e : e && e.fileList
+              }
+              rules={[
+                { required: true, message: "Vui lòng tải lên ít nhất một ảnh" },
+              ]}
+            >
+              <Upload beforeUpload={() => false} listType="picture">
+                <Button icon={<UploadOutlined />}>Upload photo</Button>
+              </Upload>
             </Form.Item>
           </div>
-
-          <Form.Item
-            label="Upload Photo"
-            name="images"
-            valuePropName="fileList"
-            getValueFromEvent={(e) => (Array.isArray(e) ? e : e && e.fileList)}
-            rules={[
-              { required: true, message: "Vui lòng tải lên ít nhất một ảnh" },
-            ]}
-          >
-            <Upload beforeUpload={() => false} listType="picture">
-              <Button icon={<UploadOutlined />}>Upload photo</Button>
-            </Upload>
-          </Form.Item>
         </Form>
       </div>
     </Modal>

@@ -1,6 +1,12 @@
 export interface Order {
   id: number;
-  status: "PENDING" | "APPROVED" | "SHIPPING" | "COMPLETED" | "CANCELLED";
+  status:
+    | "PENDING"
+    | "PROCESSING"
+    | "SHIPPING"
+    | "COMPLETED"
+    | "CANCELLED"
+    | "FAILED";
   totalPrice: string;
   note: string;
   createdAt: string;
