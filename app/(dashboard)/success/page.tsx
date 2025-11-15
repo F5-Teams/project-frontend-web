@@ -16,7 +16,8 @@ export default function VNPayReturnPage() {
 
   useEffect(() => {
     const paymentStatus = searchParams.get("status");
-    const orderId = searchParams.get("orderId");
+    const orderId =
+      searchParams.get("orderId") || searchParams.get("orderBookingId");
     const depositAmount = searchParams.get("amount");
 
     if (!paymentStatus || !orderId) {
@@ -27,17 +28,15 @@ export default function VNPayReturnPage() {
 
     if (paymentStatus === "success") {
       setStatus("success");
-      setMessage(
-        `Thanh toán thành công! Mã đơn: ${orderId} – Số tiền: ${
-          depositAmount ? parseInt(depositAmount).toLocaleString("vi-VN") : "0"
-        } ₫`
-      );
+      setMessage(`Thanh toán thành công! Mã đơn: ${orderId}`);
 
       localStorage.removeItem("depositTxnRef");
+      localStorage.removeItem("pendingBookingId");
+      localStorage.removeItem("pendingPaymentMethod");
 
       // ⭐ Redirect đúng theo yêu cầu
       setTimeout(() => {
-        router.push("/history-order");
+        router.push("/profile/calendar");
       }, 3000);
     } else {
       setStatus("failed");
@@ -70,13 +69,13 @@ export default function VNPayReturnPage() {
               </h1>
               <p className="text-gray-600 mb-6">{message}</p>
               <p className="text-sm text-gray-500">
-                Tự động quay lại trang ví trong 3 giây...
+                Tự động quay lại lịch sử đặt lịch trong 3 giây...
               </p>
               <Link
-                href="/history-order"
+                href="/profile/calendar"
                 className="inline-block mt-4 px-6 py-2 bg-primary text-white rounded-lg"
               >
-                Quay lại lịch sử đơn hàng
+                Quay lại lịch sử đặt lịch
               </Link>
             </div>
           )}
@@ -92,16 +91,16 @@ export default function VNPayReturnPage() {
               <p className="text-gray-600 mb-6">{message}</p>
               <div className="flex gap-3">
                 <Link
-                  href="/wallet"
+                  href="/"
                   className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg"
                 >
-                  Quay lại lịch sử đơn hàng
+                  Về trang chủ
                 </Link>
                 <Link
-                  href="/wallet"
+                  href="/profile/calendar"
                   className="flex-1 px-4 py-2 bg-primary text-white rounded-lg"
                 >
-                  Thử lại
+                  Xem lịch đặt
                 </Link>
               </div>
             </div>
