@@ -19,6 +19,7 @@ const statusLabel = {
   COMPLETED: "Hoàn thành",
   FAILED: "Thất bại",
   REFUND: "Hoàn tiền",
+  REFUND_DONE: "Hoàn tiền",
 };
 
 const statusColor = {
@@ -29,6 +30,7 @@ const statusColor = {
   COMPLETED: "bg-green-100 text-green-700",
   FAILED: "bg-orange-100 text-orange-700",
   REFUND: "bg-orange-100 text-orange-700",
+  REFUND_DONE: "bg-orange-100 text-orange-700",
 };
 
 export default function HistoryOrder() {
@@ -44,9 +46,12 @@ export default function HistoryOrder() {
   const filteredOrders =
     status === "ALL"
       ? orders
+      : status === "REFUND"
+      ? orders?.filter(
+          (order) => order.status === "REFUND" || order.status === "REFUND_DONE"
+        )
       : orders?.filter((order) => order.status === status);
 
-  console.log("DATA", orders);
   return (
     <div className="px-20 py-6 space-y-6">
       <div className="flex gap-16 bg-white w-[85%] m-auto px-10 py-3 justify-center rounded-2xl mb-5">

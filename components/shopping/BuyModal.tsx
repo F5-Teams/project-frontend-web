@@ -1,7 +1,6 @@
 import { useGetAddress } from "@/services/address/getAddress/hooks";
 import { Address } from "@/services/address/getAddress/type";
 import { useCalculateFee } from "@/services/calculateFee/hooks";
-import { postOrder } from "@/services/orders/postOrder/api";
 import { useGetUser } from "@/services/users/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button, Form, Input, Modal, Radio, Select } from "antd";
@@ -10,6 +9,8 @@ import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import AddressModal from "./AddressModal";
 import { usePostOrder } from "@/services/orders/postOrder/hooks";
+import { useGetVoucher } from "@/services/vouchers/hooks";
+import { Voucher } from "@/services/vouchers/type";
 
 interface CartItem {
   productId: number;
@@ -36,16 +37,16 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   const [loading, setLoading] = useState(false);
   const [addressFee, setAddressFee] = useState<Address>();
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-  const [vnpay, setVnpay] = useState<string>("");
   const { data: fee, mutateAsync: calculateFee } = useCalculateFee();
   const { mutateAsync: createOrder } = usePostOrder();
-
+  const [chooseVoucher, setChooseVoucher] = useState<Voucher>();
   const { data: addressList = [] } = useGetAddress();
-
+  const { data: voucher = [] } = useGetVoucher();
   const total = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
+
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -57,6 +58,9 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       address: user?.address,
     });
   }, [user]);
+  console.log("AA", chooseVoucher);
+
+  console.log("AA", chooseVoucher?.percent);
 
   useEffect(() => {
     const filterAddress = addressList.find((item) => item.id === address);
@@ -102,11 +106,11 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       })),
       addressId: Number(address),
       paymentMethod: "VNPAY",
+      voucherCode: chooseVoucher?.code || "",
     };
 
     try {
       const response = await createOrder(orderPayloadTransfer);
-      console.log("✅ ORDER RESPONSE:", response);
 
       window.location.href = response.vnpUrl;
 
@@ -159,7 +163,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       <div className="border-t border-gray-200 my-2" />
 
       <Form form={form}>
-        <div className="flex">
+        {/* <div className="flex">
           <h1 className="w-[30%]">Nhập số điện thoại:</h1>
           <Form.Item
             className="w-[60%]"
@@ -171,7 +175,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
           >
             <Input type="number" onChange={(e) => setPhone(e.target.value)} />
           </Form.Item>
-        </div>
+        </div> */}
 
         <div className="flex ">
           <h1 className="w-[30%]">Chọn địa chỉ:</h1>
@@ -180,7 +184,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
               showSearch
               placeholder="Chọn địa chỉ"
               optionFilterProp="children"
-              value={address}
+              // value={address}
               onChange={(value) => setAddress(value)}
               className="mt-1 w-full"
               dropdownRender={(menu) => (
@@ -211,6 +215,24 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
           </Form.Item>
         </div>
       </Form>
+      <div className="flex">
+        <h1 className="w-[30%] mb-2">Chọn voucher</h1>
+        <Select
+          value={chooseVoucher?.code}
+          onChange={(code) => {
+            const selected = voucher.find((v) => v.code === code);
+            setChooseVoucher(selected);
+          }}
+          allowClear
+          placeholder="Chọn voucher"
+          onClear={() => setChooseVoucher(undefined)}
+          style={{ width: "60%" }}
+          options={voucher.map((item) => ({
+            label: `Voucher giảm ${item.percent}%`,
+            value: item.code,
+          }))}
+        />
+      </div>
       <div className="border-t border-gray-200 my-2" />
 
       <div className="flex justify-between items-center mb-5">
@@ -222,18 +244,25 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
           </p>
         </div>
       </div>
-      <div className="flex justify-between items-center mb-5">
+
+      <div className="flex justify-between items-center">
         <span className="font-semibold text-base">Tổng thanh toán:</span>
         <span className="text-green-600 font-bold text-lg">
-          {(total + (fee?.data?.service_fee ?? 0)).toLocaleString("vi-VN")} VNĐ
+          {(
+            total +
+            (fee?.data?.service_fee ?? 0) -
+            (chooseVoucher ? (total * chooseVoucher.percent) / 100 : 0)
+          ).toLocaleString("vi-VN")}{" "}
+          VNĐ
         </span>
       </div>
 
-      <div className="mt-5 ">
+      <div className="">
         <div className="flex gap-2">
           <h1 className="font-semibold mb-2"> Phương thức thanh toán: </h1>
           <h1 className=" mb-2"> Ví của tôi</h1>
         </div>
+
         <h1 className="font-semibold mb-2">Ghi chú:</h1>
         <Input.TextArea
           value={note}
