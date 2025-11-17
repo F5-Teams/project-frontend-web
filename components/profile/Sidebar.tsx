@@ -1,80 +1,143 @@
 "use client";
 
+import {
+  Bell,
+  Users,
+  Calendar as CalendarIcon,
+  ClipboardList,
+  Settings,
+  Info,
+  Menu,
+  X,
+} from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
+import Logo from "@/public/logo/HappyPaws only Logo.svg";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { UserRound, Lock, ShoppingBag } from "lucide-react";
 
-type LinkItem = {
-  href: string;
-  label: string;
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+export type SidebarProps = {
+  open: boolean;
+  onToggle: () => void;
 };
 
-const links: LinkItem[] = [
-  { href: "/profile/info", label: "Thông tin cá nhân", icon: UserRound },
-  { href: "/profile/password", label: "Thông tin bảo mật", icon: Lock },
-  { href: "/profile/orders", label: "Lịch sử đơn hàng", icon: ShoppingBag },
+type NavItem = {
+  href: string;
+  icon: React.ElementType;
+  label: string;
+  badge?: boolean;
+};
+
+const mainNav: NavItem[] = [
+  { href: "/profile/info", icon: Users, label: "Profile" },
+  // { href: "/profile/bookings", icon: ClipboardList, label: "Bookings" },
+  { href: "/profile/calendar", icon: CalendarIcon, label: "Calendar" },
+  // { href: "/profile/address", icon: ClipboardList, label: "Address" },
+
+  // {
+  //   href: "/profile/notifications",
+  //   icon: Bell,
+  //   label: "Notifications",
+  //   badge: true,
+  // },
 ];
 
-export default function Sidebar() {
+const bottomNav: NavItem[] = [
+  { href: "/profile/settings", icon: Settings, label: "Settings" },
+  { href: "/profile/about", icon: Info, label: "About" },
+  // { href: "/profile/address", icon: ClipboardList, label: "Address" },
+];
+
+export default function Sidebar({ open, onToggle }: SidebarProps) {
   const pathname = usePathname();
 
-  return (
-    <aside className="w-full md:w-64">
-      <div
+  const NavButton = ({ item }: { item: NavItem }) => {
+    const Icon = item.icon;
+    const isActive =
+      pathname === item.href ||
+      (item.href !== "/profile/info" && pathname?.startsWith(item.href));
+
+    return (
+      <Link
+        href={item.href}
+        aria-label={item.label}
+        aria-current={isActive ? "page" : undefined}
+        onClick={onToggle}
         className={cn(
-          "relative overflow-hidden rounded-2xl",
-          "bg-white/35 dark:bg-neutral-900/25 backdrop-blur-xl",
-          "border border-white/25 dark:border-white/10",
-          "shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
+          "relative w-10 h-10 lg:w-12 lg:h-12 rounded-[9999px] flex items-center justify-center transition-colors",
+          isActive
+            ? "bg-primary/20 text-primary"
+            : "text-primary hover:bg-pink-200"
+        )}
+        title={item.label}
+      >
+        <Icon className="w-5 h-5 lg:w-6 lg:h-6" />
+        {item.badge && (
+          <span className="absolute top-2 right-2 w-2 h-2 bg-green-400 rounded-full" />
+        )}
+      </Link>
+    );
+  };
+
+  return (
+    <>
+      {/* Mobile Menu Button */}
+      <button
+        onClick={onToggle}
+        className="lg:hidden fixed top-4 left-4 z-50 w-12 h-12 bg-primary/50 text-white rounded-xl flex items-center justify-center shadow-lg"
+        aria-label={open ? "Close menu" : "Open menu"}
+      >
+        {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+      </button>
+
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          "fixed lg:relative inset-y-0 left-0 z-40 transform transition-transform duration-300 ease-in-out",
+          open ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+          "w-20 lg:w-[100px] bg-white/40 backdrop-blur shadow-lg rounded-none lg:rounded-[9999px] lg:m-4 flex flex-col items-center py-8 space-y-6 lg:space-y-8"
         )}
       >
-        <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-white/50 via-white/10 to-transparent [mask-image:linear-gradient(to_bottom,black,transparent_70%)]" />
+        <div className="flex items-center justify-center">
+          <Link
+            href="/"
+            className="cursor-pointer"
+            onClick={onToggle}
+            aria-label="Home"
+          >
+            <Image
+              alt="Logo"
+              src={Logo}
+              className="object-contain"
+              width={50}
+              height={50}
+              style={{ maxHeight: "56px" }}
+              priority
+            />
+          </Link>
+        </div>
 
-        <nav className="relative p-3 space-y-2">
-          {links.map(({ href, label, icon: Icon }) => {
-            const active = pathname === href || pathname.startsWith(href + "/");
-
-            return (
-              <Link
-                key={href}
-                href={href}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "group flex items-center gap-3 rounded-xl px-3.5 py-2.5 transition-all",
-                  "ring-1 ring-inset ring-white/10 dark:ring-white/5",
-                  "hover:translate-x-0.5 hover:bg-white/45 dark:hover:bg-white/10",
-
-                  active
-                    ? "bg-white/60 dark:bg-white/10 text-primary ring-primary/30 shadow-sm"
-                    : "text-foreground/80"
-                )}
-              >
-                <Icon
-                  className={cn(
-                    "h-5 w-5 shrink-0 transition-colors",
-                    active
-                      ? "text-primary"
-                      : "text-foreground/60 group-hover:text-primary"
-                  )}
-                  strokeWidth={1.8}
-                />
-                <span className="font-poppins-light text-[15px]">{label}</span>
-
-                <span
-                  className={cn(
-                    "ml-auto h-1.5 w-1.5 rounded-full transition-opacity",
-                    active
-                      ? "bg-primary/80 opacity-100"
-                      : "bg-primary/60 opacity-0 group-hover:opacity-60"
-                  )}
-                />
-              </Link>
-            );
-          })}
+        <nav className="flex flex-col space-y-4 lg:space-y-6 flex-1">
+          {mainNav.map((item) => (
+            <NavButton key={item.href} item={item} />
+          ))}
         </nav>
-      </div>
-    </aside>
+
+        <nav className="flex flex-col space-y-4 lg:space-y-6 pb-2">
+          {bottomNav.map((item) => (
+            <NavButton key={item.href} item={item} />
+          ))}
+        </nav>
+      </aside>
+
+      {/* Overlay for mobile */}
+      {open && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-30"
+          onClick={onToggle}
+          aria-hidden="true"
+        />
+      )}
+    </>
   );
 }

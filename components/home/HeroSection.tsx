@@ -1,5 +1,5 @@
 "use client";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
 import Image1 from "@/public/images/sections/pexels-lilen-diaz-1025474869-29319218.jpg";
 import Image2 from "@/public/images/sections/hayffield-l-ZVdZw2p08y4-unsplash.jpg";
@@ -17,15 +17,26 @@ const typingTexts = [
 
 const HeroSection = () => {
   const displayText = useTypingEffect(typingTexts);
+  const [hasToken, setHasToken] = useState(false);
+
+  useEffect(() => {
+    try {
+      const possibleKeys = ["token", "accessToken", "authToken"];
+      const found = possibleKeys.some((k) => !!localStorage.getItem(k));
+      if (found) setHasToken(true);
+    } catch {
+      // ignore SSR/localStorage access errors
+    }
+  }, []);
 
   const circleRefs = useRef<(HTMLDivElement | null)[]>([]);
   useFloatingCircles(circleRefs);
 
   return (
-    <section className="flex flex-col w-full items-center gap-[54px] px-0 pb-[80px] pt-[80px] relative">
+    <section className="flex flex-col w-full items-center gap-[54px] px-0 pb-20 pt-20 relative">
       <div className="inline-flex flex-col items-center justify-center gap-4 relative flex-[0_0_auto] top-24">
         <h1
-          className="relative w-[1500px] mt-[-20px] font-poppins-regular text-[90px] text-foreground text-center leading-[100px] tracking-[-4px] whitespace-pre-line min-h-[200px]"
+          className="relative w-[1500px] -mt-5 font-poppins-regular text-[90px] text-foreground text-center leading-[100px] tracking-[-4px] whitespace-pre-line min-h-[200px]"
           dangerouslySetInnerHTML={{
             __html: `${highlightText(
               displayText
@@ -36,13 +47,23 @@ const HeroSection = () => {
           Hãy để chúng tôi đồng hành và mang đến cho bé sự chăm sóc ân cần, đầy
           yêu thương và thật riêng biệt.
         </p>
-        <Link
-          href="/login"
-          className="btn-primary text-[18px] cursor-pointer"
-          style={{ zIndex: 50, position: "relative", marginTop: "18px" }}
-        >
-          ĐẶT LỊCH NGAY
-        </Link>
+        {hasToken ? (
+          <Link
+            href="/spa"
+            className="btn-primary text-[18px] cursor-pointer"
+            style={{ zIndex: 50, position: "relative", marginTop: "18px" }}
+          >
+            ĐẶT LỊCH NGAY CHO BÉ
+          </Link>
+        ) : (
+          <Link
+            href="/login"
+            className="btn-primary text-[18px] cursor-pointer"
+            style={{ zIndex: 50, position: "relative", marginTop: "18px" }}
+          >
+            ĐẶT LỊCH NGAY
+          </Link>
+        )}
       </div>
 
       <div className="absolute w-full h-[784px] -top-14 left-[34px]">
@@ -52,7 +73,7 @@ const HeroSection = () => {
           }}
           className="inline-flex items-start gap-[9.31px] absolute top-[0%] left-[6%]"
         >
-          <div className="relative w-[240px] h-[240px] bg-secondary rounded-[135px]" />
+          <div className="relative w-60 h-60 bg-secondary rounded-[135px]" />
           <div className="absolute top-3.5 left-[13px] w-[212px] h-[212px] rounded-full overflow-hidden">
             <Image
               src={Image1}

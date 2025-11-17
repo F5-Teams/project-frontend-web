@@ -42,8 +42,6 @@ export default function SideBarTemplate({
         )}
         <nav className="relative p-3 space-y-2">
           {links.map(({ href, label, icon }) => {
-            // Resolve the icon component from the lucide-react exports.
-            // Icons are exported as PascalCase named exports, e.g. 'UserRound'.
             const key = icon as keyof typeof Icons;
             const Resolved = Icons[key] ?? Icons.HelpCircle;
             const Icon = Resolved as React.ComponentType<

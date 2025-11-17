@@ -1,34 +1,5 @@
 "use client";
 
-// Helper functions to replace mock data
-const calculateDeposit = (
-  totalPrice: number,
-  percentage: number = 0.5
-): number => {
-  return Math.round(totalPrice * percentage);
-};
-
-const applyWeekendSurcharge = (
-  price: number,
-  isWeekend: boolean = false
-): number => {
-  return isWeekend ? Math.round(price * 1.1) : price;
-};
-
-const calculateRoomPrice = (pricePerNight: number, nights: number): number => {
-  return pricePerNight * nights;
-};
-
-const calculateCustomComboPrice = (
-  serviceIds: string[],
-  services: any[]
-): number => {
-  return serviceIds.reduce((total, serviceId) => {
-    const service = services.find((s) => s.id === serviceId);
-    return total + (service?.price || 0);
-  }, 0);
-};
-
 import React, { useState } from "react";
 import {
   Dialog,
@@ -37,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { formatCurrency } from "@/utils/currency";
-import { useCartSummary, useCartItemPrice } from "@/stores/cart.store";
+import { useCartItemPrice } from "@/stores/cart.store";
 import { format } from "date-fns";
 import { Home, Package, Clock, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -48,44 +19,38 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
-import {
-  CreditCard,
-  Building2,
-  Banknote,
-  AlertCircle,
-  CheckCircle,
-  Loader2,
-} from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { useCartStore } from "@/stores/cart.store";
-import { PaymentMethod } from "@/types/cart";
-import { mockPaymentMethods } from "@/mock/api";
 import { bookingApi } from "@/services/booking/api";
+import { BookingDraft } from "@/types/cart";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { GET_USER_QUERY_KEY } from "@/services/users/hooks";
 
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (bookingId: string) => void;
+  bookings: BookingDraft[];
 }
 
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
+  bookings = [],
 }) => {
   const { clearCart, setCartOpen } = useCartStore();
-  const summary = useCartSummary();
+  const queryClient = useQueryClient();
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<string>("");
   const [customerNotes, setCustomerNotes] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
-
-  const defaultPaymentMethod = mockPaymentMethods.find(
-    (method) => method.isDefault
-  );
+  const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
 
   // Helper functions to display item details like in cart
-  const getItemIcon = (item: any) => {
+  const getItemIcon = (item: BookingDraft) => {
     if (item.roomId) {
       return <Home className="h-4 w-4" />;
     } else if (item.comboId || item.serviceIds) {
@@ -95,7 +60,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
   };
 
-  const getItemTitle = (item: any) => {
+  const getItemTitle = (item: BookingDraft) => {
     // Priority 1: Check for comboId (SPA Combo)
     if (item.comboId) {
       return item.customName || `Combo ${item.comboId}`;
@@ -110,7 +75,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
   };
 
-  const getItemDetails = (item: any) => {
+  const getItemDetails = (item: BookingDraft) => {
     const details = [];
 
     // For SPA services
@@ -137,16 +102,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           `Check-out: ${format(new Date(item.endDate), "MMM dd, yyyy")}`
         );
       }
-      if (item.startDate && item.endDate) {
-        const nights = Math.ceil(
-          (new Date(item.endDate).getTime() -
-            new Date(item.startDate).getTime()) /
-            (1000 * 60 * 60 * 24)
-        );
-        if (nights > 0) {
-          details.push(`${nights} night${nights > 1 ? "s" : ""}`);
-        }
-      }
     }
 
     return details;
@@ -159,32 +114,25 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   // Component to display item price
   const ItemPriceDisplay: React.FC<{ tempId: string }> = ({ tempId }) => {
     const pricing = useCartItemPrice(tempId);
-
     return (
       <div className="text-right">
-        <div className="font-bold text-sm text-green-600">
+        <div className="font-poppins-regular text-[16px] text-green-600">
           {formatCurrency(pricing.price)}
-        </div>
-        <div className="text-xs text-gray-500">
-          Deposit: {formatCurrency(pricing.deposit)}
         </div>
       </div>
     );
   };
-  const initialPaymentMethod =
-    defaultPaymentMethod?.id || mockPaymentMethods[0]?.id || "";
 
   // Reset state when modal opens and close cart
   React.useEffect(() => {
     if (isOpen) {
-      setSelectedPaymentMethod(initialPaymentMethod);
       setCustomerNotes("");
       setError("");
       setIsProcessing(false);
       // Close cart when checkout modal opens
       setCartOpen(false);
     }
-  }, [isOpen, initialPaymentMethod, setCartOpen]);
+  }, [isOpen, setCartOpen]);
 
   const handleCheckout = async () => {
     if (!selectedPaymentMethod) {
@@ -196,17 +144,20 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     setError("");
 
     try {
-      const paymentMethod = mockPaymentMethods.find(
-        (method) => method.id === selectedPaymentMethod
-      );
-
-      if (!paymentMethod) {
-        throw new Error("Invalid payment method");
-      }
+      // Map payment method selection to API format
+      const paymentMethodMap: {
+        [key: string]: "WALLET" | "VNPAY" | "MOMO" | "CASH";
+      } = {
+        wallet: "WALLET", // Ví điện tử
+        vnpay: "VNPAY", // Thanh toán qua VNPay
+        momo: "MOMO", // Thanh toán qua MoMo
+        cash: "CASH", // Tiền mặt tại quầy lễ tân
+      };
 
       // Convert cart items to bulk booking format for /bookings/bulk API
       const bulkBookings = {
-        bookings: summary.items.map((item) => {
+        paymentMethod: paymentMethodMap[selectedPaymentMethod] || "WALLET",
+        bookings: bookings.map((item) => {
           const baseBooking = {
             petId: item.petId,
             note: customerNotes.trim() || item.note || "",
@@ -260,22 +211,86 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
       const response = await bookingApi.createBulkBookings(bulkBookings);
 
-      if (response.success && response.data) {
-        // Clear cart and show success
-        clearCart();
-        onSuccess(response.data.bookingIds[0]); // Return first booking ID for compatibility
+      if (response.success) {
+        // Check if payment method requires redirection (VNPAY or MOMO)
+        if (
+          response.paymentUrl &&
+          (response.paymentMethod === "VNPAY" ||
+            response.paymentMethod === "MOMO")
+        ) {
+          setIsRedirecting(true);
+          toast.info(
+            `Đang chuyển đến trang thanh toán ${response.paymentMethod}...`,
+            {
+              duration: 3000,
+            }
+          );
+
+          // Store booking info for callback verification
+          if (response.orderBookingId) {
+            localStorage.setItem(
+              "pendingBookingId",
+              response.orderBookingId.toString()
+            );
+            localStorage.setItem(
+              "pendingPaymentMethod",
+              response.paymentMethod
+            );
+          }
+
+          // Redirect to payment gateway
+          window.location.href = response.paymentUrl;
+          return;
+        }
+
+        // For WALLET payment, handle normally
+        // Show success toast if there are created bookings
+        if (response.createdCount && response.createdCount > 0) {
+          toast.success(`Đã tạo ${response.createdCount} đơn đặt thành công!`, {
+            duration: 5000,
+          });
+        }
+
+        // Show error toasts for each error message
+        if (response.errors && response.errors.length > 0) {
+          response.errors.forEach((errorMsg) => {
+            toast.error(errorMsg, {
+              duration: 6000,
+            });
+          });
+        }
+
+        // Clear cart if at least one booking was created
+        if (response.bookingIds && response.bookingIds.length > 0) {
+          clearCart();
+          // Invalidate user query to refresh wallet balance
+          await queryClient.invalidateQueries({
+            queryKey: GET_USER_QUERY_KEY,
+          });
+          onSuccess(response.bookingIds[0].toString());
+        }
         onClose();
       } else {
-        setError(response.error || "Checkout failed. Please try again.");
+        const errorMsg = response.error || "Checkout failed. Please try again.";
+        setError(errorMsg);
+        toast.error(errorMsg, {
+          duration: 5000,
+        });
       }
     } catch (err) {
-      setError("An unexpected error occurred. Please try again.");
+      const errorMsg = "An unexpected error occurred. Please try again.";
+      setError(errorMsg);
+      toast.error(errorMsg, {
+        duration: 5000,
+      });
       console.error("Checkout error:", err);
     } finally {
       setIsProcessing(false);
     }
   };
 
+  // Helper methods for future use (kept for reference)
+  /*
   const getPaymentMethodIcon = (type: PaymentMethod["type"]) => {
     switch (type) {
       case "card":
@@ -301,191 +316,326 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         return "";
     }
   };
+  */
+
+  // Tổng tiền:
+  const selectedItemPrices = useCartStore((state) => state.itemPrices);
+  const totalPrice = bookings.reduce(
+    (sum, item) => sum + (selectedItemPrices.get(item.tempId)?.price || 0),
+    0
+  );
+  // Thay ở các vị trí render/submit dùng summary.items thành bookings
+  // const totalDeposit = bookings.reduce(
+  //   (sum, item) => sum + (selectedItemPrices.get(item.tempId)?.deposit || 0),
+  //   0
+  // );
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-white">
+      <DialogContent className="max-w-[1100px] max-h-[95vh] overflow-y-auto bg-white text-sm sm:!max-w-none lg:!max-w-[1100px] xl:!max-w-[1100px]">
         <DialogHeader className="bg-white">
-          <DialogTitle className="text-xl font-semibold">Checkout</DialogTitle>
+          <DialogTitle className="text-lg font-poppins-light">
+            Thanh toán
+          </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Order Summary */}
-          <Card className="bg-white">
-            <CardHeader>
-              <CardTitle className="text-lg">Order Summary</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {summary.items.map((item, index) => (
-                  <div
-                    key={item.tempId}
-                    className="border rounded-lg p-3 bg-gray-50"
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center space-x-2">
-                        {getItemIcon(item)}
-                        <span className="font-medium text-sm">
-                          {getItemTitle(item)}
-                        </span>
-                        <Badge variant="outline" className="text-xs">
-                          {item.roomId ? "HOTEL" : "SPA"}
-                        </Badge>
-                      </div>
-                      <ItemPriceDisplay tempId={item.tempId} />
-                    </div>
-
-                    <div className="text-xs text-gray-600 mb-2">
-                      <span className="font-medium">Pet:</span>{" "}
-                      {getPetName(item.petId)}
-                    </div>
-
-                    {getItemDetails(item).length > 0 && (
-                      <div className="space-y-1">
-                        {getItemDetails(item).map((detail, detailIndex) => (
-                          <div
-                            key={detailIndex}
-                            className="text-xs text-gray-600 flex items-center space-x-1"
-                          >
-                            {detail.includes("Time:") && (
-                              <Clock className="h-3 w-3" />
-                            )}
-                            {(detail.includes("Check-in:") ||
-                              detail.includes("Check-out:")) && (
-                              <Calendar className="h-3 w-3" />
-                            )}
-                            <span>{detail}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {item.note && (
-                      <div className="text-xs text-gray-600 mt-2">
-                        <span className="font-medium">Notes:</span> {item.note}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              <Separator className="my-4" />
-
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Subtotal:</span>
-                  <span>{formatCurrency(summary.totalPrice)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Deposit (50%):</span>
-                  <span>{formatCurrency(summary.totalDeposit)}</span>
-                </div>
-                <div className="flex justify-between font-bold text-lg border-t pt-2">
-                  <span>Total:</span>
-                  <span className="text-green-600">
-                    {formatCurrency(summary.totalPrice)}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Payment Method Selection */}
-          <Card className="bg-white">
-            <CardHeader>
-              <CardTitle className="text-lg">Payment Method</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <RadioGroup
-                value={selectedPaymentMethod}
-                onValueChange={setSelectedPaymentMethod}
-                className="space-y-3"
-              >
-                {mockPaymentMethods.map((method) => (
-                  <div
-                    key={method.id}
-                    className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50"
-                  >
-                    <RadioGroupItem value={method.id} id={method.id} />
-                    <div className="flex items-center space-x-2">
-                      {getPaymentMethodIcon(method.type)}
-                      <Label
-                        htmlFor={method.id}
-                        className="font-medium cursor-pointer"
+        <div className="space-y-4">
+          <div className="grid gap-4 lg:grid-cols-[1.65fr_1fr]">
+            {/* Order Summary */}
+            <Card className="bg-white p-3">
+              <CardHeader>
+                <CardTitle className="text-base font-poppins-regular">
+                  Tóm tắt đơn hàng
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-2">
+                <div className="max-h-[60vh] space-y-2 overflow-y-auto">
+                  {bookings.length === 0 ? (
+                    <p className="text-center font-poppins-light text-gray-500">
+                      Giỏ hàng của bạn đang trống. Vui lòng thêm sản phẩm vào
+                      giỏ hàng.
+                    </p>
+                  ) : (
+                    bookings.map((item) => (
+                      <div
+                        key={item.tempId}
+                        className="rounded-lg border bg-gray-50 p-3"
                       >
-                        {method.name}
-                      </Label>
-                    </div>
-                    <div className="flex-1 text-sm text-gray-600">
-                      {getPaymentMethodDescription(method.type)}
-                    </div>
+                        <div className="mb-1.5 flex items-start justify-between">
+                          <div className="flex items-center space-x-1.5">
+                            {getItemIcon(item)}
+                            <span className="text-sm font-poppins-light">
+                              {getItemTitle(item)}
+                            </span>
+                            <Badge
+                              variant="outline"
+                              className="rounded-sm bg-black px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
+                            >
+                              {item.roomId ? "HOTEL" : "SPA"}
+                            </Badge>
+                          </div>
+                          <ItemPriceDisplay tempId={item.tempId} />
+                        </div>
+
+                        <div className="mb-1.5 text-[12px] text-gray-600">
+                          <span className="font-poppins-regular">
+                            Thú cưng:
+                          </span>{" "}
+                          {getPetName(item.petId)}
+                        </div>
+
+                        {getItemDetails(item).length > 0 && (
+                          <div className="space-y-0.5 text-[11px]">
+                            {getItemDetails(item).map((detail, detailIndex) => (
+                              <div
+                                key={detailIndex}
+                                className="flex items-center space-x-1 text-gray-600"
+                              >
+                                {detail.includes("Time:") && (
+                                  <Clock className="h-3 w-3" />
+                                )}
+                                {(detail.includes("Check-in:") ||
+                                  detail.includes("Check-out:")) && (
+                                  <Calendar className="h-3 w-3" />
+                                )}
+                                <span>{detail}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {item.note && (
+                          <div className="mt-1.5 text-[12px] text-gray-600">
+                            <span className="font-poppins-light">Ghi chú:</span>{" "}
+                            {item.note}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <Separator className="my-3" />
+
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-[14px]">
+                    <span>Tạm tính:</span>
+                    <span className="font-poppins-light">
+                      {formatCurrency(totalPrice)}
+                    </span>
                   </div>
-                ))}
-              </RadioGroup>
-            </CardContent>
-          </Card>
+                  <div className="flex justify-between border-t pt-1.5 text-base">
+                    <span className="font-poppins-regular">Tổng cộng:</span>
+                    <span className="text-green-600 font-poppins-regular">
+                      {formatCurrency(totalPrice)}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* Customer Notes */}
-          <Card className="bg-white">
-            <CardHeader>
-              <CardTitle className="text-lg">Additional Notes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Textarea
-                placeholder="Any special instructions or notes for your booking..."
-                value={customerNotes}
-                onChange={(e) => setCustomerNotes(e.target.value)}
-                rows={3}
-              />
-            </CardContent>
-          </Card>
+            <div className="flex flex-col gap-4">
+              {/* Payment Method Selection */}
+              <Card className="bg-white p-3">
+                <CardHeader>
+                  <CardTitle className="text-base font-poppins-regular">
+                    Phương thức thanh toán
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-2">
+                  <RadioGroup
+                    value={selectedPaymentMethod}
+                    onValueChange={setSelectedPaymentMethod}
+                  >
+                    {/* Option 1: Ví điện tử */}
+                    <div className="flex items-center space-x-2.5 rounded-lg border p-1 hover:bg-gray-50">
+                      <RadioGroupItem value="wallet" id="wallet" />
+                      <div className="flex items-center space-x-2">
+                        {/* Icon wallet */}
+                        <svg
+                          width="24"
+                          height="24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="lucide lucide-wallet"
+                        >
+                          <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h3V7Z" />
+                          <path d="M3 5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-10a2 2 0 0 0-2-2Z" />
+                        </svg>
+                        <Label
+                          htmlFor="wallet"
+                          className="cursor-pointer font-poppins-regular"
+                        >
+                          Ví điện tử
+                        </Label>
+                      </div>
+                    </div>
+                    {/* Option 2: VNPay */}
+                    <div className="flex items-center space-x-2.5 rounded-lg border p-1 hover:bg-gray-50">
+                      <RadioGroupItem value="vnpay" id="vnpay" />
+                      <div className="flex items-center space-x-2">
+                        {/* Icon credit card for VNPay */}
+                        <svg
+                          width="24"
+                          height="24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="lucide lucide-credit-card"
+                        >
+                          <rect width="20" height="14" x="2" y="5" rx="2" />
+                          <line x1="2" x2="22" y1="10" y2="10" />
+                        </svg>
+                        <Label
+                          htmlFor="vnpay"
+                          className="cursor-pointer font-poppins-regular"
+                        >
+                          VNPay
+                        </Label>
+                      </div>
+                    </div>
+                    {/* Option 3: MoMo */}
+                    <div className="flex items-center space-x-2.5 rounded-lg border p-1 hover:bg-gray-50">
+                      <RadioGroupItem value="momo" id="momo" />
+                      <div className="flex items-center space-x-2">
+                        {/* Icon smartphone for MoMo */}
+                        <svg
+                          width="24"
+                          height="24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="lucide lucide-smartphone"
+                        >
+                          <rect
+                            width="14"
+                            height="20"
+                            x="5"
+                            y="2"
+                            rx="2"
+                            ry="2"
+                          />
+                          <path d="M12 18h.01" />
+                        </svg>
+                        <Label
+                          htmlFor="momo"
+                          className="cursor-pointer font-poppins-regular"
+                        >
+                          MoMo
+                        </Label>
+                      </div>
+                    </div>
+                    {/* Option 4: Tiền mặt */}
+                    <div className="flex items-center space-x-2.5 rounded-lg border p-1 hover:bg-gray-50">
+                      <RadioGroupItem value="cash" id="cash" />
+                      <div className="flex items-center space-x-2">
+                        {/* Icon banknote for Cash */}
+                        <svg
+                          width="24"
+                          height="24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="lucide lucide-banknote"
+                        >
+                          <rect width="20" height="12" x="2" y="6" rx="2" />
+                          <circle cx="12" cy="12" r="2" />
+                          <path d="M6 12h.01M18 12h.01" />
+                        </svg>
+                        <Label
+                          htmlFor="cash"
+                          className="cursor-pointer font-poppins-regular"
+                        >
+                          Tiền mặt tại quầy lễ tân
+                        </Label>
+                      </div>
+                    </div>
+                  </RadioGroup>
+                </CardContent>
+              </Card>
 
-          {/* Important Information */}
-          <Alert>
-            <CheckCircle className="h-4 w-4" />
-            <AlertDescription>
-              <div className="space-y-2">
-                <p className="font-medium">Important Information:</p>
-                <ul className="list-disc list-inside space-y-1 text-sm">
-                  <li>You will be charged a 50% deposit now</li>
-                  <li>
-                    The remaining balance will be charged after service
-                    completion
-                  </li>
-                  <li>You will receive a confirmation email within 3 hours</li>
-                  <li>All bookings are subject to availability confirmation</li>
-                </ul>
-              </div>
-            </AlertDescription>
-          </Alert>
+              {/* Customer Notes */}
+              <Card className="flex h-full flex-col bg-white p-3">
+                <CardHeader>
+                  <CardTitle className="text-base">Ghi chú thêm</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-1 flex-col gap-3 p-3 font-poppins-light">
+                  <Textarea
+                    placeholder="Bạn có yêu cầu hoặc lưu ý thêm nào cho đơn này không..."
+                    value={customerNotes}
+                    onChange={(e) => setCustomerNotes(e.target.value)}
+                    rows={4}
+                  />
+                  <Alert>
+                    <AlertDescription>
+                      <div className="space-y-1.5 text-[13px] leading-relaxed text-gray-500">
+                        <div className="flex items-start">
+                          <span className="mr-2 mt-[5px] inline-block h-1.5 w-1.5 rounded-full bg-gray-400"></span>
+                          <span>
+                            Vui lòng đảm bảo thú cưng đã tiêm phòng đầy đủ và
+                            trong tình trạng sức khỏe ổn định.
+                          </span>
+                        </div>
+                        <div className="flex items-start">
+                          <span className="mr-2 mt-[5px] inline-block h-1.5 w-1.5 rounded-full bg-gray-400"></span>
+                          <span>
+                            Đơn đặt sẽ được xác nhận trong vòng 3 giờ sau khi
+                            thanh toán hoặc đặt lịch.
+                          </span>
+                        </div>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
 
-          {/* Error Message */}
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex justify-end space-x-3 pt-4 border-t">
-            <Button variant="outline" onClick={onClose} disabled={isProcessing}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleCheckout}
-              disabled={isProcessing || !selectedPaymentMethod}
-              className="min-w-[140px]"
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                `Pay ${formatCurrency(summary.totalDeposit)} Deposit`
+          <div className="flex flex-col gap-3 border-t pt-3 lg:flex-row lg:items-start lg:justify-end">
+            <div className="flex flex-col gap-2.5 lg:min-w-[260px] lg:items-end">
+              {error && (
+                <Alert variant="destructive" className="w-full">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Đã có lỗi xảy ra, vui lòng thử lại!
+                  </AlertDescription>
+                </Alert>
               )}
-            </Button>
+              <div className="flex justify-end gap-2.5 ">
+                <Button
+                  variant="outline"
+                  onClick={onClose}
+                  disabled={isProcessing}
+                >
+                  Huỷ
+                </Button>
+                <Button
+                  onClick={handleCheckout}
+                  disabled={
+                    isProcessing || isRedirecting || !selectedPaymentMethod
+                  }
+                  className="min-w-[130px]"
+                >
+                  {isProcessing || isRedirecting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin " />
+                      {isRedirecting ? "Đang chuyển hướng..." : "Đang xử lý..."}
+                    </>
+                  ) : (
+                    `Thanh toán ${formatCurrency(totalPrice)}`
+                  )}
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </DialogContent>

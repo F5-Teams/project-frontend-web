@@ -1,6 +1,7 @@
 import api from "@/config/axios";
 
 export interface BulkBookingRequest {
+  paymentMethod: "WALLET" | "VNPAY" | "MOMO" | "CASH";
   bookings: Array<{
     type: "SPA" | "HOTEL";
     petId: number;
@@ -17,10 +18,17 @@ export interface BulkBookingRequest {
 
 export interface BulkBookingResponse {
   success: boolean;
-  data?: {
-    bookingIds: string[];
-  };
+  createdCount?: number;
+  bookingIds?: string[];
+  errors?: string[];
   error?: string;
+  message?: string;
+  paymentMethod?: string;
+  paymentUrl?: string;
+  orderBookingId?: number;
+  totalAmount?: number;
+  allPaid?: boolean;
+  newWalletBalance?: number;
 }
 
 export const bookingApi = {
@@ -31,16 +39,24 @@ export const bookingApi = {
     try {
       const response = await api.post("/bookings/bulk", data);
       return {
-        success: true,
-        data: {
-          bookingIds: response.data.bookingIds || [],
-        },
+        success: response.data.success || true,
+        createdCount: response.data.createdCount,
+        bookingIds: response.data.bookingIds || [],
+        errors: response.data.errors || [],
+        message: response.data.message,
+        paymentMethod: response.data.paymentMethod,
+        paymentUrl: response.data.paymentUrl,
+        orderBookingId: response.data.orderBookingId,
+        totalAmount: response.data.totalAmount,
+        allPaid: response.data.allPaid,
+        newWalletBalance: response.data.newWalletBalance,
       };
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error creating bulk bookings:", error);
+      const apiError = error as { response?: { data?: { message?: string } } };
       return {
         success: false,
-        error: error?.response?.data?.message || "Không thể tạo booking",
+        error: apiError?.response?.data?.message || "Không thể tạo booking",
       };
     }
   },

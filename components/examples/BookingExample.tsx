@@ -1,12 +1,17 @@
 "use client";
 
-
 // Helper functions to replace mock data
-const calculateDeposit = (totalPrice: number, percentage: number = 0.5): number => {
+const calculateDeposit = (
+  totalPrice: number,
+  percentage: number = 0.5
+): number => {
   return Math.round(totalPrice * percentage);
 };
 
-const applyWeekendSurcharge = (price: number, isWeekend: boolean = false): number => {
+const applyWeekendSurcharge = (
+  price: number,
+  isWeekend: boolean = false
+): number => {
   return isWeekend ? Math.round(price * 1.1) : price;
 };
 
@@ -14,9 +19,12 @@ const calculateRoomPrice = (pricePerNight: number, nights: number): number => {
   return pricePerNight * nights;
 };
 
-const calculateCustomComboPrice = (serviceIds: string[], services: any[]): number => {
+const calculateCustomComboPrice = (
+  serviceIds: string[],
+  services: any[]
+): number => {
   return serviceIds.reduce((total, serviceId) => {
-    const service = services.find(s => s.id === serviceId);
+    const service = services.find((s) => s.id === serviceId);
     return total + (service?.price || 0);
   }, 0);
 };
@@ -46,7 +54,7 @@ import { useCartStore } from "@/stores/cart.store";
 import { CartItemType } from "@/types/cart";
 
 export const BookingExample: React.FC = () => {
-  const { addItem } = useCartStore();
+  const { addItem, addItems } = useCartStore();
   const [showSelectPets, setShowSelectPets] = useState(false);
   const [showSingleService, setShowSingleService] = useState(false);
   const [showCombo, setShowCombo] = useState(false);
@@ -101,7 +109,10 @@ export const BookingExample: React.FC = () => {
   };
 
   const handleBookingConfirm = async (item: any) => {
-    const result = await addItem(item);
+    // Handle both single item and array of items
+    const result = Array.isArray(item)
+      ? await addItems(item)
+      : await addItem(item);
     if (result.success) {
       // Close current modal
       setShowSingleService(false);

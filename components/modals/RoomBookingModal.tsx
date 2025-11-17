@@ -41,10 +41,12 @@ const applyWeekendSurcharge = (
 interface RoomBookingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (bookingDraft: BookingDraft) => void;
+  onConfirm: (bookingDrafts: BookingDraft[]) => void;
   roomId: string;
   selectedPetIds: string[];
   room?: HotelRoom; // Room data to avoid duplicate API calls
+  initialCheckInDate?: Date | null;
+  initialCheckOutDate?: Date | null;
 }
 
 export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
@@ -54,6 +56,8 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
   roomId,
   selectedPetIds,
   room,
+  initialCheckInDate,
+  initialCheckOutDate,
 }) => {
   const [loading, setLoading] = useState(false);
   const [checkInDate, setCheckInDate] = useState<Date>();
@@ -79,41 +83,42 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
   const isWeekendStay =
     checkInDate && (checkInDate.getDay() === 0 || checkInDate.getDay() === 6);
 
-  // Reset state when modal opens
+  // Reset state and initialize dates when modal opens
   useEffect(() => {
     if (isOpen) {
-      setCheckInDate(undefined);
-      setCheckOutDate(undefined);
+      // Initialize with dates from parent component if available
+      setCheckInDate(initialCheckInDate || undefined);
+      setCheckOutDate(initialCheckOutDate || undefined);
       setNotes("");
       setErrors([]);
     }
-  }, [isOpen]);
+  }, [isOpen, initialCheckInDate, initialCheckOutDate]);
 
   const handleConfirm = () => {
     const validationErrors: string[] = [];
 
     if (!checkInDate) {
-      validationErrors.push("Please select check-in date");
+      validationErrors.push("Vui lòng chọn ngày nhận phòng");
     }
 
     if (!checkOutDate) {
-      validationErrors.push("Please select check-out date");
+      validationErrors.push("Vui lòng chọn ngày trả phòng");
     }
 
     if (checkInDate && checkOutDate) {
       if (checkOutDate <= checkInDate) {
-        validationErrors.push("Check-out date must be after check-in date");
+        validationErrors.push("Ngày trả phòng phải sau ngày nhận phòng");
       }
 
       if (nights < 1) {
-        validationErrors.push("Minimum 1 night stay required");
+        validationErrors.push("Bạn cần đặt ít nhất 1 đêm!");
       }
 
       // Check room availability from the room data passed as prop
       // Note: If room.isAvailable is undefined, we assume it's available
       // since it came from the available rooms API
       if (room && room.isAvailable === false) {
-        validationErrors.push("Room is currently not available");
+        validationErrors.push("Phòng này hiện không còn khả dụng!");
       }
     }
 
@@ -122,18 +127,19 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
       return;
     }
 
-    const bookingDraft: BookingDraft = {
+    // Tạo booking draft cho mỗi pet được chọn
+    const bookingDrafts: BookingDraft[] = selectedPetIds.map((petId) => ({
       tempId: generateTempId(),
-      petId: parseInt(selectedPetIds[0]), // Assuming single pet for now
+      petId: parseInt(petId),
       bookingDate: format(checkInDate!, "yyyy-MM-dd"),
       dropDownSlot: "MORNING", // Default check-in slot for hotel
       note: notes.trim() || undefined,
       roomId: parseInt(roomId),
       startDate: format(checkInDate!, "yyyy-MM-dd"),
       endDate: format(checkOutDate!, "yyyy-MM-dd"),
-    };
+    }));
 
-    onConfirm(bookingDraft);
+    onConfirm(bookingDrafts);
     onClose();
   };
 
@@ -152,7 +158,7 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
     <CustomModal
       open={isOpen}
       onClose={onClose}
-      title="Book Hotel Room"
+      title="Đặt phòng khách sạn"
       className="max-w-4xl"
     >
       <div className="space-y-6 max-h-[80vh] overflow-y-auto">
@@ -161,14 +167,14 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>{room.name}</span>
-              <Badge variant="secondary">Hotel</Badge>
+              <Badge variant="secondary">Phòng</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center space-x-4 text-sm text-gray-500">
               <div className="flex items-center space-x-1">
                 <Users className="h-4 w-4" />
-                <span>Class: {room.class}</span>
+                <span>Hạng phòng: {room.class}</span>
               </div>
               <div className="flex items-center space-x-1">
                 <span className="font-medium text-lg text-green-600">
@@ -179,7 +185,7 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
 
             {/* Description */}
             <div>
-              <h4 className="font-medium text-gray-900 mb-2">Description:</h4>
+              <h4 className="font-medium text-gray-900 mb-2">Mô tả:</h4>
               <p className="text-gray-600 text-sm">{room.description}</p>
             </div>
 
@@ -187,7 +193,7 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
             {room.amenities && room.amenities.length > 0 && (
               <div>
                 <h4 className="font-medium text-gray-900 mb-2">
-                  Room Amenities:
+                  Tiện ích phòng:
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {room.amenities.map((amenity, index) => (
@@ -207,7 +213,9 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
             {/* Room Images */}
             {room.images && room.images.length > 0 && (
               <div>
-                <h4 className="font-medium text-gray-900 mb-2">Room Images:</h4>
+                <h4 className="font-medium text-gray-900 mb-2">
+                  Hình ảnh phòng:
+                </h4>
                 <div className="grid grid-cols-2 gap-2">
                   {room.images.slice(0, 4).map((image, index) => (
                     <div
@@ -233,7 +241,7 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
             <div className="flex items-center space-x-2 mb-2">
               <AlertCircle className="h-4 w-4 text-red-600" />
               <span className="font-medium text-red-800">
-                Please fix the following errors:
+                Vui lòng kiểm tra các lỗi sau:
               </span>
             </div>
             <ul className="list-disc list-inside space-y-1 text-sm text-red-700">
@@ -248,56 +256,70 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Check-in Date */}
           <div className="space-y-3">
-            <Label className="text-base font-medium">Check-in Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {checkInDate
-                    ? format(checkInDate, "PPP")
-                    : "Select check-in date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={checkInDate}
-                  onSelect={setCheckInDate}
-                  disabled={(date) => date < new Date()}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <Label className="text-base font-medium">Ngày nhận phòng</Label>
+            {initialCheckInDate && checkInDate ? (
+              <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 font-poppins-regular flex items-center">
+                <CalendarIcon className="mr-2 h-4 w-4 text-gray-500" />
+                {format(checkInDate, "dd/MM/yyyy")}
+              </div>
+            ) : (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {checkInDate
+                      ? format(checkInDate, "PPP")
+                      : "Chọn ngày nhận phòng"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={checkInDate}
+                    onSelect={setCheckInDate}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
 
           {/* Check-out Date */}
           <div className="space-y-3">
-            <Label className="text-base font-medium">Check-out Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {checkOutDate
-                    ? format(checkOutDate, "PPP")
-                    : "Select check-out date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={checkOutDate}
-                  onSelect={setCheckOutDate}
-                  disabled={(date) => date <= (checkInDate || new Date())}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <Label className="text-base font-medium">Ngày trả phòng</Label>
+            {initialCheckOutDate && checkOutDate ? (
+              <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 font-poppins-regular flex items-center">
+                <CalendarIcon className="mr-2 h-4 w-4 text-gray-500" />
+                {format(checkOutDate, "dd/MM/yyyy")}
+              </div>
+            ) : (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {checkOutDate
+                      ? format(checkOutDate, "PPP")
+                      : "Chọn ngày trả phòng"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={checkOutDate}
+                    onSelect={setCheckOutDate}
+                    disabled={(date) => date <= (checkInDate || new Date())}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
         </div>
 
@@ -305,40 +327,38 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
         {checkInDate && checkOutDate && nights > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Booking Summary</CardTitle>
+              <CardTitle className="text-lg">Tóm tắt đặt phòng</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex justify-between text-sm">
-                <span>Room:</span>
+                <span>Phòng:</span>
                 <span className="font-medium">{room.name}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span>Check-in:</span>
+                <span>Nhận phòng:</span>
                 <span className="font-medium">
                   {format(checkInDate, "PPP")}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span>Check-out:</span>
+                <span>Trả phòng:</span>
                 <span className="font-medium">
                   {format(checkOutDate, "PPP")}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span>Nights:</span>
-                <span className="font-medium">
-                  {nights} night{nights > 1 ? "s" : ""}
-                </span>
+                <span>Số đêm:</span>
+                <span className="font-medium">{nights} đêm</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span>Base price:</span>
+                <span>Giá gốc:</span>
                 <span className="font-medium">
                   {basePrice.toLocaleString()}đ
                 </span>
               </div>
               {isWeekendStay && (
                 <div className="flex justify-between text-sm text-orange-600">
-                  <span>Weekend surcharge (+10%):</span>
+                  <span>Phụ thu cuối tuần (+10%):</span>
                   <span className="font-medium">
                     +{(finalPrice - basePrice).toLocaleString()}đ
                   </span>
@@ -346,7 +366,7 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
               )}
               <div className="border-t pt-3">
                 <div className="flex justify-between font-bold text-lg">
-                  <span>Total:</span>
+                  <span>Tổng cộng:</span>
                   <span className="text-green-600">
                     {finalPrice.toLocaleString()}đ
                   </span>
@@ -359,11 +379,11 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
         {/* Notes */}
         <div className="space-y-3">
           <Label htmlFor="notes" className="text-base font-medium">
-            Additional Notes (Optional)
+            Ghi chú thêm
           </Label>
           <Textarea
             id="notes"
-            placeholder="Any special requests or notes for your pet's stay..."
+            placeholder="Bạn có yêu cầu hoặc ghi chú gì cho kỳ lưu trú này không..."
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
@@ -373,14 +393,14 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
         {/* Action buttons */}
         <div className="flex justify-end space-x-3 pt-4 border-t">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            Hủy
           </Button>
           <Button
             onClick={handleConfirm}
             disabled={!checkInDate || !checkOutDate || nights < 1}
             className="min-w-[120px]"
           >
-            Add to Cart
+            Thêm vào giỏ
           </Button>
         </div>
       </div>

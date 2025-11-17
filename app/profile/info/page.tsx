@@ -1,156 +1,193 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import { useEffect, useState } from "react";
-import { AtSign, Phone, MapPin, User as UserIcon } from "lucide-react";
+import { ArrowLeft, ChevronRight, Bell, Edit3 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useMe } from "@/services/profile/hooks";
+import { useInitials } from "@/utils/useInitials";
+import { UserInfoCard } from "@/components/profile/UserInfoCard";
+import { MiniCalendar } from "@/components/profile/MiniCalendar";
 
-type User = {
-  id: number;
-  userName: string;
-  phoneNumber?: string | null;
-  address?: string | null;
-  firstName?: string | null;
-  lastName?: string | null;
-  createdAt?: string;
-  isActive?: boolean;
-  roleId?: number;
-  avatar?: string | null;
-};
+import { useBookings } from "@/services/profile/profile-schedule/hooks";
+import { mapApiToBookings } from "@/components/profile/schedule/mapApiBookings";
+import { WeeklySchedule } from "@/components/profile/schedule/WeeklySchedule";
+import { Booking } from "@/types/scheduleType";
+import { useUserPets } from "@/services/profile/profile-pet/hooks";
+import { PetCard } from "@/components/profile/PetCard";
 
 export default function InfoPage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: user, isLoading, error, refetch } = useMe();
+  // ADD: fetch user pets
+  const { data: pets } = useUserPets(user?.id);
+  const { data: apiBookings, isLoading: isBookingLoading } = useBookings();
+  const [timeZone, setTimeZone] = useState<string>();
+  const [today, setToday] = useState<Date>();
+  const [currentMonth, setCurrentMonth] = useState<Date>();
+  const [selectedDate, setSelectedDate] = useState<Date>();
+
+  const initials = useInitials({
+    firstName: user?.firstName,
+    lastName: user?.lastName,
+    userName: user?.userName,
+  });
+
+  const dayStartHour = 7;
+  const dayEndHour = 18;
+
+  const bookings: Booking[] = useMemo(() => {
+    if (!apiBookings) return [];
+    return mapApiToBookings(apiBookings, {
+      dayStartHour,
+      dayEndHour,
+      defaultDuration: 60,
+    });
+  }, [apiBookings]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    setTimeZone(tz);
 
-    try {
-      const raw = localStorage.getItem("user");
-      if (raw) {
-        setUser(JSON.parse(raw));
-        console.log("InfoPage user:", JSON.parse(raw));
-      }
-    } catch (e) {
-      console.error("Cannot parse user from localStorage", e);
-    } finally {
-      setLoading(false);
-    }
+    const now = new Date();
+    const todayStart = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    ); // 00:00 local
+    setToday(todayStart);
+    setCurrentMonth(
+      new Date(todayStart.getFullYear(), todayStart.getMonth(), 1)
+    );
+    setSelectedDate(todayStart);
   }, []);
 
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        <h1 className="text-xl font-semibold">Thông tin cá nhân</h1>
-        {/* skeleton */}
-        <div className="grid sm:grid-cols-2 gap-4">
-          {[...Array(5)].map((_, i) => (
-            <div
-              key={i}
-              className="h-16 rounded-xl bg-white/50 dark:bg-white/10 animate-pulse"
-            />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="space-y-3">
-        <h1 className="text-xl font-semibold">Thông tin cá nhân</h1>
-        <p className="text-muted-foreground">
-          Chưa tìm thấy dữ liệu người dùng. Vui lòng đăng nhập lại.
-        </p>
-      </div>
-    );
-  }
-
-  const display = (v?: string | null) => (v && v.trim() ? v : "Chưa cập nhật");
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">
-          Thông tin cá nhân
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Quản lý và cập nhật thông tin tài khoản của bạn.
-        </p>
-      </div>
-
-      {/* Card thông tin kiểu kính */}
-      <section
-        className="
-          relative overflow-hidden rounded-2xl
-          bg-white/55 dark:bg-white/10 backdrop-blur-xl
-          border border-white/25 dark:border-white/10
-          shadow-[0_6px_24px_rgba(0,0,0,0.06)]
-        "
-      >
-        <div className="relative p-4 sm:p-6 lg:p-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <InfoRow
-              icon={<AtSign className="h-5 w-5" />}
-              label="Username"
-              value={display(user.userName)}
-            />
-            <InfoRow
-              icon={<UserIcon className="h-5 w-5" />}
-              label="Họ"
-              value={display(user.firstName)}
-            />
-            <InfoRow
-              icon={<UserIcon className="h-5 w-5" />}
-              label="Tên"
-              value={display(user.lastName)}
-            />
-            <InfoRow
-              icon={<Phone className="h-5 w-5" />}
-              label="Số điện thoại"
-              value={display(user.phoneNumber)}
-            />
-            <InfoRow
-              icon={<MapPin className="h-5 w-5" />}
-              label="Địa chỉ"
-              value={display(user.address)}
-              className="sm:col-span-2"
-            />
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-function InfoRow({
-  icon,
-  label,
-  value,
-  className,
-  highlight = false,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  className?: string;
-  highlight?: boolean;
-}) {
   return (
     <div
-      className={[
-        "flex items-start gap-3 rounded-xl px-4 py-3 ring-1 ring-inset",
-        "bg-white/60 dark:bg-white/5",
-        "ring-white/20 dark:ring-white/10",
-        "transition-colors",
-        highlight ? "shadow-sm" : "",
-        className || "",
-      ].join(" ")}
+      className="
+      mx-auto w-full
+      md:py-2 lg:py-4
+      sm:max-w-screen-sm md:max-w-3xl
+      lg:max-w-5xl xl:max-w-7xl
+    "
     >
-      <div className="mt-0.5 text-primary">{icon}</div>
-      <div className="min-w-0">
-        <div className="text-xs uppercase tracking-wide text-muted-foreground">
-          {label}
-        </div>
-        <div className="font-medium text-foreground truncate">{value}</div>
+      <div
+        className="
+        grid gap-4 lg:gap-6
+        grid-cols-1
+        lg:grid-cols-[minmax(0,1fr)_20rem]
+        xl:grid-cols-[minmax(0,1fr)_22rem]
+        items-start
+      "
+      >
+        {/* Left Section */}
+        <section className="min-w-0 space-y-4 lg:space-y-6">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center space-x-3 lg:space-x-4">
+              <Link
+                href="/"
+                className="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4 lg:w-5 lg:h-5" />
+              </Link>
+              <h1 className="font-poppins-regular text-xl lg:text-2xl text-gray-900">
+                Thông tin người dùng
+              </h1>
+            </div>
+
+            {/* <div className="flex items-center space-x-2 lg:space-x-4 ml-auto">
+              <button className="hidden md:block text-sm lg:text-base text-blue-500 hover:text-blue-600 font-medium">
+                Appointments history
+              </button>
+              <Button className="bg-blue-500 hover:bg-blue-600 text-white px-3 lg:px-6 text-sm lg:text-base">
+                <span className="hidden sm:inline">+ New Patient</span>
+                <span className="sm:hidden">+ Patient</span>
+              </Button>
+              <button className="relative hidden sm:block">
+                <Bell className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400" />
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-400 rounded-full" />
+              </button>
+            </div> */}
+          </div>
+
+          {/* Thông tin người dùng */}
+          <UserInfoCard user={user} />
+
+          {/* Weekly Schedule */}
+          <div className="flex-1 space-y-4 lg:space-y-6">
+            <WeeklySchedule
+              enableWeekNav={false}
+              bookings={bookings}
+              dayStartHour={dayStartHour}
+              dayEndHour={dayEndHour}
+              slotMinutes={60}
+            />
+          </div>
+        </section>
+
+        {/* Right Sidebar */}
+        <aside className="min-w-0 lg:space-y-2">
+          <MiniCalendar
+            month={currentMonth}
+            onMonthChange={setCurrentMonth}
+            selected={selectedDate}
+            onSelect={setSelectedDate}
+            timeZone={timeZone}
+            today={today}
+            className="w-full"
+          />
+
+          <div className="bg-[#1849A9] text-white rounded-2xl lg:rounded-3xl p-2 lg:p-4 shadow-lg overflow-hidden">
+            <div className="rounded-xl border-2 border-dashed border-white/30 p-3">
+              <div className="flex items-center justify-between mb-2 lg:mb-3">
+                <h3 className="text-sm lg:text-base font-poppins-medium text-white">
+                  Boss yêu của bạn
+                </h3>
+                <Link
+                  href="/profile-pet/information-pets"
+                  className="inline-flex items-center px-3 py-1 rounded-2xl text-xs text-white/90 bg-white/6 hover:bg-white/10 transition"
+                >
+                  Xem chi tiết{"  "}
+                  <ChevronRight className="w-4 h-4 lg:w-5 lg:h-5 text-white/90" />
+                </Link>
+              </div>
+
+              <div className="space-y-2.5 lg:space-y-3">
+                {pets && pets.length > 0 ? (
+                  pets
+                    .slice(0, 4)
+                    .map((pet) => <PetCard key={pet.id} pet={pet} />)
+                ) : (
+                  <div className="text-xs text-white/80">
+                    Chưa có thú cưng nào.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          {/* 
+          Write Prescription Card
+          <div className="bg-linear-to-br from-blue-50 to-blue-100 rounded-2xl lg:rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+            <h3 className="text-sm lg:text-base font-semibold text-gray-900 mb-1 lg:mb-2">
+              Write Prescription
+            </h3>
+            <p className="text-xs lg:text-sm text-gray-600 mb-3 lg:mb-4">
+              to patient
+            </p>
+
+            <button className="w-10 h-10 lg:w-12 lg:h-12 bg-blue-500 hover:bg-blue-600 rounded-xl flex items-center justify-center text-white transition-colors relative z-10">
+              <Edit3 className="w-4 h-4 lg:w-5 lg:h-5" />
+            </button>
+
+            <div className="absolute bottom-0 right-0 w-24 h-24 lg:w-32 lg:h-32 opacity-60">
+              <div className="relative w-full h-full">
+                <div className="absolute bottom-3 right-3 lg:bottom-4 lg:right-4 w-16 h-20 lg:w-20 lg:h-24 bg-white rounded-lg shadow-lg transform rotate-12"></div>
+                <div className="absolute bottom-6 right-6 lg:bottom-8 lg:right-8 w-12 h-16 lg:w-16 lg:h-20 bg-blue-200 rounded-lg transform -rotate-6"></div>
+              </div>
+            </div>
+          </div> */}
+        </aside>
       </div>
     </div>
   );

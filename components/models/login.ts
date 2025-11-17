@@ -5,6 +5,7 @@ export interface LoginFormData {
 }
 
 export interface AuthResponse {
+  data: any;
   token: string;
   access_token: string;
   accessToken: string;

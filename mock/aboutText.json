@@ -1,0 +1,103 @@
+{
+  "dieuKhoanSuDung": "Điều khoản Sử dụng",
+  "chinhSachQuyenRiengTu": "Chính sách Quyền Riêng tư",
+  "mainDescription": "HappyPaws (“chúng tôi”, “nền tảng/ứng dụng”) cung cấp dịch vụ quản lý và đặt lịch chăm sóc thú cưng cho người dùng (“bạn”). Khi truy cập, cài đặt hoặc sử dụng Ứng dụng, bạn xác nhận rằng bạn đã đọc, hiểu và đồng ý tuân thủ đầy đủ các điều khoản sau đây",
+  "mainDescription2": "HappyPaws (“chúng tôi”, “ứng dụng”) cam kết bảo vệ quyền riêng tư và dữ liệu cá nhân của người dùng (“bạn”). Chính sách Quyền Riêng tư này giải thích cách chúng tôi thu thập, sử dụng, lưu trữ và bảo vệ thông tin khi bạn truy cập hoặc sử dụng Ứng dụng để đặt lịch grooming, spa, trông giữ, huấn luyện hoặc các dịch vụ thú y liên quan. Bằng việc sử dụng Ứng dụng, bạn xác nhận rằng mình đã đọc và hiểu rõ Chính sách này.",
+  "subDescription": "Với giao diện trực quan và quy trình đặt lịch tự động, HappyPaws giúp bạn quản lý lịch chăm sóc thú cưng, theo dõi trạng thái dịch vụ, lưu trữ hồ sơ — giảm thủ tục rườm rà và tăng tốc trải nghiệm, để bạn tập trung vào sức khỏe và hạnh phúc của thú cưng.",
+  "faqTitle": "Điều khoản Sử dụng",
+  "dieuKhoan": [
+    {
+      "question": "Chấp nhận Điều khoản",
+      "answer": "Bằng việc tải xuống, cài đặt hoặc sử dụng ứng dụng, bạn đồng ý bị ràng buộc bởi các điều khoản này. Trường hợp bạn không đồng ý với bất kỳ nội dung nào trong điều khoản, vui lòng ngừng sử dụng ứng dụng ngay lập tức.",
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"#f057b7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path stroke-dasharray=\"10\" stroke-dashoffset=\"10\" d=\"M3 5l2 2l4 -4\"><animate fill=\"freeze\" attributeName=\"stroke-dashoffset\" dur=\"0.2s\" values=\"10;0\"/></path><path stroke-dasharray=\"10\" stroke-dashoffset=\"10\" d=\"M3 12l2 2l4 -4\"><animate fill=\"freeze\" attributeName=\"stroke-dashoffset\" begin=\"0.4s\" dur=\"0.2s\" values=\"10;0\"/></path><path stroke-dasharray=\"10\" stroke-dashoffset=\"10\" d=\"M3 19l2 2l4 -4\"><animate fill=\"freeze\" attributeName=\"stroke-dashoffset\" begin=\"0.8s\" dur=\"0.2s\" values=\"10;0\"/></path><g fill=\"#f057b7\" fill-opacity=\"0\" stroke-dasharray=\"24\" stroke-dashoffset=\"24\" stroke-width=\"1\"><path d=\"M11.5 5c0 -0.83 0.67 -1.5 1.5 -1.5h6c0.83 0 1.5 0.67 1.5 1.5c0 0.83 -0.67 1.5 -1.5 1.5h-6c-0.83 0 -1.5 -0.67 -1.5 -1.5Z\"><animate fill=\"freeze\" attributeName=\"fill-opacity\" begin=\"1.3s\" dur=\"0.15s\" values=\"0;0.3\"/><animate fill=\"freeze\" attributeName=\"stroke-dashoffset\" begin=\"0.2s\" dur=\"0.2s\" values=\"24;0\"/></path><path d=\"M11.5 12c0 -0.83 0.67 -1.5 1.5 -1.5h6c0.83 0 1.5 0.67 1.5 1.5c0 0.83 -0.67 1.5 -1.5 1.5h-6c-0.83 0 -1.5 -0.67 -1.5 -1.5Z\"><animate fill=\"freeze\" attributeName=\"fill-opacity\" begin=\"1.7s\" dur=\"0.15s\" values=\"0;0.3\"/><animate fill=\"freeze\" attributeName=\"stroke-dashoffset\" begin=\"0.6s\" dur=\"0.2s\" values=\"24;0\"/></path><path d=\"M11.5 19c0 -0.83 0.67 -1.5 1.5 -1.5h6c0.83 0 1.5 0.67 1.5 1.5c0 0.83 -0.67 1.5 -1.5 1.5h-6c-0.83 0 -1.5 -0.67 -1.5 -1.5Z\"><animate fill=\"freeze\" attributeName=\"fill-opacity\" begin=\"2.1s\" dur=\"0.15s\" values=\"0;0.3\"/><animate fill=\"freeze\" attributeName=\"stroke-dashoffset\" begin=\"1s\" dur=\"0.2s\" values=\"24;0\"/></path></g></g></svg>"
+    },
+    {
+      "question": "Quyền Sử dụng",
+      "answer": "Chúng tôi cấp cho bạn một quyền sử dụng cá nhân, không độc quyền và không thể chuyển nhượng để truy cập và sử dụng ứng dụng cho mục đích giải trí. Bạn không được sao chép, sửa đổi, phân phối, tái sản xuất hoặc khai thác ứng dụng cho mục đích thương mại nếu chưa có sự đồng ý bằng văn bản từ chúng tôi.",
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"#f057b7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M12 3h7v18h-14v-18h7Z\"/><path d=\"M14.5 3.5v3h-5v-3\"/><path stroke-dasharray=\"10\" stroke-dashoffset=\"10\" d=\"M9 13l2 2l4 -4\"><animate fill=\"freeze\" attributeName=\"stroke-dashoffset\" dur=\"0.2s\" values=\"10;0\"/></path></g></svg>"
+    },
+    {
+      "question": "Tài khoản và Bảo mật",
+      "answer": "Bạn có trách nhiệm bảo mật thông tin đăng nhập và toàn bộ hoạt động diễn ra dưới tài khoản của mình. Chúng tôi từ chối mọi trách nhiệm đối với tổn thất hoặc thiệt hại phát sinh từ việc bạn không bảo mật thông tin tài khoản.",
+      "icon": "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path fill='#f057b7' d='M12 1L3 5v6c0 5.55 3.84 10.74 9 12c5.16-1.26 9-6.45 9-12V5zm0 4a3 3 0 0 1 3 3a3 3 0 0 1-3 3a3 3 0 0 1-3-3a3 3 0 0 1 3-3m5.13 12A9.7 9.7 0 0 1 12 20.92A9.7 9.7 0 0 1 6.87 17c-.34-.5-.63-1-.87-1.53c0-1.65 2.71-3 6-3s6 1.32 6 3c-.24.53-.53 1.03-.87 1.53'/></svg>"
+    },
+    {
+      "question": "Giao dịch Trong Ứng dụng",
+      "answer": "Các giao dịch đặt lịch/dịch vụ trong Ứng dụng (ví dụ: grooming, spa, trông giữ) có thể yêu cầu đặt cọc hoặc thanh toán trước. Khoản cọc/chi phí đã thanh toán có thể không hoàn lại ngoại trừ trường hợp pháp luật quy định khác hoặc chính sách hoàn hủy cụ thể tại từng cơ sở. Với dịch vụ in album/hồ sơ thú cưng, bạn đồng ý thanh toán toàn bộ chi phí trước; sau khi đã đặt cọc/xác nhận, đơn hàng không thể hủy.",
+      "icon": "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><g fill='none' stroke='#f057b7' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'><path d='M4.58 8.607L2 8.454C3.849 3.704 9.158 1 14.333 2.344c5.513 1.433 8.788 6.918 7.314 12.25c-1.219 4.411-5.304 7.337-9.8 7.406'/><path stroke-dasharray='.5 3' d='M12 22C6.5 22 2 17 2 11'/><path d='M13.604 9.722c-.352-.37-1.213-1.237-2.575-.62c-1.361.615-1.577 2.596.482 2.807c.93.095 1.537-.11 2.093.47c.556.582.659 2.198-.761 2.634s-2.341-.284-2.588-.509m1.653-6.484v.79m0 6.337v.873'/></g></svg>"
+    },
+    {
+      "question": "Nội dung, Hình ảnh và Hồ sơ Thú cưng",
+      "answer": "Bạn có thể tạo hồ sơ thú cưng, đăng tải hình ảnh, ghi chú sức khỏe và chia sẻ đánh giá dịch vụ. Khi đăng tải, bạn đồng ý cấp cho chúng tôi quyền không độc quyền để sử dụng nội dung nhằm vận hành và cải thiện dịch vụ. Nội dung phải tuân thủ pháp luật, không vi phạm thuần phong mỹ tục và không xâm phạm quyền của bên thứ ba.",
+      "icon": "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path fill='#f057b7' d='M22.13 2.36a1 1 0 0 0-.84-.2a2.7 2.7 0 0 1-2.2-.47a1 1 0 0 0-1.18 0a2.7 2.7 0 0 1-2.2.47a1 1 0 0 0-.84.2a1 1 0 0 0-.37.78v3.31a4.63 4.63 0 0 0 1.84 3.7l1.57 1.16a1 1 0 0 0 1.18 0l1.57-1.16a4.63 4.63 0 0 0 1.84-3.7V3.14a1 1 0 0 0-.37-.78M20.5 6.45a2.62 2.62 0 0 1-1 2.09l-1 .72l-1-.72a2.62 2.62 0 0 1-1-2.09V4.22a4.8 4.8 0 0 0 2-.54a4.8 4.8 0 0 0 2 .54Zm-2 7.05a1 1 0 0 0-1 1v.39L16 13.41a2.77 2.77 0 0 0-3.93 0l-.7.7l-2.46-2.49a2.85 2.85 0 0 0-3.93 0L3.5 13.1V7.5a1 1 0 0 1 1-1h7a1 1 0 0 0 0-2h-7a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3v-5a1 1 0 0 0-1-1m-14 7a1 1 0 0 1-1-1v-3.57L6.4 13a.79.79 0 0 1 1.09 0l3.17 3.17L15 20.5Zm13-1a1 1 0 0 1-.18.53l-4.51-4.51l.7-.7a.78.78 0 0 1 1.1 0l2.89 2.9Z'/></svg>"
+    },
+    {
+      "question": "Hạn chế Sử dụng",
+      "answer": "Bạn không được sử dụng Ứng dụng để gian lận, tấn công hệ thống, phát tán mã độc, xâm phạm dữ liệu hoặc gây ảnh hưởng tiêu cực đến trải nghiệm của người dùng khác; không đăng tải nội dung bạo lực với động vật hoặc trái đạo đức nuôi dưỡng thú cưng.",
+      "icon": "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><g fill='none' stroke='#f057b7' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'><path fill='#f057b7' fill-opacity='0' stroke-dasharray='64' stroke-dashoffset='64' d='M5.64 5.64c3.51 -3.51 9.21 -3.51 12.73 0c3.51 3.51 3.51 9.21 0 12.73c-3.51 3.51 -9.21 3.51 -12.73 0c-3.51 -3.51 -3.51 -9.21 0 -12.73Z'><animate fill='freeze' attributeName='fill-opacity' begin='0.8s' dur='0.15s' values='0;0.3'/><animate fill='freeze' attributeName='stroke-dashoffset' dur='0.6s' values='64;0'/></path><path stroke-dasharray='20' stroke-dashoffset='20' d='M6 6l12 12'><animate fill='freeze' attributeName='stroke-dashoffset' begin='0.6s' dur='0.2s' values='20;0'/></path></g></svg>"
+    },
+    {
+      "question": "Chấm dứt Dịch vụ",
+      "answer": "Chúng tôi có quyền tạm ngưng hoặc chấm dứt quyền truy cập nếu phát hiện vi phạm điều khoản, có hành vi gây hại cho hệ thống, dịch vụ, thú cưng hoặc người dùng khác, hoặc theo yêu cầu của cơ quan có thẩm quyền.",
+      "icon": "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><g fill='none' stroke='#f057b7' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'><g><path stroke-dasharray='4' stroke-dashoffset='4' d='M12 3v2'><animate fill='freeze' attributeName='stroke-dashoffset' dur='0.2s' values='4;0'/></path><path fill='#f057b7' fill-opacity='0' stroke-dasharray='28' stroke-dashoffset='28' d='M12 5c-3.31 0 -6 2.69 -6 6l0 6c-1 0 -2 1 -2 2h8M12 5c3.31 0 6 2.69 6 6l0 6c1 0 2 1 2 2h-8'><animate fill='freeze' attributeName='fill-opacity' begin='0.9s' dur='0.15s' values='0;0.3'/><animate fill='freeze' attributeName='stroke-dashoffset' begin='0.2s' dur='0.4s' values='28;0'/></path><animateTransform fill='freeze' attributeName='transform' begin='0.9s' dur='6s' keyTimes='0;0.05;0.15;0.2;1' type='rotate' values='0 12 3;3 12 3;-3 12 3;0 12 3;0 12 3'/></g><path stroke-dasharray='8' stroke-dashoffset='8' d='M10 20c0 1.1 0.9 2 2 2c1.1 0 2 -0.9 2 -2'><animate fill='freeze' attributeName='stroke-dashoffset' begin='0.6s' dur='0.2s' values='8;0'/><animateTransform fill='freeze' attributeName='transform' begin='1.1s' dur='6s' keyTimes='0;0.05;0.15;0.2;1' type='rotate' values='0 12 8;6 12 8;-6 12 8;0 12 8;0 12 8'/></path><path stroke-dasharray='6' stroke-dashoffset='6' d='M22 6v4'><animate fill='freeze' attributeName='stroke-dashoffset' begin='1.05s' dur='0.2s' values='6;0'/><animate attributeName='stroke-width' begin='1.95s' dur='3s' keyTimes='0;0.1;0.2;0.3;1' repeatCount='indefinite' values='2;3;3;2;2'/></path><path stroke-dasharray='2' stroke-dashoffset='2' d='M22 14v0.01'><animate fill='freeze' attributeName='stroke-dashoffset' begin='1.25s' dur='0.2s' values='2;0'/><animate attributeName='stroke-width' begin='2.25s' dur='3s' keyTimes='0;0.1;0.2;0.3;1' repeatCount='indefinite' values='2;3;3;2;2'/></path></g></svg>"
+    },
+    {
+      "question": "Thay đổi Điều khoản",
+      "answer": "Chúng tôi có thể điều chỉnh, cập nhật hoặc sửa đổi Điều khoản này vào bất kỳ thời điểm nào. Các thay đổi sẽ có hiệu lực ngay sau khi được công bố trong ứng dụng hoặc trên website chính thức của chúng tôi. Việc bạn tiếp tục sử dụng ứng dụng sau khi có thay đổi đồng nghĩa với việc bạn chấp nhận các điều khoản đã được sửa đổi.",
+      "icon": "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path fill='#f057b7' d='M17.5 12a5.5 5.5 0 1 1 0 11a5.5 5.5 0 0 1 0-11m2.646 3.146l-4.092 4.093L14.9 17.7a.5.5 0 0 0-.8.6l1.5 2a.5.5 0 0 0 .754.053l4.5-4.5a.5.5 0 0 0-.707-.707M11.02 17H3l-.117.007A1 1 0 0 0 3 19h8.174a6.5 6.5 0 0 1-.155-2m.48-2H3a1 1 0 0 1-.117-1.993L3 13h9.81a6.5 6.5 0 0 0-1.312 2M3 11a1 1 0 0 1-.117-1.993L3 9h18a1 1 0 0 1 .117 1.993L21 11zm18-6H3l-.117.007A1 1 0 0 0 3 7h18l.117-.007A1 1 0 0 0 21 5'/></svg>"
+    },
+    {
+      "question": "Luật Áp dụng",
+      "answer": "Điều khoản này được điều chỉnh và giải thích theo pháp luật hiện hành tại quốc gia nơi chúng tôi đặt trụ sở.",
+      "icon": "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><g fill='none' stroke='#f057b7' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'><path d='M20 12V5.749a.6.6 0 0 0-.176-.425l-3.148-3.148A.6.6 0 0 0 16.252 2H4.6a.6.6 0 0 0-.6.6v18.8a.6.6 0 0 0 .6.6H13M8 10h8M8 6h4m-4 8h3'/><path d='M16 2v3.4a.6.6 0 0 0 .6.6H20m-.008 9.125l2.556.649c.266.068.453.31.445.584C22.821 22.116 19.5 23 19.5 23s-3.321-.884-3.493-6.642a.59.59 0 0 1 .445-.584l2.556-.649c.323-.082.661-.082.984 0'/></g></svg>"
+    }
+  ],
+  "chinhSach": [
+    {
+      "question": "Thông tin chúng tôi thu thập",
+      "answer": "HappyPaws thu thập: (1) Thông tin tài khoản: tên, email, số điện thoại; (2) Hồ sơ thú cưng: tên, giống, tuổi, cân nặng, sở thích, ghi chú chăm sóc do bạn cung cấp; (3) Lịch sử đặt lịch, gói dịch vụ, phương thức thanh toán và hóa đơn; (4) Ảnh/vídeo trước–sau dịch vụ, album lưu niệm; (5) Phản hồi/đánh giá và nội dung bạn gửi; (6) Dữ liệu kỹ thuật: thiết bị, hệ điều hành, phiên bản ứng dụng, địa chỉ IP, mã định danh quảng cáo, cookie/SDK logs.",
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 48 48\"><defs><mask id=\"SVGX9qUOAmp\"><g fill=\"none\"><path fill=\"#fff\" stroke=\"#fff\" stroke-linejoin=\"round\" stroke-width=\"4\" d=\"M24 44a19.94 19.94 0 0 0 14.142-5.858A19.94 19.94 0 0 0 44 24a19.94 19.94 0 0 0-5.858-14.142A19.94 19.94 0 0 0 24 4A19.94 19.94 0 0 0 9.858 9.858A19.94 19.94 0 0 0 4 24a19.94 19.94 0 0 0 5.858 14.142A19.94 19.94 0 0 0 24 44Z\"/><path fill=\"#000\" fill-rule=\"evenodd\" d=\"M24 11a2.5 2.5 0 1 1 0 5a2.5 2.5 0 0 1 0-5\" clip-rule=\"evenodd\"/><path stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"4\" d=\"M24.5 34V20h-2M21 34h7\"/></g></mask></defs><path fill=\"#f057b7\" d=\"M0 0h48v48H0z\" mask=\"url(#SVGX9qUOAmp)\"/></svg>"
+    },
+    {
+      "question": "Mục đích sử dụng thông tin",
+      "answer": "Dữ liệu được dùng để: tạo và quản lý tài khoản; đặt lịch, nhắc lịch và cập nhật trạng thái dịch vụ theo thời gian thực; cá nhân hóa gợi ý gói chăm sóc; xử lý thanh toán và hóa đơn; hỗ trợ khách hàng; đảm bảo an toàn, phát hiện gian lận/gián đoạn; phân tích, cải tiến chất lượng và hiệu năng hệ thống; gửi thông báo vận hành (không tiếp thị) khi cần.",
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"#f057b7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\"><path d=\"M14 8.5a5 5 0 1 0-10 0a5 5 0 0 0 10 0\"/><path d=\"M16 20.5a7 7 0 1 0-14 0m17-6s3-1.323 3-3.472c0-.844-.632-1.528-1.5-1.528c-.71 0-1.184.294-1.5.882c-.316-.588-.79-.882-1.5-.882c-.868 0-1.5.684-1.5 1.528c0 2.149 3 3.472 3 3.472\"/></g></svg>"
+    },
+
+    {
+      "question": "Quyền và lựa chọn của bạn",
+      "answer": "Bạn có thể yêu cầu truy cập, sửa, xóa dữ liệu; tải xuống dữ liệu; rút lại sự đồng ý; phản đối hoặc giới hạn xử lý trong phạm vi luật cho phép. Các yêu cầu có thể ảnh hưởng đến khả năng cung cấp một số tính năng/dịch vụ.",
+      "icon": "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><g fill='none' stroke='#C71585' stroke-width='1.6'><path d='M5 12a7 7 0 1 0 14 0a7 7 0 1 0-14 0'/><path d='M12 8v4l3 2'/></g></svg>"
+    },
+    {
+      "question": "Quyền truy cập quyền hệ thống",
+      "answer": "Ứng dụng có thể yêu cầu quyền Máy ảnh/Thư viện (chụp/tải ảnh thú cưng), Thông báo (nhắc lịch, cập nhật trạng thái), Vị trí (gợi ý cơ sở gần bạn). Bạn có thể từ chối hoặc thay đổi trong phần Cài đặt; một số tính năng có thể không hoạt động nếu bạn tắt quyền.",
+      "icon": "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><g fill='none' stroke='#C71585' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'><path d='M14.5 7.5a5 5 0 1 0-10 0a5 5 0 0 0 10 0'/><path d='M2.5 19.5a7 7 0 0 1 10-6.326m5 8.326s4-1.853 4-4.861c0-1.181-.842-2.139-2-2.139c-.947 0-1.579.412-2 1.235c-.421-.823-1.053-1.235-2-1.235c-1.158 0-2 .958-2 2.139c0 3.008 4 4.861 4 4.861'/></g></svg>"
+    },
+    {
+      "question": "Lưu trữ và bảo mật dữ liệu",
+      "answer": "Trong một số trường hợp, dữ liệu có thể được lưu trữ/xử lý tại máy chủ đặt ở quốc gia khác. Chúng tôi áp dụng biện pháp bảo vệ phù hợp (hợp đồng tiêu chuẩn, đánh giá nhà cung cấp) để đảm bảo mức độ an toàn tương đương.",
+      "icon": "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path fill='#f057b7' d='M12 1L3 5v6c0 5.55 3.84 10.74 9 12c5.16-1.26 9-6.45 9-12V5zm0 4a3 3 0 0 1 3 3a3 3 0 0 1-3 3a3 3 0 0 1-3-3a3 3 0 0 1 3-3m5.13 12A9.7 9.7 0 0 1 12 20.92A9.7 9.7 0 0 1 6.87 17c-.34-.5-.63-1-.87-1.53c0-1.65 2.71-3 6-3s6 1.32 6 3c-.24.53-.53 1.03-.87 1.53'/></svg>"
+    },
+    {
+      "question": "Quyền riêng tư của trẻ em",
+      "answer": "HappyPaws không hướng đến người dùng dưới 13 tuổi. Nếu phát hiện tài khoản của trẻ em được tạo trái quy định hoặc thiếu chấp thuận hợp lệ từ người giám hộ, chúng tôi sẽ xóa và hạn chế xử lý dữ liệu liên quan.",
+      "icon": "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path fill='#C71585' d='M10 10a1 1 0 1 0-1 1a1 1 0 0 0 1-1m4.5 4.06a1 1 0 0 0-1.37.36a1.3 1.3 0 0 1-2.26 0a1 1 0 0 0-1.37-.36a1 1 0 0 0-.37 1.36a3.31 3.31 0 0 0 5.74 0a1 1 0 0 0-.37-1.36M15 9a1 1 0 1 0 1 1a1 1 0 0 0-1-1m-3-7a10 10 0 1 0 10 10A10 10 0 0 0 12 2m0 18A8 8 0 0 1 9 4.57A3 3 0 0 0 9 5a3 3 0 0 0 3 3a1 1 0 0 0 0-2a1 1 0 0 1 0-2a8 8 0 0 1 0 16'/></svg>"
+    },
+    {
+      "question": "Cập nhật Chính sách",
+      "answer": "Chúng tôi có thể điều chỉnh Chính sách Quyền Riêng tư để phản ánh thay đổi về tính năng, pháp luật hoặc biện pháp bảo mật. Phiên bản mới có hiệu lực khi công bố trong ứng dụng hoặc trên trang web. Việc bạn tiếp tục sử dụng đồng nghĩa bạn chấp nhận thay đổi.",
+      "icon": "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 48 48'><defs><mask id='SVGiChrWclO'><g fill='none'><path stroke='#fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='4' d='M40 27V6a2 2 0 0 0-2-2H10a2 2 0 0 0-2 2v36a2 2 0 0 0 2 2h11m-4-32h14m-14 8h14m-14 8h6'/><path fill='#555555' d='M37 37c0 1.38-.56 2.63-1.465 3.535A5 5 0 1 1 37 37'/><path stroke='#fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='4' d='m39 44l-3.465-3.465m0 0a5 5 0 1 0-7.071-7.07a5 5 0 0 0 7.072 7.07'/></g></mask></defs><path fill='#C71585' d='M0 0h48v48H0z' mask='url(#SVGiChrWclO)'/></svg>"
+    }
+  ],
+  "contactTitle": "Thông tin liên hệ",
+  "address": "Address:",
+  "customerSupport": "Customer Support:",
+  "email": "Email:",
+  "contactInfo": {
+    "phone": "(+84) 12 345 6789",
+    "phoneIcon": "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path fill='currentColor' d='M6.54 5c.06.89.21 1.76.45 2.59l-1.2 1.2c-.41-1.2-.67-2.47-.76-3.79zm9.86 12.02c.85.24 1.72.39 2.6.45v1.49c-1.32-.09-2.59-.35-3.8-.75zM7.5 3H4c-.55 0-1 .45-1 1c0 9.39 7.61 17 17 17c.55 0 1-.45 1-1v-3.49c0-.55-.45-1-1-1c-1.24 0-2.45-.2-3.57-.57a.8.8 0 0 0-.31-.05c-.26 0-.51.1-.71.29l-2.2 2.2a15.15 15.15 0 0 1-6.59-6.59l2.2-2.2c.28-.28.36-.67.25-1.02A11.4 11.4 0 0 1 8.5 4c0-.55-.45-1-1-1'/></svg>",
+    "email": "support@happypaws.vn",
+    "emailIcon": "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m5 7.06l6.87 5.89c.07.06.19.06.26 0L19 7.06M3.2 4h17.6c.66 0 1.2.54 1.2 1.2v12.4c0 1.32-1.08 2.4-2.4 2.4H4.4C3.08 20 2 18.92 2 17.6V5.2C2 4.54 2.54 4 3.2 4'/></svg>"
+  }
+}
