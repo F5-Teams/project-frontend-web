@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import { useMe } from "@/services/profile/hooks";
+import NotificationBell from "@/components/notification/NotificationBell";
 
 export default function Topbar() {
   const { data: user } = useMe();
@@ -31,10 +32,8 @@ export default function Topbar() {
 
       {/* right: chat, notifications, avatar */}
       <div className="flex items-center gap-4">
-        {/* Nút chat staff */}
-
-        {/* Bạn có thể mở lại nút notification / settings nếu cần */}
-        {/* <button ...><Bell /></button> */}
+        {/* Only show notification bell for groomer role (role.id = 3) */}
+        {user?.role?.id === 3 && <NotificationBell />}
 
         <div className="flex items-center gap-3">
           {avatar ? (

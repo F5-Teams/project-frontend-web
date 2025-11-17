@@ -36,7 +36,7 @@ export default function OneSignalInitializer() {
 
   // Lấy token từ localStorage hoặc từ AuthContext của bạn
   const token =
-    typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+    typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
 
   useEffect(() => {
     if (!token) {
@@ -49,12 +49,19 @@ export default function OneSignalInitializer() {
     initialized.current = true;
 
     const initOneSignal = async () => {
+      const appId = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID;
+      if (!appId) {
+        console.error("Missing NEXT_PUBLIC_ONESIGNAL_APP_ID env variable");
+        return;
+      }
+
       await OneSignal.init({
-        appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID!,
+        appId,
         allowLocalhostAsSecureOrigin: true, // Cho phép test trên localhost
       });
 
-      // Lấy player ID (OneSignal gọi là userId trong SDK mới)
+      // Lấy player ID (device token)
+      // @ts-expect-error: SDK versions differ; getUserId exists on some builds
       const playerId = await OneSignal.getUserId();
       if (playerId && token) {
         console.log("OneSignal Player ID:", playerId);
@@ -67,22 +74,52 @@ export default function OneSignalInitializer() {
       }
 
       // Lắng nghe sự kiện khi có thông báo mới (khi user đang mở trang web)
-      OneSignal.on("notificationDisplay", (event) => {
+      const handler = (e: unknown) => {
+        const event = e as {
+          content?: string;
+          data?: { bookingId?: string | number };
+        };
         console.log("OneSignal notification displayed:", event);
-        // Tạo một đối tượng notification giả để thêm vào state
         const newNotification = {
-          id: Date.now(), // Dùng timestamp làm id tạm thời
-          message: event.content,
+          id: Date.now(),
+          message: event.content || "Bạn có thông báo mới",
           isRead: false,
           createdAt: new Date().toISOString(),
-          // Bạn có thể lấy data từ payload nếu có
-          bookingId: event.data?.bookingId,
+          bookingId: event?.data?.bookingId
+            ? Number(event.data.bookingId)
+            : undefined,
         };
         addNotification(newNotification);
-      });
+      };
+      // Đăng ký listener theo API v16 (foregroundWillDisplay)
+      OneSignal.Notifications.addEventListener(
+        "foregroundWillDisplay",
+        handler
+      );
+
+      // Trả về cleanup để gọi khi unmount (nếu SDK hỗ trợ off)
+      return () => {
+        try {
+          OneSignal.Notifications.removeEventListener(
+            "foregroundWillDisplay",
+            handler
+          );
+        } catch {}
+      };
     };
 
-    initOneSignal();
+    let cleanup: (() => void) | undefined;
+    initOneSignal().then((fn) => {
+      if (typeof fn === "function") cleanup = fn;
+    });
+
+    return () => {
+      if (cleanup) {
+        try {
+          cleanup();
+        } catch {}
+      }
+    };
   }, [token, addNotification]);
 
   return null; // Component này không render gì cả

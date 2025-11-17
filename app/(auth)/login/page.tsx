@@ -66,7 +66,7 @@ export default function LoginPage() {
 
     try {
       // (1) Gọi API login
-      const res = await api.post<AuthResponse>("auth/sign-in", formData);
+      const res = await api.post<AuthResponse>("/auth/sign-in", formData);
 
       // (2) Lấy access token từ nhiều format có thể có
       const token =
@@ -75,13 +75,15 @@ export default function LoginPage() {
         res.data?.data?.accessToken;
 
       if (!token) {
+        console.error("Token not found in response:", res.data);
         setError("Không nhận được token từ server.");
         return;
       }
+      console.log("Token received:", token.substring(0, 20) + "...");
 
       // (3) Gọi API lấy thông tin người dùng
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      const meRes = await api.get("/user/me");
+      const meRes = await api.get("/users/me");
       const me = meRes.data;
 
       // (4) Xác định role từ dữ liệu backend (dạng linh hoạt)
@@ -113,10 +115,30 @@ export default function LoginPage() {
       setCookie("role", roleUpper, oneDay);
 
       // (7) Điều hướng về trang home của từng role
+      console.log(
+        "Login successful, redirecting to:",
+        ROLE_HOME[roleLower] ?? "/"
+      );
       router.replace(ROLE_HOME[roleLower] ?? "/");
     } catch (err) {
-      console.error(err);
-      setError("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
+      console.error("Login error:", err);
+      const error = err as {
+        response?: {
+          data?: { message?: string; error?: string };
+          status?: number;
+        };
+        message?: string;
+      };
+      console.error("Error response:", error?.response?.data);
+      console.error("Error status:", error?.response?.status);
+
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.";
+
+      setError(errorMessage);
     }
   };
 
