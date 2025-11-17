@@ -145,10 +145,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
     try {
       // Map payment method selection to API format
-      const paymentMethodMap: { [key: string]: "WALLET" | "VNPAY" | "MOMO" } = {
+      const paymentMethodMap: {
+        [key: string]: "WALLET" | "VNPAY" | "MOMO" | "CASH";
+      } = {
         wallet: "WALLET", // Ví điện tử
         vnpay: "VNPAY", // Thanh toán qua VNPay
         momo: "MOMO", // Thanh toán qua MoMo
+        cash: "CASH", // Tiền mặt tại quầy lễ tân
       };
 
       // Convert cart items to bulk booking format for /bookings/bulk API
@@ -526,6 +529,33 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                           className="cursor-pointer font-poppins-regular"
                         >
                           MoMo
+                        </Label>
+                      </div>
+                    </div>
+                    {/* Option 4: Tiền mặt */}
+                    <div className="flex items-center space-x-2.5 rounded-lg border p-1 hover:bg-gray-50">
+                      <RadioGroupItem value="cash" id="cash" />
+                      <div className="flex items-center space-x-2">
+                        {/* Icon banknote for Cash */}
+                        <svg
+                          width="24"
+                          height="24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="lucide lucide-banknote"
+                        >
+                          <rect width="20" height="12" x="2" y="6" rx="2" />
+                          <circle cx="12" cy="12" r="2" />
+                          <path d="M6 12h.01M18 12h.01" />
+                        </svg>
+                        <Label
+                          htmlFor="cash"
+                          className="cursor-pointer font-poppins-regular"
+                        >
+                          Tiền mặt tại quầy lễ tân
                         </Label>
                       </div>
                     </div>
