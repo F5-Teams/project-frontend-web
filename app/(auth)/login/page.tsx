@@ -69,7 +69,7 @@ export default function LoginPage() {
       const res = await api.post<AuthResponse>("/auth/sign-in", formData);
 
       // (2) Lấy access token từ nhiều format có thể có
-      const token =
+      let token =
         res.data?.access_token ||
         res.data?.token ||
         res.data?.data?.accessToken;
@@ -79,7 +79,23 @@ export default function LoginPage() {
         setError("Không nhận được token từ server.");
         return;
       }
+
+      // Nếu token trả về đã chứa tiền tố "Bearer ", loại bỏ để tránh bị gửi "Bearer Bearer ..."
+      if (
+        typeof token === "string" &&
+        token.toLowerCase().startsWith("bearer ")
+      ) {
+        token = token.slice(7).trim();
+      }
+
       console.log("Token received:", token.substring(0, 20) + "...");
+
+      // Lưu token vào localStorage trước khi gọi /users/me để interceptor có thể sử dụng
+      try {
+        localStorage.setItem("accessToken", token);
+      } catch (e) {
+        console.warn("Could not write token to localStorage:", e);
+      }
 
       // (3) Gọi API lấy thông tin người dùng
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
