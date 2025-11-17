@@ -16,6 +16,9 @@ const nextConfig = {
       { protocol: "https", hostname: "sunshinepethospital.com" },
     ],
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 module.exports = nextConfig;

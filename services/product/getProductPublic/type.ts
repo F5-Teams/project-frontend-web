@@ -22,7 +22,7 @@ export interface Product {
   type: string;
   createAt: string;
   note: string;
-  images: Images;
+  images: Images[];
   orderDetails: Order;
   weight: string;
 }

@@ -6,9 +6,16 @@ import { SocketProvider } from "@/contexts/SocketContext";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: (failureCount, error: any) => {
+      retry: (failureCount, error: unknown) => {
         // Don't retry on 401 errors
-        if (error?.response?.status === 401) {
+        if (
+          error &&
+          typeof error === "object" &&
+          "response" in error &&
+          typeof (error as { response?: { status?: number } }).response ===
+            "object" &&
+          (error as { response?: { status?: number } }).response?.status === 401
+        ) {
           return false;
         }
         return failureCount < 2;
@@ -20,7 +27,8 @@ const queryClient = new QueryClient({
 
 // Expose queryClient globally for logout function
 if (typeof window !== "undefined") {
-  (window as any).__REACT_QUERY_CLIENT__ = queryClient;
+  (window as { __REACT_QUERY_CLIENT__?: QueryClient }).__REACT_QUERY_CLIENT__ =
+    queryClient;
 }
 
 export function Providers({ children }: { children: ReactNode }) {

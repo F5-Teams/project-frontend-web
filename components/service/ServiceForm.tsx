@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -41,7 +39,7 @@ export default function ServiceForm({ editing, onClose }: Props) {
     const currentFirstUrl = currentImages[0]?.imageUrl || "";
     const newUrl = imageUrl?.trim();
 
-    const base: any = {
+    const base: Record<string, unknown> = {
       name,
       price: typeof price === "number" ? Math.trunc(price) : undefined,
       duration: typeof duration === "number" ? Math.trunc(duration) : undefined,

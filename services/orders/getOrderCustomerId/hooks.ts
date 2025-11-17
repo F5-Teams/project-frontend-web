@@ -5,7 +5,7 @@ import { OrderCustomer } from "./type";
 export const ORDER_CUSTOMER_ID_QUERYKEY = ["orderCustomerId"] as const;
 
 export function useOrderCustomer(id?: number) {
-  return useQuery<OrderCustomer>({
+  return useQuery<OrderCustomer[]>({
     queryKey: [...ORDER_CUSTOMER_ID_QUERYKEY, id],
     queryFn: () => getOrderCustomerId({ id: id! }),
     enabled: !!id,

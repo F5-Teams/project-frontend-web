@@ -31,19 +31,26 @@ const ModalComplete: React.FC<ModalCompleteProps> = ({
   const queryClient = useQueryClient();
   const [option, setOption] = useState<string>();
   useEffect(() => {
-    if (order?.shipping?.images) {
-      form.setFieldsValue({
-        images: order.shipping.images.map((img: any, idx: number) => ({
-          uid: `${idx}`,
-          name: `image-${idx}`,
-          status: "done",
-          url: img.imageUrl,
-        })),
-      });
-    }
+    // Note: shipping.images was removed from type definition
+    // If images are needed, they should come from a different source
+    // if (order?.shipping?.images) {
+    //   form.setFieldsValue({
+    //     images: order.shipping.images.map(
+    //       (img: { imageUrl: string }, idx: number) => ({
+    //         uid: `${idx}`,
+    //         name: `image-${idx}`,
+    //         status: "done",
+    //         url: img.imageUrl,
+    //       })
+    //     ),
+    //   });
+    // }
   }, [order, form]);
 
-  const handleFinish = async (values: any) => {
+  const handleFinish = async (values: {
+    images?: Array<{ url?: string; originFileObj?: File }>;
+    failed?: string;
+  }) => {
     if (!order) return;
     setLoading(true);
 
@@ -65,7 +72,7 @@ const ModalComplete: React.FC<ModalCompleteProps> = ({
             toast.success("Đơn hàng đã giao thành công!");
             form.resetFields();
             onClose();
-            queryClient.invalidateQueries(["getAllOrder"]);
+            queryClient.invalidateQueries({ queryKey: ["getAllOrder"] });
           },
           onError: (err) => {
             console.log("Error SUCCESS:", err);
@@ -80,9 +87,10 @@ const ModalComplete: React.FC<ModalCompleteProps> = ({
       };
 
       const payloadPatch = {
-        status: "FAILED",
+        status: "CANCELLED" as const,
         note: order.note || "",
         customerId: order.customerId,
+        shippingStatus: "CANCELLED" as const,
 
         shipping: {
           toName: order.shipping.toName,
@@ -102,11 +110,10 @@ const ModalComplete: React.FC<ModalCompleteProps> = ({
           codAmount: Number(order.shipping.codAmount) || 0,
           insuranceValue: Number(order.shipping.insuranceValue) || 0,
           note: order.note || "",
-          status: "FAILED",
         },
 
         paymentMethod: order.payment.paymentMethod,
-        paymentStatus: "PAID",
+        paymentStatus: "PAID" as const,
         orderDetails: order.orderDetails.map((item) => ({
           productId: item.product.id,
           quantity: item.quantity,
@@ -121,7 +128,7 @@ const ModalComplete: React.FC<ModalCompleteProps> = ({
             setTimeout(() => {
               form.resetFields();
               onClose();
-              queryClient.invalidateQueries(["getAllOrder"]);
+              queryClient.invalidateQueries({ queryKey: ["getAllOrder"] });
               setLoading(false);
             });
           },

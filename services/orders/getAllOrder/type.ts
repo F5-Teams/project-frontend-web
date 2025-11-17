@@ -69,6 +69,7 @@ export interface Shipping {
   deliveryProofImage: string;
   status: "PENDING" | "SHIPPING" | "DELIVERED" | "CANCELLED";
   orderId: number;
+  failureReason?: string;
 }
 
 export interface Payment {

@@ -33,7 +33,15 @@ interface SingleServiceBookingModalProps {
   onConfirm: (bookingDrafts: BookingDraft[]) => void;
   serviceId: string;
   selectedPetIds: string[];
-  service?: any; // Optional service data to avoid duplicate API calls
+  service?: {
+    id: number;
+    name: string;
+    description: string;
+    price: string;
+    duration: number;
+    isActive: boolean;
+    serviceLinks: Array<{ id: number; service: { name: string } }>;
+  }; // Optional service data to avoid duplicate API calls
 }
 
 export const SingleServiceBookingModal: React.FC<
@@ -43,7 +51,15 @@ export const SingleServiceBookingModal: React.FC<
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [errors, setErrors] = useState<string[]>([]);
-  const [serviceData, setServiceData] = useState<any>(null);
+  const [serviceData, setServiceData] = useState<{
+    id: number;
+    name: string;
+    description: string;
+    price: string;
+    duration: number;
+    isActive: boolean;
+    serviceLinks: Array<{ id: number; service: { name: string } }>;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
 
   // Fetch service data from API or use provided service prop
@@ -64,7 +80,7 @@ export const SingleServiceBookingModal: React.FC<
         const response = await api.get("/combos/available");
         const combos = response.data || [];
         const foundService = combos.find(
-          (combo: any) => combo.id.toString() === serviceId
+          (combo: { id: number | string }) => combo.id.toString() === serviceId
         );
 
         if (foundService) {
@@ -84,7 +100,7 @@ export const SingleServiceBookingModal: React.FC<
       } catch (error) {
         console.error("Error fetching service:", error);
         // Fallback service
-        setService({
+        setServiceData({
           id: parseInt(serviceId),
           name: "Spa Service",
           description: "Professional spa service for your pet",
@@ -229,17 +245,22 @@ export const SingleServiceBookingModal: React.FC<
                         Bao gồm các dịch vụ:
                       </p>
                       <div className="space-y-1">
-                        {serviceData.serviceLinks.map((serviceLink: any) => (
-                          <div
-                            key={serviceLink.id}
-                            className="flex items-center gap-2"
-                          >
-                            <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-                            <span className="text-sm text-gray-600">
-                              {serviceLink.service.name}
-                            </span>
-                          </div>
-                        ))}
+                        {serviceData.serviceLinks.map(
+                          (serviceLink: {
+                            id: number;
+                            service: { name: string };
+                          }) => (
+                            <div
+                              key={serviceLink.id}
+                              className="flex items-center gap-2"
+                            >
+                              <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+                              <span className="text-sm text-gray-600">
+                                {serviceLink.service.name}
+                              </span>
+                            </div>
+                          )
+                        )}
                       </div>
                     </div>
                   )}

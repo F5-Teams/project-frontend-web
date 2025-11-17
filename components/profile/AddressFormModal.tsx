@@ -82,8 +82,15 @@ export default function AddressFormModal({
 
     console.log(payload);
     if (inistitalState) {
-      await patchAddress({ id: inistitalState.id, body: payload });
-      queryClient.invalidateQueries(["patchAddress"]);
+      const addressId = inistitalState.id;
+
+      if (typeof addressId !== "number") {
+        toast.error("Không xác định được địa chỉ để cập nhật.");
+        return;
+      }
+
+      await patchAddress({ id: addressId, body: payload });
+      queryClient.invalidateQueries({ queryKey: ["patchAddress"] });
 
       toast.promise<{ name: string }>(
         () =>
@@ -98,7 +105,7 @@ export default function AddressFormModal({
       );
     } else {
       await createAddress(payload);
-      queryClient.invalidateQueries(["createAddress"]);
+      queryClient.invalidateQueries({ queryKey: ["createAddress"] });
       toast.promise<{ name: string }>(
         () =>
           new Promise((resolve) =>

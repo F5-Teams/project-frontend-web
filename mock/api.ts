@@ -26,7 +26,6 @@ export interface BulkBookingRequest {
 }
 
 export interface BulkBookingResponse {
-  success: boolean;
   bookingIds: string[];
   message: string;
 }

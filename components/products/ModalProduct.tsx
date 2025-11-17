@@ -51,12 +51,14 @@ export const ModalProduct = ({
         type: initialState.type,
         note: initialState.note,
         images: initialState.images
-          ? initialState.images.map((img: any, index: number) => ({
-              uid: `${index}`,
-              name: `image-${index}.png`,
-              status: "done",
-              url: img.imageUrl,
-            }))
+          ? initialState.images.map(
+              (img: { imageUrl: string }, index: number) => ({
+                uid: `${index}`,
+                name: `image-${index}.png`,
+                status: "done",
+                url: img.imageUrl,
+              })
+            )
           : [],
       });
     } else if (mode === "add") {
@@ -72,18 +74,20 @@ export const ModalProduct = ({
 
     const currentImages = value.images || [];
 
-    const newImageFiles = currentImages.filter((img: any) => img.originFileObj);
+    const newImageFiles = currentImages.filter(
+      (img: { originFileObj?: File }) => img.originFileObj
+    );
 
     const uploadedImages = await Promise.all(
-      newImageFiles.map(async (fileObj: any) => {
+      newImageFiles.map(async (fileObj: { originFileObj: File }) => {
         const uploaded = await uploadFile(fileObj.originFileObj);
         return { imageUrl: uploaded.url };
       })
     );
 
     const remainingOldImages = currentImages
-      .filter((img: any) => !img.originFileObj)
-      .map((img: any) => {
+      .filter((img: { originFileObj?: File }) => !img.originFileObj)
+      .map((img: { url: string }) => {
         const found = oldImages.find((old) => old.imageUrl === img.url);
         return found ? { id: found.id, imageUrl: found.imageUrl } : null;
       })
@@ -91,10 +95,12 @@ export const ModalProduct = ({
 
     const removeImageIds = oldImages
       .filter(
-        (old) => !currentImages.some((cur: any) => cur.url === old.imageUrl)
+        (old) =>
+          !currentImages.some(
+            (cur: { url: string }) => cur.url === old.imageUrl
+          )
       )
       .map((img) => img.id);
-
     const payloadPost = {
       name: value.name,
       description: value.description,
@@ -122,7 +128,7 @@ export const ModalProduct = ({
         await updateProduct({ id: initialState.id, body: payloadPatch });
         toast.success("Cập nhật thành công!");
 
-        queryClient.invalidateQueries(["patchProduct"]);
+        queryClient.invalidateQueries({ queryKey: ["patchProduct"] });
       } else {
         await createProduct(payloadPost);
         toast.promise<{ name: string }>(
@@ -136,7 +142,7 @@ export const ModalProduct = ({
             error: "Error",
           }
         );
-        queryClient.invalidateQueries(["allProductAdmin"]);
+        queryClient.invalidateQueries({ queryKey: ["allProductAdmin"] });
       }
       setTimeout(() => {
         form.resetFields();

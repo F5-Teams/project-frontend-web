@@ -25,7 +25,7 @@ const LoginTestPage = () => {
       ];
 
       let response = null;
-      let lastError = null;
+      let lastError: unknown = null;
 
       for (const endpoint of endpoints) {
         try {
@@ -47,7 +47,9 @@ const LoginTestPage = () => {
 
       if (!response || !response.ok) {
         throw new Error(
-          `Login failed. Last error: ${lastError?.message || "Unknown error"}`
+          `Login failed. Last error: ${
+            lastError instanceof Error ? lastError.message : "Unknown error"
+          }`
         );
       }
 
@@ -64,13 +66,12 @@ const LoginTestPage = () => {
       } else {
         throw new Error("No token found in response");
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
     }
   };
-
   const testAPI = async () => {
     if (!token) {
       setError("Please login first");
@@ -101,11 +102,14 @@ const LoginTestPage = () => {
         const errorData = await response.json();
         setApiResult(`❌ API Error: ${errorData.message}`);
       }
-    } catch (err: any) {
-      setApiResult(`❌ Network Error: ${err.message}`);
+    } catch (err: unknown) {
+      setApiResult(
+        `❌ Network Error: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }`
+      );
     }
   };
-
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-lg shadow-md p-6">

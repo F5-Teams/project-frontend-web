@@ -19,3 +19,15 @@ export interface ShippingFeeResponse {
   message: string;
   data: ShippingFeeData;
 }
+
+export interface ShippingFeePayload {
+  to_district_id: number;
+  to_ward_code: string;
+  weight: number;
+  length: number;
+  width: number;
+  height: number;
+  service_type_id: number;
+  cod_amount: number;
+  insurance_value: number;
+}

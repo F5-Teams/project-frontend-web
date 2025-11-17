@@ -12,10 +12,12 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
 const statusLabel = {
+  PENDING: "Chờ xác nhận",
   PAID: "Đã thanh toán",
   CANCELLED: "Đã hủy",
   APPROVED: "Đã duyệt",
   SHIPPING: "Đang giao",
+  DELIVERED: "Đã giao",
   COMPLETED: "Hoàn thành",
   FAILED: "Thất bại",
   REFUND: "Hoàn tiền",
@@ -23,10 +25,12 @@ const statusLabel = {
 };
 
 const statusColor = {
+  PENDING: "bg-gray-100 text-gray-700",
   PAID: "bg-yellow-100 text-yellow-700",
   CANCELLED: "bg-red-100 text-red-700",
   APPROVED: "bg-blue-100 text-blue-700",
   SHIPPING: "bg-purple-100 text-purple-700",
+  DELIVERED: "bg-teal-100 text-teal-700",
   COMPLETED: "bg-green-100 text-green-700",
   FAILED: "bg-orange-100 text-orange-700",
   REFUND: "bg-orange-100 text-orange-700",
@@ -229,13 +233,16 @@ export default function HistoryOrder() {
               danger
               loading={postOrderCancelMutation.isPending}
               onClick={() => {
+                if (!user?.id || !id) return;
                 postOrderCancelMutation.mutate(
-                  { id, customerId: user?.id },
+                  { id, customerId: user.id },
                   {
                     onSuccess: () => {
                       toast.success("Hủy đơn hàng thành công!");
                       setOpen(false);
-                      queryClient.invalidateQueries(["orderCancel"]);
+                      queryClient.invalidateQueries({
+                        queryKey: ["orderCancel"],
+                      });
                     },
                     onError: () => {
                       toast.error("Hủy đơn hàng thất bại!");

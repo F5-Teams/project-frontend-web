@@ -8,6 +8,7 @@ import ScrollToTop from "@/components/shared/ScrollToTop";
 import HappyPawsChat from "@/components/chat/HappyPawsChat";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import OneSignalInitializer from "@/components/notification/OneSignalInitializer";
+import { Suspense } from "react";
 
 // import ReduxProvider from "./ReduxProvider";
 
@@ -40,7 +41,9 @@ export default function RootLayout({
         <Providers>
           <NotificationProvider>
             <OneSignalInitializer />
-            <ScrollToTop />
+            <Suspense fallback={null}>
+              <ScrollToTop />
+            </Suspense>
             {children}
             {/* Global floating chat widget visible on all pages */}
             <HappyPawsChat />

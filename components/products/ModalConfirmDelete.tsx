@@ -22,10 +22,17 @@ export const ModalConfirmDelete = ({
   const { mutateAsync: deleteProduct } = useDeleteProduct();
 
   const handleDelete = async () => {
+    const productId = initialState?.id;
+
+    if (typeof productId !== "number") {
+      toast.error("Không tìm thấy sản phẩm để xoá!");
+      return;
+    }
+
     try {
-      await deleteProduct({ id: initialState?.id });
+      await deleteProduct({ id: productId });
       toast.success("Xoá thành công!");
-      queryClient.invalidateQueries(["allProductAdmin"]);
+      queryClient.invalidateQueries({ queryKey: ["allProductAdmin"] });
       onCancel();
     } catch (err) {
       toast.error("Xoá thất bại!");

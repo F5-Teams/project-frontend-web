@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const getResourceType = (file) => {
-  const ext = file.name.split(".").pop().toLowerCase();
+const getResourceType = (file: File) => {
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
 
   if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) return "image";
   if (["mp4", "mov", "avi", "mkv"].includes(ext)) return "video";
@@ -9,7 +9,7 @@ const getResourceType = (file) => {
   return "raw";
 };
 
-export const uploadFile = async (file) => {
+export const uploadFile = async (file: File) => {
   const resourceType = getResourceType(file);
 
   const formData = new FormData();

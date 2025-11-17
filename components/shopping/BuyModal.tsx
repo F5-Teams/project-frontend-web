@@ -1,6 +1,7 @@
 import { useGetAddress } from "@/services/address/getAddress/hooks";
 import { Address } from "@/services/address/getAddress/type";
 import { useCalculateFee } from "@/services/calculateFee/hooks";
+import { ShippingFeePayload } from "@/services/calculateFee/type";
 import { useGetUser } from "@/services/users/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button, Form, Input, Modal, Radio, Select } from "antd";
@@ -9,6 +10,7 @@ import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import AddressModal from "./AddressModal";
 import { usePostOrder } from "@/services/orders/postOrder/hooks";
+import type { Orders } from "@/services/orders/postOrder/type";
 import { useGetVoucher } from "@/services/vouchers/hooks";
 import { Voucher } from "@/services/vouchers/type";
 
@@ -50,14 +52,22 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    setAddress(user?.address || "");
     setPhone(user?.phoneNumber || "");
 
     form.setFieldsValue({
       phone: user?.phoneNumber,
       address: user?.address,
     });
-  }, [user]);
+  }, [form, user]);
+
+  useEffect(() => {
+    if (address !== undefined || addressList.length === 0) return;
+
+    const defaultAddress =
+      addressList.find((item) => item.isDefault) ?? addressList[0];
+
+    setAddress(defaultAddress?.id);
+  }, [addressList, address]);
 
   useEffect(() => {
     const filterAddress = addressList.find((item) => item.id === address);
@@ -71,9 +81,9 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
 
   useEffect(() => {
     if (!addressFee) return;
-    const payload: any = {
-      to_district_id: addressFee?.districtId,
-      to_ward_code: addressFee?.wardCode,
+    const payload: ShippingFeePayload = {
+      to_district_id: addressFee.districtId,
+      to_ward_code: addressFee.wardCode,
       weight: totalWeight,
       length: 20,
       width: 15,
@@ -93,15 +103,27 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   const handleSubmit = async () => {
     setLoading(true);
 
-    const orderPayloadTransfer = {
+    if (address === undefined) {
+      toast.error("Vui lòng chọn địa chỉ giao hàng!");
+      setLoading(false);
+      return;
+    }
+
+    if (!user?.id) {
+      toast.error("Vui lòng đăng nhập trước khi đặt hàng!");
+      setLoading(false);
+      return;
+    }
+
+    const orderPayloadTransfer: Orders = {
       status: "PENDING",
       note: note,
-      customerId: user?.id,
+      customerId: user.id,
       orderDetails: items.map((item) => ({
         productId: item.productId,
         quantity: item.quantity,
       })),
-      addressId: Number(address),
+      addressId: address,
       paymentMethod: "VNPAY",
       voucherCode: chooseVoucher?.code || "",
     };
@@ -111,7 +133,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
 
       window.location.href = response.vnpUrl;
 
-      queryClient.invalidateQueries(["createOrder"]);
+      queryClient.invalidateQueries({ queryKey: ["createOrder"] });
       form.resetFields();
       clearCart();
     } catch (error) {
@@ -181,8 +203,8 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
               showSearch
               placeholder="Chọn địa chỉ"
               optionFilterProp="children"
-              // value={address}
-              onChange={(value) => setAddress(value)}
+              value={address}
+              onChange={(value) => setAddress(Number(value))}
               className="mt-1 w-full"
               dropdownRender={(menu) => (
                 <div>
@@ -306,3 +328,4 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
 };
 
 export default BuyModal;
+

@@ -120,8 +120,8 @@ export const SuccessScreen: React.FC<SuccessScreenProps> = ({
                 <div>
                   <h4 className="font-medium">Confirmation Email</h4>
                   <p className="text-sm text-gray-600">
-                    You'll receive a confirmation email within 3 hours with all
-                    the details.
+                    You&apos;ll receive a confirmation email within 3 hours with
+                    all the details.
                   </p>
                 </div>
               </div>
@@ -133,8 +133,8 @@ export const SuccessScreen: React.FC<SuccessScreenProps> = ({
                 <div>
                   <h4 className="font-medium">Availability Check</h4>
                   <p className="text-sm text-gray-600">
-                    We'll verify availability for your selected services and
-                    time slots.
+                    We&apos;ll verify availability for your selected services
+                    and time slots.
                   </p>
                 </div>
               </div>
@@ -146,7 +146,7 @@ export const SuccessScreen: React.FC<SuccessScreenProps> = ({
                 <div>
                   <h4 className="font-medium">Final Confirmation</h4>
                   <p className="text-sm text-gray-600">
-                    Once confirmed, you'll receive final details and any
+                    Once confirmed, you&apos;ll receive final details and any
                     necessary instructions.
                   </p>
                 </div>
