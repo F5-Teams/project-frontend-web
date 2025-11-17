@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { Bot, Send, X } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import gsap from "gsap";
 import {
   Select,
@@ -31,6 +31,7 @@ type UserInfo = {
 
 export function HappyPawsChat({ className }: { className?: string }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -331,6 +332,17 @@ export function HappyPawsChat({ className }: { className?: string }) {
     [pets]
   );
 
+  // Hide chat on login, register, and dashboard pages (admin, staff, groomer)
+  const shouldHide =
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/staff") ||
+    pathname?.startsWith("/groomer");
+
+  if (shouldHide) {
+    return null;
+  }
   return (
     <div className={cn("fixed bottom-25 right-6 z-20", className)}>
       {!open && (

@@ -47,6 +47,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [customerNotes, setCustomerNotes] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
 
   // Helper functions to display item details like in cart
   const getItemIcon = (item: BookingDraft) => {
@@ -144,14 +145,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
     try {
       // Map payment method selection to API format
-      const paymentMethodMap: { [key: string]: "WALLET" | "CASH" } = {
+      const paymentMethodMap: { [key: string]: "WALLET" | "VNPAY" | "MOMO" } = {
         wallet: "WALLET", // Ví điện tử
-        cash: "CASH", // Thanh toán khi đến cửa hàng
+        vnpay: "VNPAY", // Thanh toán qua VNPay
+        momo: "MOMO", // Thanh toán qua MoMo
       };
 
       // Convert cart items to bulk booking format for /bookings/bulk API
       const bulkBookings = {
-        paymentMethod: paymentMethodMap[selectedPaymentMethod] || "CASH",
+        paymentMethod: paymentMethodMap[selectedPaymentMethod] || "WALLET",
         bookings: bookings.map((item) => {
           const baseBooking = {
             petId: item.petId,
@@ -207,6 +209,38 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       const response = await bookingApi.createBulkBookings(bulkBookings);
 
       if (response.success) {
+        // Check if payment method requires redirection (VNPAY or MOMO)
+        if (
+          response.paymentUrl &&
+          (response.paymentMethod === "VNPAY" ||
+            response.paymentMethod === "MOMO")
+        ) {
+          setIsRedirecting(true);
+          toast.info(
+            `Đang chuyển đến trang thanh toán ${response.paymentMethod}...`,
+            {
+              duration: 3000,
+            }
+          );
+
+          // Store booking info for callback verification
+          if (response.orderBookingId) {
+            localStorage.setItem(
+              "pendingBookingId",
+              response.orderBookingId.toString()
+            );
+            localStorage.setItem(
+              "pendingPaymentMethod",
+              response.paymentMethod
+            );
+          }
+
+          // Redirect to payment gateway
+          window.location.href = response.paymentUrl;
+          return;
+        }
+
+        // For WALLET payment, handle normally
         // Show success toast if there are created bookings
         if (response.createdCount && response.createdCount > 0) {
           toast.success(`Đã tạo ${response.createdCount} đơn đặt thành công!`, {
@@ -436,11 +470,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                         </Label>
                       </div>
                     </div>
-                    {/* Option 2: Thanh toán khi đến cửa hàng */}
+                    {/* Option 2: VNPay */}
                     <div className="flex items-center space-x-2.5 rounded-lg border p-1 hover:bg-gray-50">
-                      <RadioGroupItem value="cash" id="cash" />
+                      <RadioGroupItem value="vnpay" id="vnpay" />
                       <div className="flex items-center space-x-2">
-                        {/* Icon cash on arrival */}
+                        {/* Icon credit card for VNPay */}
                         <svg
                           width="24"
                           height="24"
@@ -449,18 +483,49 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                           strokeWidth="2"
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                          className="lucide lucide-banknote"
+                          className="lucide lucide-credit-card"
                         >
-                          <rect width="20" height="12" x="2" y="6" rx="2" />
-                          <circle cx="12" cy="12" r="2" />
-                          <path d="M6 12h.01" />
-                          <path d="M18 12h.01" />
+                          <rect width="20" height="14" x="2" y="5" rx="2" />
+                          <line x1="2" x2="22" y1="10" y2="10" />
                         </svg>
                         <Label
-                          htmlFor="cash"
+                          htmlFor="vnpay"
                           className="cursor-pointer font-poppins-regular"
                         >
-                          Thanh toán khi đến cửa hàng
+                          VNPay
+                        </Label>
+                      </div>
+                    </div>
+                    {/* Option 3: MoMo */}
+                    <div className="flex items-center space-x-2.5 rounded-lg border p-1 hover:bg-gray-50">
+                      <RadioGroupItem value="momo" id="momo" />
+                      <div className="flex items-center space-x-2">
+                        {/* Icon smartphone for MoMo */}
+                        <svg
+                          width="24"
+                          height="24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="lucide lucide-smartphone"
+                        >
+                          <rect
+                            width="14"
+                            height="20"
+                            x="5"
+                            y="2"
+                            rx="2"
+                            ry="2"
+                          />
+                          <path d="M12 18h.01" />
+                        </svg>
+                        <Label
+                          htmlFor="momo"
+                          className="cursor-pointer font-poppins-regular"
+                        >
+                          MoMo
                         </Label>
                       </div>
                     </div>
@@ -525,13 +590,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </Button>
                 <Button
                   onClick={handleCheckout}
-                  disabled={isProcessing || !selectedPaymentMethod}
+                  disabled={
+                    isProcessing || isRedirecting || !selectedPaymentMethod
+                  }
                   className="min-w-[130px]"
                 >
-                  {isProcessing ? (
+                  {isProcessing || isRedirecting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin " />
-                      Đang xử lý...
+                      {isRedirecting ? "Đang chuyển hướng..." : "Đang xử lý..."}
                     </>
                   ) : (
                     `Thanh toán ${formatCurrency(totalPrice)}`

@@ -20,7 +20,7 @@ export default function OnServiceListPage() {
 
   return (
     <div>
-      <div className="relative flex gap-4">
+      <div className="relative flex gap-4 p-4">
         {/* List panel: full width by default, shrinks when detail opens */}
         <div
           className={

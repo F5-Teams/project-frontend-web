@@ -1,7 +1,7 @@
 import api from "@/config/axios";
 
 export interface BulkBookingRequest {
-  paymentMethod: "WALLET" | "CASH";
+  paymentMethod: "WALLET" | "VNPAY" | "MOMO";
   bookings: Array<{
     type: "SPA" | "HOTEL";
     petId: number;
@@ -19,9 +19,16 @@ export interface BulkBookingRequest {
 export interface BulkBookingResponse {
   success: boolean;
   createdCount?: number;
-  bookingIds?: number[];
+  bookingIds?: string[];
   errors?: string[];
   error?: string;
+  message?: string;
+  paymentMethod?: string;
+  paymentUrl?: string;
+  orderBookingId?: number;
+  totalAmount?: number;
+  allPaid?: boolean;
+  newWalletBalance?: number;
 }
 
 export const bookingApi = {
@@ -36,6 +43,13 @@ export const bookingApi = {
         createdCount: response.data.createdCount,
         bookingIds: response.data.bookingIds || [],
         errors: response.data.errors || [],
+        message: response.data.message,
+        paymentMethod: response.data.paymentMethod,
+        paymentUrl: response.data.paymentUrl,
+        orderBookingId: response.data.orderBookingId,
+        totalAmount: response.data.totalAmount,
+        allPaid: response.data.allPaid,
+        newWalletBalance: response.data.newWalletBalance,
       };
     } catch (error) {
       console.error("Error creating bulk bookings:", error);
