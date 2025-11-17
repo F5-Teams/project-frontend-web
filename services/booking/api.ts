@@ -1,7 +1,7 @@
 import api from "@/config/axios";
 
 export interface BulkBookingRequest {
-  paymentMethod: "WALLET" | "VNPAY" | "MOMO";
+  paymentMethod: "WALLET" | "VNPAY" | "MOMO" | "CASH";
   bookings: Array<{
     type: "SPA" | "HOTEL";
     petId: number;

@@ -58,9 +58,6 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       address: user?.address,
     });
   }, [user]);
-  console.log("AA", chooseVoucher);
-
-  console.log("AA", chooseVoucher?.percent);
 
   useEffect(() => {
     const filterAddress = addressList.find((item) => item.id === address);
@@ -162,7 +159,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
 
       <div className="border-t border-gray-200 my-2" />
 
-      <Form form={form}>
+      <Form form={form} component={false}>
         {/* <div className="flex">
           <h1 className="w-[30%]">Nhập số điện thoại:</h1>
           <Form.Item

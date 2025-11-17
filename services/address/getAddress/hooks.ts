@@ -8,5 +8,8 @@ export function useGetAddress() {
   return useQuery<Address[]>({
     queryKey: GET_ADDRESS_QUERY_KEY,
     queryFn: getAddress,
+    enabled:
+      typeof window !== "undefined" && !!localStorage.getItem("accessToken"),
+    retry: false,
   });
 }

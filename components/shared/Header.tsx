@@ -296,7 +296,7 @@ export default function Header() {
 
       {/* KHỐI PHẢI */}
       <div className="relative z-10 inline-flex items-center gap-3 p-4 ml-auto">
-        <NotificationBell />
+        {user && <NotificationBell />}
         {/* Cart Icon */}
         <CartDrawer>
           <button className="relative cursor-pointer p-2 rounded-full hover:bg-gray-100 transition-colors group">

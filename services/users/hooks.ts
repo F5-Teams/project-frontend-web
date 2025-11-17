@@ -7,5 +7,8 @@ export function useGetUser() {
   return useQuery({
     queryKey: GET_USER_QUERY_KEY,
     queryFn: getUser,
+    enabled:
+      typeof window !== "undefined" && !!localStorage.getItem("accessToken"),
+    retry: false,
   });
 }
