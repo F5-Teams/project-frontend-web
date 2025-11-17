@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Pet, PetImage } from "@/components/models/pet";
 import api from "@/config/axios";
 import { uploadFile } from "@/utils/uploadFIle";
-import { UploadCloud, PawPrint } from "lucide-react";
+import { UploadCloud, PawPrint, Heart } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 
@@ -116,13 +116,13 @@ export default function CreatePetPage() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10">
-      {/* Tiêu đề */}
-      <div className="mb-10 flex items-center gap-3">
-        <PawPrint className="text-pink-500 w-6 h-6" />
-        <h1 className="text-2xl font-semibold text-gray-800">
-          Thêm thú cưng mới
-        </h1>
+    <div>
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-10">
+        <div className="bg-pink-100 p-3 rounded-full">
+          <PawPrint className="text-pink-500 w-6 h-6" />
+        </div>
+        <h1 className="text-2xl font-bold text-gray-800">Thêm Boss mới </h1>
       </div>
 
       {error && (
@@ -132,111 +132,85 @@ export default function CreatePetPage() {
       )}
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-10">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-8 rounded-2xl shadow-lg space-y-10 border border-pink-100"
+      >
+        {/* Thông tin cơ bản */}
         <section className="space-y-6">
-          <h2 className="text-lg font-medium text-gray-700 border-b border-gray-200 pb-2">
+          <h2 className="text-lg font-semibold text-pink-600 flex items-center gap-2">
+            <Heart className="w-4 h-4 text-pink-400" />
             Thông tin cơ bản
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="text-sm text-gray-600 mb-1 block">
-                Tên thú cưng <span className="text-pink-500">*</span>
-              </label>
-              <input
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                required
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-pink-400 focus:ring-1 focus:ring-pink-200 outline-none"
-                placeholder="VD: Mimi"
-              />
-            </div>
+            <InputField
+              label="Tên thú cưng"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              required
+              placeholder="VD: Mimi"
+            />
 
-            <div>
-              <label className="text-sm text-gray-600 mb-1 block">
-                Tuổi <span className="text-pink-500">*</span>
-              </label>
-              <input
-                name="age"
-                type="number"
-                value={form.age}
-                onChange={handleChange}
-                required
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-pink-400 focus:ring-1 focus:ring-pink-200 outline-none"
-                placeholder="Nhập tuổi"
-              />
-            </div>
+            <InputField
+              label="Tuổi"
+              name="age"
+              type="number"
+              value={form.age}
+              onChange={handleChange}
+              required
+              placeholder="Nhập tuổi"
+            />
 
-            <div>
-              <label className="text-sm text-gray-600 mb-1 block">Loài</label>
-              <select
-                name="species"
-                value={form.species}
-                onChange={handleChange}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-pink-400 focus:ring-1 focus:ring-pink-200 outline-none"
-              >
-                <option value="Dog">Chó</option>
-                <option value="Cat">Mèo</option>
-                <option value="Other">Khác</option>
-              </select>
-            </div>
+            <SelectField
+              label="Loài"
+              name="species"
+              value={form.species}
+              onChange={handleChange}
+              options={[
+                { value: "Dog", label: "Chó" },
+                { value: "Cat", label: "Mèo" },
+                { value: "Other", label: "Khác" },
+              ]}
+            />
 
-            <div>
-              <label className="text-sm text-gray-600 mb-1 block">
-                Giới tính
-              </label>
-              <select
-                name="gender"
-                value={form.gender}
-                onChange={handleChange}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-pink-400 focus:ring-1 focus:ring-pink-200 outline-none"
-              >
-                <option value="MALE">Đực</option>
-                <option value="FEMALE">Cái</option>
-              </select>
-            </div>
+            <SelectField
+              label="Giới tính"
+              name="gender"
+              value={form.gender}
+              onChange={handleChange}
+              options={[
+                { value: "MALE", label: "Đực" },
+                { value: "FEMALE", label: "Cái" },
+              ]}
+            />
 
-            <div>
-              <label className="text-sm text-gray-600 mb-1 block">
-                Giống loài
-              </label>
-              <input
-                name="breed"
-                value={form.breed}
-                onChange={handleChange}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-pink-400 focus:ring-1 focus:ring-pink-200 outline-none"
-                placeholder="VD: Poodle, Munchkin..."
-              />
-            </div>
+            <InputField
+              label="Giống loài"
+              name="breed"
+              value={form.breed}
+              onChange={handleChange}
+              placeholder="VD: Poodle, Munchkin..."
+            />
 
             <div className="flex gap-4">
-              <div className="flex-1">
-                <label className="text-sm text-gray-600 mb-1 block">
-                  Cao (cm)
-                </label>
-                <input
-                  name="height"
-                  type="number"
-                  value={form.height}
-                  onChange={handleChange}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-pink-400 focus:ring-1 focus:ring-pink-200 outline-none"
-                  placeholder="VD: 30"
-                />
-              </div>
-              <div className="flex-1">
-                <label className="text-sm text-gray-600 mb-1 block">
-                  Nặng (kg)
-                </label>
-                <input
-                  name="weight"
-                  type="number"
-                  value={form.weight}
-                  onChange={handleChange}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-pink-400 focus:ring-1 focus:ring-pink-200 outline-none"
-                  placeholder="VD: 4.2"
-                />
-              </div>
+              <InputField
+                label="Cao (cm)"
+                name="height"
+                type="number"
+                value={form.height}
+                onChange={handleChange}
+                placeholder="VD: 30"
+              />
+              <InputField
+                label="Nặng (kg)"
+                name="weight"
+                type="number"
+                value={form.weight}
+                onChange={handleChange}
+                placeholder="VD: 4.2"
+              />
             </div>
           </div>
 
@@ -247,18 +221,20 @@ export default function CreatePetPage() {
               value={form.note}
               onChange={handleChange}
               rows={3}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-pink-400 focus:ring-1 focus:ring-pink-200 outline-none"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:border-pink-400 focus:ring-1 focus:ring-pink-200 outline-none transition-all"
               placeholder="Tính cách, thói quen, sở thích..."
             />
           </div>
         </section>
 
+        {/* Ảnh */}
         <section className="space-y-4">
-          <h2 className="text-lg font-medium text-gray-700 border-b border-gray-200 pb-2">
-            Ảnh thú cưng
+          <h2 className="text-lg font-semibold text-pink-600 flex items-center gap-2">
+            <UploadCloud className="w-4 h-4 text-pink-400" />
+            Ảnh của Boss
           </h2>
 
-          <label className="flex cursor-pointer items-center gap-2 w-fit rounded-lg border border-dashed border-pink-300 bg-pink-50 px-4 py-2 text-pink-600 text-sm font-medium hover:bg-pink-100 transition">
+          <label className="flex cursor-pointer items-center gap-2 w-fit rounded-xl border border-dashed border-pink-300 bg-pink-50 px-5 py-3 text-pink-600 text-sm font-medium hover:bg-pink-100 transition">
             <UploadCloud className="w-4 h-4" />
             <span>Chọn ảnh</span>
             <input
@@ -271,17 +247,17 @@ export default function CreatePetPage() {
           </label>
 
           {previewUrls.length > 0 && (
-            <div className="flex flex-wrap gap-3 pt-2">
+            <div className="flex flex-wrap gap-4 pt-2">
               {previewUrls.map((url, idx) => (
                 <div
                   key={idx}
-                  className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200"
+                  className="relative w-28 h-28 rounded-2xl overflow-hidden shadow-md border border-gray-100"
                 >
                   <Image
                     src={url}
                     alt={`preview-${idx}`}
-                    width={100}
-                    height={100}
+                    width={120}
+                    height={120}
                     className="object-cover w-full h-full"
                   />
                   <button
@@ -297,17 +273,65 @@ export default function CreatePetPage() {
           )}
         </section>
 
-        {/* Nút */}
-        <div className="flex justify-end border-t border-gray-200 pt-6">
+        {/* Nút submit */}
+        <div className="flex justify-end border-t border-gray-100 pt-6">
           <button
             type="submit"
             disabled={loading}
-            className="bg-pink-500 hover:bg-pink-600 text-white px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50"
+            className="bg-pink-500 hover:bg-pink-600 text-white px-6 py-2 rounded-lg text-sm font-medium shadow transition-all duration-200 disabled:opacity-50"
           >
             {loading ? "Đang lưu..." : "Lưu thú cưng"}
           </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+/* 🧩 Component Input & Select tái sử dụng */
+function InputField({
+  label,
+  name,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+  required = false,
+}: any) {
+  return (
+    <div>
+      <label className="text-sm text-gray-600 mb-1 block">
+        {label} {required && <span className="text-pink-500">*</span>}
+      </label>
+      <input
+        name={name}
+        type={type}
+        value={value}
+        onChange={onChange}
+        required={required}
+        placeholder={placeholder}
+        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:border-pink-400 focus:ring-1 focus:ring-pink-200 outline-none transition-all"
+      />
+    </div>
+  );
+}
+
+function SelectField({ label, name, value, onChange, options }: any) {
+  return (
+    <div>
+      <label className="text-sm text-gray-600 mb-1 block">{label}</label>
+      <select
+        name={name}
+        value={value}
+        onChange={onChange}
+        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:border-pink-400 focus:ring-1 focus:ring-pink-200 outline-none transition-all"
+      >
+        {options.map((opt: any) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }
