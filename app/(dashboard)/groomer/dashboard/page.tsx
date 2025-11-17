@@ -18,7 +18,7 @@ export default function GroomerDashboardPage() {
     <div
       className=" mx-auto w-full
       sm:max-w-screen-sm md:max-w-4xl
-      lg:max-w-6xl xl:max-w-8xl"
+      lg:max-w-6xl xl:max-w-8xl p-4"
     >
       <div className="flex-1">
         {/* Page content */}

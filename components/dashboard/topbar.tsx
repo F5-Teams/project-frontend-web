@@ -2,8 +2,8 @@
 
 import React from "react";
 import Image from "next/image";
-import { Bell, Settings, Search } from "lucide-react";
 import { useMe } from "@/services/profile/hooks";
+import NotificationBell from "@/components/notification/NotificationBell";
 
 export default function Topbar() {
   const { data: user } = useMe();
@@ -40,19 +40,8 @@ export default function Topbar() {
 
       {/* right: notifications, settings, avatar */}
       <div className="flex items-center gap-4">
-        {/* <button
-          aria-label="Notifications"
-          className="p-2 rounded-full hover:bg-slate-100"
-        >
-          <Bell className="w-5 h-5" />
-        </button>
-
-        <button
-          aria-label="Settings"
-          className="p-2 rounded-full hover:bg-slate-100"
-        >
-          <Settings className="w-5 h-5" />
-        </button> */}
+        {/* Only show notification bell for groomer role (role.id = 3) */}
+        {user?.role?.id === 3 && <NotificationBell />}
 
         <div className="flex items-center gap-3">
           {avatar ? (

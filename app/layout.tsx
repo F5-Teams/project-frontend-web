@@ -6,6 +6,8 @@ import { Providers } from "./_providers";
 import { Toaster } from "@/components/ui/sonner";
 import ScrollToTop from "@/components/shared/ScrollToTop";
 import HappyPawsChat from "@/components/chat/HappyPawsChat";
+import { NotificationProvider } from "@/contexts/NotificationContext";
+import OneSignalInitializer from "@/components/notification/OneSignalInitializer";
 
 // import ReduxProvider from "./ReduxProvider";
 
@@ -36,15 +38,18 @@ export default function RootLayout({
     >
       <body className="antialiased">
         <Providers>
-          <ScrollToTop />
-          {children}
-          {/* Global floating chat widget visible on all pages */}
-          <HappyPawsChat />
-          <Toaster
-            toastOptions={{
-              duration: 5000,
-            }}
-          />
+          <NotificationProvider>
+            <OneSignalInitializer />
+            <ScrollToTop />
+            {children}
+            {/* Global floating chat widget visible on all pages */}
+            <HappyPawsChat />
+            <Toaster
+              toastOptions={{
+                duration: 5000,
+              }}
+            />
+          </NotificationProvider>
         </Providers>
       </body>
     </html>
