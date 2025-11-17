@@ -336,6 +336,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
   const shouldHide =
     pathname === "/login" ||
     pathname === "/register" ||
+    pathname === "/verify-otp" ||
     pathname?.startsWith("/admin") ||
     pathname?.startsWith("/staff") ||
     pathname?.startsWith("/groomer");
