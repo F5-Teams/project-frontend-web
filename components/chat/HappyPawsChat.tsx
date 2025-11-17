@@ -332,7 +332,6 @@ export function HappyPawsChat({ className }: { className?: string }) {
   );
 
   return (
-    // Giảm z-index để chat nằm dưới các overlay quan trọng khác (Header z-100, CartDrawer z-210)
     <div className={cn("fixed bottom-25 right-6 z-20", className)}>
       {!open && (
         <div className="relative" ref={containerRef}>
@@ -340,7 +339,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
             ref={glowRef}
             className="absolute inset-0 -z-10 rounded-full bg-indigo-300/50 blur-xl opacity-60"
           />
-          {/* Audio ripple waves */}
+
           <span
             ref={(el) => setWaveRef(el, 0)}
             className="pointer-events-none absolute inset-0 z-0 rounded-full ring-4 ring-fuchsia-500/80"
