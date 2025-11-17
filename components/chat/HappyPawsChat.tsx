@@ -332,7 +332,8 @@ export function HappyPawsChat({ className }: { className?: string }) {
   );
 
   return (
-    <div className={cn("fixed bottom-25 right-6 z-50", className)}>
+    // Giảm z-index để chat nằm dưới các overlay quan trọng khác (Header z-100, CartDrawer z-210)
+    <div className={cn("fixed bottom-25 right-6 z-20", className)}>
       {!open && (
         <div className="relative" ref={containerRef}>
           <span

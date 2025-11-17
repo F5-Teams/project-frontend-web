@@ -188,9 +188,7 @@ export default function Header() {
             alt="Logo"
             src={Logo}
             className="object-contain"
-            width={100}
-            height={100}
-            style={{ maxHeight: "56px" }}
+            style={{ height: "56px", width: "auto" }}
           />
         </Link>
 
@@ -353,7 +351,7 @@ export default function Header() {
                       alt="Avatar"
                       width={48}
                       height={48}
-                      className="w-14 h-14 object-cover rounded-full"
+                      className="object-cover rounded-full"
                     />
                   ) : (
                     user.userName?.[0] || "U"

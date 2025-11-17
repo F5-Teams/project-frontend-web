@@ -16,6 +16,8 @@ import { useDeleteOrder } from "@/services/orders/deleteOrder/hooks";
 import ModalComplete from "@/components/orders/ModalComplete";
 import { toast } from "sonner";
 import { usePostOrderCancel } from "@/services/orders/postOrderCancel/hooks";
+import { Voucher } from "@/services/vouchers/type";
+import { usePostProductErr } from "@/services/orders/postProductErr/hooks";
 
 const OrderPage = () => {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -29,11 +31,12 @@ const OrderPage = () => {
   const { mutate: postOrderGhnCancel } = usePostOrderGhnCancel();
   const { mutate: deleteOrder } = useDeleteOrder();
   const { mutate: postOrderCancel } = usePostOrderCancel();
+  const { mutate: postProductErr } = usePostProductErr();
   const handleApprove = async (order: Order) => {
     const orderId = order.id;
 
     const body = {
-      status: "PROCESSING",
+      status: "APPROVED",
       note: order.note || "",
       customerId: order.customerId,
 
@@ -178,6 +181,42 @@ const OrderPage = () => {
     );
   };
 
+  const handleVoucher = (order: Order) => {
+    const payload = {
+      body: {
+        orderId: order.id,
+        customerId: order.customerId,
+        description: "ghi nhận thành công",
+      },
+    };
+
+    postProductErr(payload, {
+      onSuccess: async () => {
+        try {
+          const body = {
+            status: "REFUND_DONE",
+            note: order.note || "",
+            customerId: order.customerId,
+            shipping: { ...order.shipping, status: "PENDING" },
+            paymentMethod: order.payment.paymentMethod,
+            paymentStatus: "TRANSFER",
+            orderDetails: order.orderDetails.map((item) => ({
+              productId: item.product.id,
+              quantity: item.quantity,
+            })),
+          };
+
+          await patchOrder({ id: order.id, body });
+          toast.success("Hoàn tiền và cập nhật đơn thành công!");
+          queryClient.invalidateQueries(["getAllOrder"]);
+        } catch (err) {
+          toast.error("Cập nhật trạng thái đơn thất bại!");
+          console.log(err);
+        }
+      },
+    });
+  };
+
   const getPaymentLabel = (method?: string) => {
     switch (method) {
       case "CASH":
@@ -191,10 +230,10 @@ const OrderPage = () => {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case "PENDING":
-        return "Đang chờ duyệt";
-      case "PROCESSING":
-        return "Đang chuẩn bị";
+      case "PAID":
+        return "Đã thanh toán";
+      case "APPROVED":
+        return "Đã duyệt";
       case "SHIPPING":
         return "Đang giao hàng";
       case "COMPLETED":
@@ -204,6 +243,8 @@ const OrderPage = () => {
       case "FAILED":
         return "Thất bại";
       case "REFUND":
+        return "Hoàn tiền";
+      case "REFUND_DONE":
         return "Hoàn tiền";
       default:
         return status;
@@ -277,9 +318,9 @@ const OrderPage = () => {
       render: (s: string) => (
         <Tag
           color={
-            s === "PENDING"
+            s === "PAID"
               ? "orange"
-              : s === "PROCESSING"
+              : s === "APPROVED"
               ? "blue"
               : s === "SHIPPING"
               ? "cyan"
@@ -323,7 +364,7 @@ const OrderPage = () => {
             <Eye size="16" />
           </Button>
 
-          {record.status === "PENDING" && (
+          {record.status === "PAID" && (
             <Button
               type="primary"
               size="small"
@@ -334,7 +375,7 @@ const OrderPage = () => {
             </Button>
           )}
 
-          {record.status === "PROCESSING" && (
+          {record.status === "APPROVED" && (
             <Button
               type="default"
               size="small"
@@ -378,6 +419,19 @@ const OrderPage = () => {
                 onClick={() => handleCancel(record)}
               >
                 Hoàn tiền
+              </Button>
+            </>
+          )}
+
+          {record.status === "REFUND" && (
+            <>
+              <Button
+                className="bg-pink-500! text-white! hover:bg-pink-600!"
+                danger
+                size="small"
+                onClick={() => handleVoucher(record)}
+              >
+                Ghi nhận
               </Button>
             </>
           )}
