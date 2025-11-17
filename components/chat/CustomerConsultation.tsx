@@ -25,6 +25,14 @@ export default function CustomerConsultation() {
   // Lấy room của customer khi component mount
   useEffect(() => {
     const fetchCustomerRoom = async () => {
+      // Check if user is logged in
+      if (
+        typeof window === "undefined" ||
+        !localStorage.getItem("accessToken")
+      ) {
+        return;
+      }
+
       try {
         const rooms = await chatApi.getRooms();
         if (rooms && rooms.length > 0) {

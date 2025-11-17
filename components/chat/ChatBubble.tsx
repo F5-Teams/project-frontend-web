@@ -56,6 +56,14 @@ export default function ChatBubble() {
   // Check if user already has an active session
   useEffect(() => {
     const checkExistingSession = async () => {
+      // Check if user is logged in
+      if (
+        typeof window === "undefined" ||
+        !localStorage.getItem("accessToken")
+      ) {
+        return;
+      }
+
       try {
         // 1. Lấy room của customer
         const rooms = await chatApi.getRooms();
@@ -161,6 +169,12 @@ export default function ChatBubble() {
   const handleCreateSession = async () => {
     if (!title.trim()) {
       toast.error("Vui lòng nhập nội dung yêu cầu tư vấn");
+      return;
+    }
+
+    // Check if user is logged in
+    if (typeof window === "undefined" || !localStorage.getItem("accessToken")) {
+      toast.error("Vui lòng đăng nhập để sử dụng tính năng này");
       return;
     }
 

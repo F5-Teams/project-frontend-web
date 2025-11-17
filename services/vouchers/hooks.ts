@@ -7,5 +7,8 @@ export function useGetVoucher() {
   return useQuery({
     queryKey: GET_VOUCHER_QUERY_KEY,
     queryFn: getVoucher,
+    enabled:
+      typeof window !== "undefined" && !!localStorage.getItem("accessToken"),
+    retry: false,
   });
 }

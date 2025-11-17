@@ -19,12 +19,25 @@ export function clearAuth() {
 export function logout(redirectTo: string = "/") {
   if (typeof window === "undefined") return;
   try {
+    // Cancel all ongoing queries and clear cache
+    if (
+      typeof window !== "undefined" &&
+      (window as any).__REACT_QUERY_CLIENT__
+    ) {
+      const queryClient = (window as any).__REACT_QUERY_CLIENT__;
+      queryClient.cancelQueries();
+      queryClient.clear();
+    }
+
     clearAuth();
   } finally {
-    try {
-      window.location.assign(redirectTo);
-    } catch {
-      window.location.href = redirectTo;
-    }
+    // Small delay to ensure cleanup completes
+    setTimeout(() => {
+      try {
+        window.location.assign(redirectTo);
+      } catch {
+        window.location.href = redirectTo;
+      }
+    }, 100);
   }
 }

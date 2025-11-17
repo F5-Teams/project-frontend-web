@@ -332,10 +332,10 @@ export function HappyPawsChat({ className }: { className?: string }) {
     [pets]
   );
 
-  // Hide chat on login, register, and dashboard pages (admin, staff, groomer)
   const shouldHide =
     pathname === "/login" ||
     pathname === "/register" ||
+    pathname === "/verify-otp" ||
     pathname?.startsWith("/admin") ||
     pathname?.startsWith("/staff") ||
     pathname?.startsWith("/groomer");

@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import {
   getNotifications,
   getUnreadCount,
@@ -16,18 +17,50 @@ export const UNREAD_COUNT_QUERY_KEY = [
 
 // Get all notifications
 export function useNotifications(params?: GetNotificationsParams) {
+  const [hasToken, setHasToken] = useState(false);
+
+  useEffect(() => {
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("accessToken")
+        : null;
+    setHasToken(!!token);
+  }, []);
+
   return useQuery({
     queryKey: [...NOTIFICATIONS_QUERY_KEY, params],
     queryFn: () => getNotifications(params),
+    enabled:
+      typeof window !== "undefined" &&
+      !!localStorage.getItem("accessToken") &&
+      hasToken,
+    retry: false,
+    staleTime: 10000,
   });
 }
 
 // Get unread count
 export function useUnreadCount() {
+  const [hasToken, setHasToken] = useState(false);
+
+  useEffect(() => {
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("accessToken")
+        : null;
+    setHasToken(!!token);
+  }, []);
+
   return useQuery({
     queryKey: UNREAD_COUNT_QUERY_KEY,
     queryFn: getUnreadCount,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: hasToken ? 30000 : false,
+    enabled:
+      typeof window !== "undefined" &&
+      !!localStorage.getItem("accessToken") &&
+      hasToken,
+    retry: false,
+    staleTime: 10000,
   });
 }
 
