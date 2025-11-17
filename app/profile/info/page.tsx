@@ -67,7 +67,6 @@ export default function InfoPage() {
       className="
       mx-auto w-full
       md:py-2 lg:py-4
-      md:px-1 lg:px-2
       sm:max-w-screen-sm md:max-w-3xl
       lg:max-w-5xl xl:max-w-7xl
     "
@@ -96,6 +95,20 @@ export default function InfoPage() {
                 Thông tin người dùng
               </h1>
             </div>
+
+            {/* <div className="flex items-center space-x-2 lg:space-x-4 ml-auto">
+              <button className="hidden md:block text-sm lg:text-base text-blue-500 hover:text-blue-600 font-medium">
+                Appointments history
+              </button>
+              <Button className="bg-blue-500 hover:bg-blue-600 text-white px-3 lg:px-6 text-sm lg:text-base">
+                <span className="hidden sm:inline">+ New Patient</span>
+                <span className="sm:hidden">+ Patient</span>
+              </Button>
+              <button className="relative hidden sm:block">
+                <Bell className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400" />
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-400 rounded-full" />
+              </button>
+            </div> */}
           </div>
 
           {/* Thông tin người dùng */}

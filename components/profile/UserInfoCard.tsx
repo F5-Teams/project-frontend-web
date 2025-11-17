@@ -114,7 +114,14 @@ export function UserInfoCard({ user }: Props) {
       <div className="flex items-center gap-8">
         <div className="flex items-center gap-4">
           <Avatar className="w-24 h-24 lg:w-32 lg:h-32 border-2 lg:border-4 border-primary/30">
-            <AvatarImage src="/placeholder-patient.jpg" />
+            <AvatarImage
+              src={
+                user?.avatar && user.avatar.trim() !== ""
+                  ? user.avatar
+                  : undefined
+              }
+              alt="Avatar"
+            />
             <AvatarFallback className="bg-primary text-primary-foreground text-base lg:text-xl">
               {initials}
             </AvatarFallback>
