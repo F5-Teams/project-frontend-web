@@ -106,4 +106,9 @@ export interface Booking {
   customer: Customer;
   staff: Staff | null;
   groomer: Groomer | null;
+
+  pickupPersonName?: string | null;
+  pickupPersonPhone?: string | null;
+  pickupPersonRelationship?: string | null;
+  verificationNotes?: string | null;
 }
