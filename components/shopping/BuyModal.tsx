@@ -187,7 +187,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
               // value={address}
               onChange={(value) => setAddress(value)}
               className="mt-1 w-full"
-              dropdownRender={(menu) => (
+              popupRender={(menu) => (
                 <div>
                   {menu}
                   {address && (
