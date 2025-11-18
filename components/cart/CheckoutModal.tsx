@@ -244,19 +244,23 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         }
 
         // For WALLET payment, handle normally
-        // Show success toast if there are created bookings
-        if (response.createdCount && response.createdCount > 0) {
-          toast.success(`Đã tạo ${response.createdCount} đơn đặt thành công!`, {
-            duration: 5000,
-          });
-        }
-
-        // Show error toasts for each error message
+        // Show error toasts for each error message first
         if (response.errors && response.errors.length > 0) {
           response.errors.forEach((errorMsg) => {
             toast.error(errorMsg, {
               duration: 6000,
             });
+          });
+        }
+
+        // Show success toast only if there are NO errors and bookings were created
+        if (
+          response.createdCount &&
+          response.createdCount > 0 &&
+          (!response.errors || response.errors.length === 0)
+        ) {
+          toast.success(`Đã tạo ${response.createdCount} đơn đặt thành công!`, {
+            duration: 5000,
           });
         }
 

@@ -288,36 +288,41 @@ export const SingleServiceBookingModal: React.FC<
           </div>
         )}
 
-        {/* Date Selection */}
-        <div className="space-y-3">
-          <Label className="text-base font-medium">Chọn ngày</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full justify-start text-left font-normal"
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {selectedDate ? format(selectedDate, "PPP") : "Chọn ngày"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                disabled={(date) => date < new Date()}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
+        {/* Date and Time Selection - Same Row */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Date Selection */}
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Chọn ngày</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, "PPP") : "Chọn ngày"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  disabled={(date) => date < new Date()}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
 
-        {/* Time Selection */}
-        {selectedDate && (
+          {/* Time Selection */}
           <div className="space-y-3">
             <Label className="text-base font-medium">Chọn khung giờ</Label>
-            <Select value={selectedTime} onValueChange={setSelectedTime}>
+            <Select
+              value={selectedTime}
+              onValueChange={setSelectedTime}
+              disabled={!selectedDate}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn khung giờ" />
               </SelectTrigger>
@@ -329,13 +334,13 @@ export const SingleServiceBookingModal: React.FC<
                 ))}
               </SelectContent>
             </Select>
-            {availableTimeSlots.length === 0 && (
+            {selectedDate && availableTimeSlots.length === 0 && (
               <p className="text-sm text-gray-500">
                 Không còn khung giờ nào khả dụng cho ngày này.
               </p>
             )}
           </div>
-        )}
+        </div>
 
         {/* Notes */}
         <div className="space-y-3">

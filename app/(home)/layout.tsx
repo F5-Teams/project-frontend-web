@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { Footer, Header } from "@/components/shared";
 import { PushLayout } from "@/components/cart/PushLayout";
-import ChatBubble from "@/components/chat/ChatBubble";
+// import ChatBubble from "@/components/chat/ChatBubble"; // Đã gộp vào HappyPawsChat
 import api from "@/config/axios";
 
 const ROLE_BY_ID: Record<number, "admin" | "staff" | "groomer" | "customer"> = {
@@ -77,8 +77,7 @@ export default function HomeLayout({
         <main className="flex-1 overflow-x-hidden pt-24">{children}</main>
         <Footer />
 
-        {/* Chat Bubble for Customer Support */}
-        <ChatBubble />
+        {/* Chat Bubble đã được gộp vào HappyPawsChat trong app/layout.tsx */}
       </div>
     </PushLayout>
   );
