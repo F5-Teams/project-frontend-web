@@ -5,7 +5,7 @@ import { logout } from "@/utils/auth";
 import { cn } from "@/lib/utils";
 import { IconKey, ICONS } from "./Icons";
 import Image from "next/image";
-import Logo from "@/public/logo/HappyPaws Logo.svg";
+import Logo from "@/public/logo/HappyPaws only Logo.svg";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import * as React from "react";
 
@@ -32,22 +32,23 @@ export function Sidebar({ items }: { items: SidebarItem[] }) {
   return (
     <aside
       className={cn(
-        "fixed top-0 left-0 w-64 h-screen text-pink-600 border-r border-pink-100 flex flex-col shadow-[4px_0_15px_-5px_rgba(0,0,0,0.05)]",
+        "fixed top-0 left-0 w-56 h-screen text-pink-600 border-r border-pink-100 flex flex-col shadow-[4px_0_15px_-5px_rgba(0,0,0,0.05)]",
         "bg-linear-to-b from-[#FFE5EC] via-[#FFF4E0] to-[#FFD6E0]",
         "animate-gradien z-50"
       )}
     >
       {/* Logo */}
-      <div className="px-6 py-6 text-lg font-bold flex items-center gap-3">
+      <div className="px-4 py-5 flex items-center gap-3">
         <Image
           alt="Logo"
           src={Logo}
+          width={40}
+          height={40}
           className="object-contain"
-          width={100}
-          height={100}
-          style={{ maxHeight: "56px" }}
         />
-        <span className="tracking-wide">Dashboard</span>
+        <span className="text-xl font-bold text-pink-700 whitespace-nowrap">
+          Happy Paws
+        </span>
       </div>
 
       {/* Nav items */}
