@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { Bot, Send, X } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import gsap from "gsap";
 import {
   Select,
@@ -31,6 +31,7 @@ type UserInfo = {
 
 export function HappyPawsChat({ className }: { className?: string }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -331,8 +332,18 @@ export function HappyPawsChat({ className }: { className?: string }) {
     [pets]
   );
 
+  const shouldHide =
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname === "/verify-otp" ||
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/staff") ||
+    pathname?.startsWith("/groomer");
+
+  if (shouldHide) {
+    return null;
+  }
   return (
-    // Giảm z-index để chat nằm dưới các overlay quan trọng khác (Header z-100, CartDrawer z-210)
     <div className={cn("fixed bottom-25 right-6 z-20", className)}>
       {!open && (
         <div className="relative" ref={containerRef}>
@@ -340,7 +351,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
             ref={glowRef}
             className="absolute inset-0 -z-10 rounded-full bg-indigo-300/50 blur-xl opacity-60"
           />
-          {/* Audio ripple waves */}
+
           <span
             ref={(el) => setWaveRef(el, 0)}
             className="pointer-events-none absolute inset-0 z-0 rounded-full ring-4 ring-fuchsia-500/80"

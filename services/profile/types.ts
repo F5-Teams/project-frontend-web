@@ -1,3 +1,7 @@
+export interface Role {
+  id: number;
+  name: string;
+}
 export interface User {
   id: number;
   userName: string;
@@ -9,7 +13,7 @@ export interface User {
   lastName: string;
   createdAt: string;
   isActive: boolean;
-  roleId: number;
+  role: Role;
 }
 
 export interface UpdateUserPayload {

@@ -58,9 +58,6 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       address: user?.address,
     });
   }, [user]);
-  console.log("AA", chooseVoucher);
-
-  console.log("AA", chooseVoucher?.percent);
 
   useEffect(() => {
     const filterAddress = addressList.find((item) => item.id === address);
@@ -162,21 +159,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
 
       <div className="border-t border-gray-200 my-2" />
 
-      <Form form={form}>
-        {/* <div className="flex">
-          <h1 className="w-[30%]">Nhập số điện thoại:</h1>
-          <Form.Item
-            className="w-[60%]"
-            name="phone"
-            rules={[
-              { required: true, message: "Vui lòng nhập số điện thoại!" },
-              { min: 10, message: "Số điện thoại phải đủ 10 số!" },
-            ]}
-          >
-            <Input type="number" onChange={(e) => setPhone(e.target.value)} />
-          </Form.Item>
-        </div> */}
-
+      <Form form={form} component={false}>
         <div className="flex ">
           <h1 className="w-[30%]">Chọn địa chỉ:</h1>
           <Form.Item className="w-[60%]">

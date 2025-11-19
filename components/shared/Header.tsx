@@ -28,6 +28,7 @@ import { useProductCartStore } from "@/stores/productCart.store";
 import { useGetUser } from "@/services/users/hooks";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import NotificationBell from "@/components/notification/NotificationBell";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -36,13 +37,10 @@ export default function Header() {
   const isCartOpen = useIsCartOpen();
   const { items } = useProductCartStore();
   const { data: user } = useGetUser();
-  // Local auth state removed; we already rely on useGetUser()
 
   const navRef = useRef<HTMLElement | null>(null);
   const leftPillRef = useRef<HTMLDivElement | null>(null);
   const bgRef = useRef<HTMLDivElement | null>(null);
-
-  // No local auth bootstrap; header renders from `useGetUser()`
 
   const handleLogout = () => {
     logout("/");
@@ -90,7 +88,6 @@ export default function Header() {
       gsap.set(bgEl, {
         x: targetX,
         y: targetY,
-        // KHÔNG set width nữa, để CSS (left/right) xử lý
         height: targetHeight,
         transformOrigin: "left center",
         scaleX: targetScaleX,
@@ -110,7 +107,6 @@ export default function Header() {
 
     const ctx = gsap.context(() => {
       if (reduce) {
-        // Nếu user không muốn animation: set thẳng nền full
         const navRect = navEl.getBoundingClientRect();
         const viewportW =
           typeof window !== "undefined" ? window.innerWidth : navRect.width;
@@ -130,9 +126,9 @@ export default function Header() {
 
       const tl = gsap.timeline({
         scrollTrigger: {
-          trigger: document.documentElement, // cuộn trang
+          trigger: document.documentElement,
           start: "top top",
-          end: "+=220", // độ dài hành trình bung nền
+          end: "+=220",
           scrub: 0.6,
         },
         defaults: { ease: "power2.out" },
@@ -300,6 +296,7 @@ export default function Header() {
 
       {/* KHỐI PHẢI */}
       <div className="relative z-10 inline-flex items-center gap-3 p-4 ml-auto">
+        {user && <NotificationBell />}
         {/* Cart Icon */}
         <CartDrawer>
           <button className="relative cursor-pointer p-2 rounded-full hover:bg-gray-100 transition-colors group">

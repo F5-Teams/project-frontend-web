@@ -36,7 +36,7 @@ export default function VNPayReturnPage() {
 
       // ⭐ Redirect đúng theo yêu cầu
       setTimeout(() => {
-        router.push("/profile/calendar");
+        router.push("/");
       }, 3000);
     } else {
       setStatus("failed");
@@ -69,13 +69,13 @@ export default function VNPayReturnPage() {
               </h1>
               <p className="text-gray-600 mb-6">{message}</p>
               <p className="text-sm text-gray-500">
-                Tự động quay lại lịch sử đặt lịch trong 3 giây...
+                Tự động quay lại trang chủ trong 3 giây...
               </p>
               <Link
                 href="/profile/calendar"
                 className="inline-block mt-4 px-6 py-2 bg-primary text-white rounded-lg"
               >
-                Quay lại lịch sử đặt lịch
+                Quay lại trang chủ
               </Link>
             </div>
           )}

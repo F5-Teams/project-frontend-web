@@ -66,7 +66,7 @@ export default function Customers() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const res = await api.get<User[]>("/user/all");
+      const res = await api.get<User[]>("/users/all");
       setData(res.data || []);
     } catch (err: any) {
       setError(err?.response?.data?.message || "Không thể tải người dùng");

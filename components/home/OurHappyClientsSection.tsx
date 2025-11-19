@@ -1,11 +1,15 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { StarIcon } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import A1 from "@/public/images/avatar/avatar1.png";
+import A2 from "@/public/images/avatar/avatar2.png";
+import A3 from "@/public/images/avatar/avatar3.png";
+import A4 from "@/public/images/avatar/avatar4.jpg";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -117,7 +121,6 @@ const OurHappyClientsSection = () => {
     }, sectionRef);
 
     return () => ctx.revert();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldReduceMotion]);
 
   return (
@@ -125,7 +128,7 @@ const OurHappyClientsSection = () => {
       ref={sectionRef}
       className="flex flex-col w-full items-center gap-8 px-8 py-10 relative"
     >
-      <h2 className="clients-heading relative w-fit mt-[-1.00px] font-poppins-regular text-[56px] md:text-[80px] text-center tracking-[-1.8px] bg-gradient-to-r from-secondary via-pink-350 to-primary bg-clip-text text-transparent drop-shadow-[3px_5px_8px_rgba(210,180,140,0.5)]">
+      <h2 className="clients-heading relative w-fit -mt-px font-poppins-regular text-[56px] md:text-[80px] text-center tracking-[-1.8px] bg-linear-to-r from-secondary via-pink-350 to-primary bg-clip-text text-transparent drop-shadow-[3px_5px_8px_rgba(210,180,140,0.5)]">
         KHÁCH HÀNG CỦA CHÚNG TÔI
       </h2>
 
@@ -137,7 +140,7 @@ const OurHappyClientsSection = () => {
             <div className="flex items-center gap-3 w-full">
               <Avatar className="client-avatar w-[74px] h-[74px]">
                 <AvatarImage
-                  src="/ellipse-7.svg"
+                  src={A1.src}
                   alt="Nguyễn Minh Anh"
                   className="object-cover"
                 />
@@ -147,7 +150,7 @@ const OurHappyClientsSection = () => {
                 <h3 className="font-poppins-medium text-black text-[20px] lg:text-[30px] tracking-[-0.18px] leading-10">
                   Nguyễn Minh Anh
                 </h3>
-                <p className="font-poppins-light text-black text-[14px] lg:text-[16px] leading-[20px]">
+                <p className="font-poppins-light text-black text-[14px] lg:text-[16px] leading-5">
                   Chủ nuôi - bé cún Rocky
                 </p>
               </div>
@@ -174,7 +177,7 @@ const OurHappyClientsSection = () => {
             <div className="flex items-center gap-3 w-full">
               <Avatar className="client-avatar w-[74px] h-[74px]">
                 <AvatarImage
-                  src="/ellipse-7.svg"
+                  src={A2.src}
                   alt="Trần Hoàng Long"
                   className="object-cover"
                 />
@@ -212,7 +215,7 @@ const OurHappyClientsSection = () => {
             <div className="flex items-center gap-3 w-full">
               <Avatar className="client-avatar w-[74px] h-[74px]">
                 <AvatarImage
-                  src="/ellipse-7.svg"
+                  src={A3.src}
                   alt="Phạm Thu Hà"
                   className="object-cover"
                 />
@@ -250,7 +253,7 @@ const OurHappyClientsSection = () => {
             <div className="flex items-center gap-3 w-full">
               <Avatar className="client-avatar w-[74px] h-[74px]">
                 <AvatarImage
-                  src="/ellipse-8.svg"
+                  src={A4.src}
                   alt="Lê Quốc Khánh"
                   className="object-cover"
                 />

@@ -144,11 +144,6 @@ export function BagDrawer({ children }: BagDrawerProps) {
                 <span>{selectedTotal.toLocaleString("vi-VN")} VNĐ</span>
               </div>
 
-              <div className="flex justify-between text-sm font-medium">
-                <span>Đặt cọc (10%):</span>
-                <span>{(selectedTotal / 10).toLocaleString("vi-VN")} VNĐ</span>
-              </div>
-
               <div className="border-t border-pink-400 my-2" />
 
               <div className="flex justify-between items-center">
