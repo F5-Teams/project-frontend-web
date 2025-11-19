@@ -174,105 +174,135 @@ export default function LoginPage() {
 
       {/* Bên phải: Form đăng nhập */}
       <div className="flex items-center justify-center bg-background px-6 py-12">
-        <div className="w-full max-w-md bg-popover rounded-2xl shadow-pink-300 shadow-2xl p-8">
-          <h2 className="text-2xl font-poppins-regular text-center text-foreground mb-6">
-            Đăng nhập
-          </h2>
-
-          {/* Hiển thị lỗi nếu có */}
-          {error && (
-            <div className="mb-4 text-sm text-error bg-error-foreground/10 p-3 rounded-lg">
-              {error}
-            </div>
-          )}
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-            {/* Username */}
-            <div>
-              <label className="block text-md font-poppins-regular mb-1 text-foreground">
-                Tên đăng nhập
-              </label>
-              <input
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                className="w-full px-3 py-2 rounded-lg font-poppins-light text-sm border border-ring bg-popover text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none"
-                placeholder="Nhập tên đăng nhập"
-                autoComplete="username"
-              />
-            </div>
-
-            {/* Password */}
-            <div>
-              <label className="block text-md font-poppins-regular mb-1 text-foreground">
-                Mật khẩu
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 pr-10 font-poppins-light text-sm rounded-lg border border-ring bg-popover text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none"
-                  placeholder="Nhập mật khẩu"
-                  autoComplete="current-password"
-                />
-                {/* Icon ẩn/hiện mật khẩu */}
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((p) => !p)}
-                  className="absolute inset-y-0 right-3 flex items-center text-muted-foreground hover:text-foreground"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Submit */}
-            <button
-              type="submit"
-              className="w-full py-2 rounded-lg text-white font-poppins-regular bg-pink-500 hover:bg-pink-600 transition-colors"
-            >
-              Đăng nhập
-            </button>
-          </form>
-
-          {/* Link đăng ký */}
-          <p className="mt-6 text-center font-poppins-light text-sm text-muted-foreground">
-            Bạn chưa có tài khoản?{" "}
-            <Link
-              href="/register"
-              className="text-primary font-poppins-semibold hover:underline"
-            >
-              Đăng ký ngay
-            </Link>
-          </p>
-          {/* Divider with centered label */}
-          <div className="my-4 flex items-center gap-3">
-            <div className="h-px flex-1 bg-gray-200" />
-            <span className="text-xs font-poppins-regular text-muted-foreground">
-              Hoặc
-            </span>
-            <div className="h-px flex-1 bg-gray-200" />
+        <div className="w-full max-w-md lg:max-w-lg">
+          {/* Mobile-only illustration above the card */}
+          <div className="block lg:hidden mb-6">
+            <Image
+              src={Image1}
+              alt="Login Illustration"
+              width={420}
+              height={220}
+              className="mx-auto object-contain"
+            />
           </div>
 
-          <button
-            type="button"
-            onClick={handleGoogleLogin}
-            className="w-full cursor-pointer flex items-center justify-center gap-2 border border-gray-300 
-                         bg-white text-gray-700 py-2 rounded-lg hover:bg-gray-50 transition-all"
-          >
-            <Image src={LogoGoogle} alt="Google Logo" className="h-5 w-5" />
-            <span className="font-poppins-regular text-[15px]">
-              Đăng nhập với Google
-            </span>
-          </button>
+          <div className="w-full bg-popover rounded-2xl shadow-pink-300 shadow-2xl p-6 lg:p-8">
+            <h2 className="text-2xl lg:text-3xl font-poppins-regular text-center text-foreground mb-6">
+              Đăng nhập
+            </h2>
+
+            {/* Hiển thị lỗi nếu có */}
+            {error && (
+              <div className="mb-4 text-sm text-error bg-error-foreground/10 p-3 rounded-lg">
+                {error}
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+              {/* Username */}
+              <div>
+                <label className="block text-md font-poppins-regular mb-1 text-foreground">
+                  Tên đăng nhập
+                </label>
+                <input
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 rounded-lg font-poppins-light text-sm border border-ring bg-popover text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none"
+                  placeholder="Nhập tên đăng nhập"
+                  autoComplete="username"
+                />
+              </div>
+
+              {/* Password */}
+              <div>
+                <label className="block text-md font-poppins-regular mb-1 text-foreground">
+                  Mật khẩu
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 pr-10 font-poppins-light text-sm rounded-lg border border-ring bg-popover text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none"
+                    placeholder="Nhập mật khẩu"
+                    autoComplete="current-password"
+                  />
+                  {/* Icon ẩn/hiện mật khẩu */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((p) => !p)}
+                    className="absolute inset-y-0 right-3 flex items-center text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Link quên mật khẩu */}
+              <div className="mt-2 text-right">
+                <Link
+                  href="/forgot-password"
+                  className="text-sm font-poppins-regular text-primary hover:underline"
+                >
+                  Quên mật khẩu?
+                </Link>
+              </div>
+
+              {/* Submit */}
+              <button
+                type="submit"
+                className="w-full py-3 rounded-lg text-white font-poppins-regular bg-pink-500 hover:bg-pink-600 transition-colors text-sm lg:text-base"
+              >
+                Đăng nhập
+              </button>
+            </form>
+
+            {/* Divider with centered label */}
+            <div className="my-4 flex items-center gap-3">
+              <div className="h-px flex-1 bg-gray-200" />
+              <span className="text-xs font-poppins-regular text-muted-foreground">
+                Hoặc
+              </span>
+              <div className="h-px flex-1 bg-gray-200" />
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              className="w-full cursor-pointer flex items-center justify-center gap-3 border border-gray-300 
+                         bg-white text-gray-700 py-2.5 rounded-lg hover:bg-gray-50 transition-all"
+            >
+              <Image
+                src={LogoGoogle}
+                alt="Google Logo"
+                width={20}
+                height={20}
+                className="object-contain"
+              />
+              <span className="font-poppins-regular text-sm lg:text-[15px]">
+                Đăng nhập với Google
+              </span>
+            </button>
+
+            {/* Link đăng ký */}
+            <p className="mt-6 text-center font-poppins-light text-sm text-muted-foreground">
+              Bạn chưa có tài khoản?{" "}
+              <Link
+                href="/register"
+                className="text-primary font-poppins-semibold hover:underline"
+              >
+                Đăng ký ngay
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
