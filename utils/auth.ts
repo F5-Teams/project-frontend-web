@@ -7,6 +7,9 @@ export function clearAuth() {
     window.localStorage.removeItem("role");
     window.localStorage.removeItem("onesignal-notification-prompt");
 
+    // Dispatch custom event để các component khác cập nhật
+    window.dispatchEvent(new Event("auth-changed"));
+
     const isHttps = window.location.protocol === "https:";
     const secure = isHttps ? "; Secure" : "";
     document.cookie = `accessToken=; Path=/; Max-Age=0; SameSite=Lax${secure}`;

@@ -19,6 +19,10 @@ const publicPrefixes = [
   "/register",
   "/_next",
   "/images",
+  "/models", // Allow 3D model files to be accessed without authentication
+  "/icons",
+  "/logo",
+  "/sound",
   "/favicon.ico",
   "/about-us",
 ];

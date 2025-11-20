@@ -4,6 +4,7 @@ import { Suspense, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import { Model3D } from "@/components/chat/Model3D";
+import { Model3DErrorBoundary } from "@/components/chat/Model3DErrorBoundary";
 import * as THREE from "three";
 
 function InteractiveModel3D() {
@@ -38,7 +39,7 @@ function InteractiveModel3D() {
   return (
     <group ref={groupRef}>
       <Model3D
-        modelPath="/models/scene.gltf"
+        modelPath="/models/Dogsong/scene.gltf"
         scale={1.3}
         position={[0, -0, 0]}
         rotation={[0, 0, 0]}
@@ -54,6 +55,9 @@ export function Background3D() {
         style={{
           background:
             "linear-gradient(180deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%)",
+        }}
+        onCreated={({ gl }) => {
+          gl.setClearColor("#e0f2fe");
         }}
       >
         <PerspectiveCamera makeDefault position={[0, 1, 6]} />
@@ -72,7 +76,9 @@ export function Background3D() {
         />
 
         <Suspense fallback={null}>
-          <InteractiveModel3D />
+          <Model3DErrorBoundary>
+            <InteractiveModel3D />
+          </Model3DErrorBoundary>
         </Suspense>
 
         <OrbitControls
