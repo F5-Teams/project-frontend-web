@@ -79,6 +79,17 @@ export interface Slot {
   endDate: string | null;
 }
 
+export interface Payment {
+  id: ID;
+  totalAmount?: string | number;
+  status?: string;
+  date?: string;
+  paymentMethodId?: ID | null;
+  momoRequestId?: string | null;
+  vnpayRequestId?: string | null;
+  bookingId?: ID | null;
+}
+
 export interface Booking {
   id: ID;
   bookingDate: string;
@@ -106,6 +117,7 @@ export interface Booking {
   customer: Customer;
   staff: Staff | null;
   groomer: Groomer | null;
+  payments?: Payment[];
 
   pickupPersonName?: string | null;
   pickupPersonPhone?: string | null;

@@ -101,6 +101,45 @@ export default function HotelBookingsPage() {
     }
   };
 
+  // Quick checkout (assume pickup by owner) — no modal required
+  const handleQuickCheckout = async (id: number) => {
+    try {
+      const booking = bookings.find((b) => b.id === id);
+      if (!booking) {
+        alert("Không tìm thấy đơn đặt phòng.");
+        return;
+      }
+
+      if (booking.status === "PENDING") {
+        alert("Đơn đang ở trạng thái PENDING, chưa thể check-out.");
+        return;
+      }
+
+      if (!booking.checkInDate) {
+        alert("Đơn này chưa được check-in, không thể check-out.");
+        return;
+      }
+
+      if (booking.checkOutDate) {
+        alert("Đơn này đã được check-out rồi.");
+        return;
+      }
+
+      setUpdating(id);
+      await api.put(`/bookings/${id}/dates`, {
+        checkOutDate: new Date().toISOString(),
+        // do not set pickupPerson fields — owner picked up
+      });
+      alert("Check-out thành công!");
+      fetchBookings();
+    } catch (error) {
+      console.error("Quick check-out failed:", error);
+      alert("Lỗi khi check-out!");
+    } finally {
+      setUpdating(null);
+    }
+  };
+
   // mở modal nhập người đón trước khi check-out
   const openCheckoutModal = (booking: Booking) => {
     // PENDING thì không cho
@@ -257,11 +296,19 @@ export default function HotelBookingsPage() {
                           Check-in
                         </button>
                         <button
-                          onClick={() => openCheckoutModal(b)}
+                          onClick={() => handleQuickCheckout(b.id)}
                           disabled={updating === b.id || !canCheckOut}
                           className="w-28 flex gap-1 items-center justify-center bg-blue-400 hover:bg-blue-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Check-out
+                        </button>
+
+                        <button
+                          onClick={() => openCheckoutModal(b)}
+                          disabled={updating === b.id || !canCheckOut}
+                          className="w-28 flex gap-1 items-center justify-center border border-pink-300 text-pink-700 px-3 py-1.5 rounded-xl text-xs font-medium hover:bg-pink-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Nhập người đón
                         </button>
                         <button
                           onClick={() => openDetailModal(b)}
@@ -416,6 +463,13 @@ export default function HotelBookingsPage() {
                   {detailBooking.customer
                     ? `${detailBooking.customer.firstName} ${detailBooking.customer.lastName}`
                     : "-"}
+                </p>
+              </div>
+
+              <div>
+                <p className="font-semibold text-pink-600"> Số điện thoại</p>
+                <p className="mt-1">
+                  {detailBooking.customer.phoneNumber ?? "-"}
                 </p>
               </div>
 
