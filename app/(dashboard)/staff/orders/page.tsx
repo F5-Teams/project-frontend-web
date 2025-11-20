@@ -224,7 +224,9 @@ const OrderPage = () => {
       case "TRANSFER":
         return "Thanh toán qua ví";
       case "VNPAY":
-        return "Thanh toán online";
+        return "Thanh toán VNPAY";
+      case "MOMO":
+        return "Thanh toán MOMO";
       default:
         return "Không xác định";
     }
@@ -233,7 +235,7 @@ const OrderPage = () => {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "PAID":
-        return "Đã thanh toán";
+        return "Chờ duyệt";
       case "APPROVED":
         return "Đã duyệt";
       case "SHIPPING":
@@ -298,14 +300,15 @@ const OrderPage = () => {
     {
       title: "Thanh toán",
       dataIndex: "payment",
-      render: (pay: any) =>
-        pay ? (
+      render: (pay: any) => {
+        return pay ? (
           <Tag color={pay.paymentMethod === "CASH" ? "purple" : "green"}>
             {getPaymentLabel(pay.paymentMethod)}
           </Tag>
         ) : (
           <Tag>Chưa thanh toán</Tag>
-        ),
+        );
+      },
     },
     {
       title: "Ngày tạo",

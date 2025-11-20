@@ -10,6 +10,7 @@ import { usePostOrder } from "@/services/orders/postOrder/hooks";
 import { useGetVoucher } from "@/services/vouchers/hooks";
 import { Voucher } from "@/services/vouchers/type";
 import { POST_ORDER_QUERY_KEY } from "@/services/orders/postOrder/hooks";
+import { toast } from "sonner";
 interface CartItem {
   productId: number;
   price: number;
@@ -102,7 +103,15 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
         quantity: item.quantity,
       })),
       addressId: address,
-      paymentMethod: option === "vnpay" ? "VNPAY" : "MOMO",
+      paymentMethod:
+        option === "vnpay"
+          ? "VNPAY"
+          : option === "momo"
+          ? "MOMO"
+          : option === "cod"
+          ? "CASH"
+          : "",
+
       voucherCode: chooseVoucher?.code || "",
     };
 
@@ -120,6 +129,10 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       form.resetFields();
       clearCart();
       setNote("");
+
+      if (orderPayloadTransfer.paymentMethod === "CASH") {
+        toast.success("Đặt hàng thành công!");
+      }
     } catch (error) {
       console.log(error);
     } finally {
@@ -261,6 +274,13 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
             <div className="flex items-center gap-2">
               <img src="/images/momo.png" alt="MOMO" className="w-6 h-6" />
               <span>MOMO</span>
+            </div>
+          </Radio>
+
+          <Radio value="cod">
+            <div className="flex items-center gap-2">
+              <img src="/images/cash.png" alt="MOMO" className="w-6 h-6" />
+              <span>COD</span>
             </div>
           </Radio>
         </Radio.Group>
