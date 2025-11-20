@@ -24,7 +24,8 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     const token = localStorage.getItem("accessToken");
 
     if (!token) {
-      console.warn("⚠️ No access token found - WebSocket will not connect");
+      // Không hiển thị cảnh báo - đây là hành vi bình thường khi chưa đăng nhập
+      console.log("ℹ️ User not logged in - WebSocket will not connect");
       return;
     }
 

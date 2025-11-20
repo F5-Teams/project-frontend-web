@@ -19,7 +19,14 @@ export function Model3D({
   rotation = [-0.2, -0.2, 0],
 }: Model3DProps) {
   const groupRef = useRef<THREE.Group>(null);
-  const { scene, animations } = useGLTF(modelPath);
+
+  // Load model with error handling
+  const { scene, animations } = useGLTF(modelPath, true, true, (loader) => {
+    loader.manager.onError = (url) => {
+      console.error(`Error loading ${url}`);
+    };
+  });
+
   const { actions } = useAnimations(animations, groupRef);
 
   // Play all animations
@@ -31,12 +38,14 @@ export function Model3D({
     }
   }, [actions]);
 
+  if (!scene) {
+    console.warn("Scene not loaded yet");
+    return null;
+  }
+
   return (
     <group ref={groupRef} position={position} rotation={rotation}>
       <primitive object={scene} scale={scale} />
     </group>
   );
 }
-
-// Preload the model
-useGLTF.preload("/models/scene.gltf");

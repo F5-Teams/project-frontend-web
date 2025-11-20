@@ -53,12 +53,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
   const [chatMode, setChatMode] = useState<ChatMode>("ai");
 
   // AI Chat States
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      sender: "bot",
-      text: "Xin chào! Mình là trợ lý HappyPaws. Bạn muốn đặt lịch grooming/spa, hỏi giá khách sạn thú cưng, hay tư vấn sản phẩm?",
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
 
@@ -91,6 +86,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
   const [selectedPetId, setSelectedPetId] = useState<string | undefined>();
 
   const [userInfo, setUserInfo] = useState<UserInfo>({});
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const canSend = useMemo(
     () => input.trim().length > 0 && !sending,
@@ -102,18 +98,55 @@ export function HappyPawsChat({ className }: { className?: string }) {
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, open]);
 
-  // Get current user ID for staff chat
+  // Get current user ID for staff chat and check login status
   useEffect(() => {
-    const userStr = localStorage.getItem("user");
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        setCurrentUserId(user.id);
-      } catch (error) {
-        console.error("Failed to parse user:", error);
+    const checkAuthStatus = () => {
+      const accessToken = localStorage.getItem("accessToken");
+      const userStr = localStorage.getItem("user");
+
+      if (accessToken && userStr) {
+        setIsLoggedIn(true);
+        try {
+          const user = JSON.parse(userStr);
+          setCurrentUserId(user.id);
+        } catch (error) {
+          console.error("Failed to parse user:", error);
+          setIsLoggedIn(false);
+        }
+      } else {
+        setIsLoggedIn(false);
+        // Nếu đang ở tab staff mà không có đăng nhập, chuyển về AI
+        if (chatMode === "staff") {
+          setChatMode("ai");
+        }
       }
+    };
+
+    // Check on mount and when chatMode changes
+    checkAuthStatus();
+
+    // Listen for storage changes (login/logout events)
+    window.addEventListener("storage", checkAuthStatus);
+
+    // Listen for custom auth events
+    window.addEventListener("auth-changed", checkAuthStatus);
+
+    return () => {
+      window.removeEventListener("storage", checkAuthStatus);
+      window.removeEventListener("auth-changed", checkAuthStatus);
+    };
+  }, [chatMode]);
+
+  // Initialize welcome message based on login status
+  useEffect(() => {
+    if (messages.length === 0) {
+      const welcomeMessage = isLoggedIn
+        ? "Xin chào! Mình là trợ lý HappyPaws. Bạn muốn đặt lịch grooming/spa, hỏi giá khách sạn thú cưng, hay tư vấn sản phẩm?\n\n💡 Nếu cần hỗ trợ trực tiếp, bạn có thể chuyển sang tab Staff Support để chat với nhân viên tư vấn."
+        : "Xin chào! Mình là trợ lý HappyPaws. Bạn muốn đặt lịch grooming/spa, hỏi giá khách sạn thú cưng, hay tư vấn sản phẩm?\n\n💡 Đăng nhập để sử dụng thêm tính năng chat với nhân viên tư vấn!";
+
+      setMessages([{ sender: "bot", text: welcomeMessage }]);
     }
-  }, []);
+  }, [isLoggedIn, messages.length]);
 
   // Check existing staff chat session
   useEffect(() => {
@@ -371,6 +404,14 @@ export function HappyPawsChat({ className }: { className?: string }) {
               size="sm"
               className="self-start bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
               onClick={() => {
+                const token = localStorage.getItem("accessToken");
+                if (!token) {
+                  toast.error(
+                    "Vui lòng đăng nhập để chat với nhân viên tư vấn"
+                  );
+                  router.push("/login");
+                  return;
+                }
                 setChatMode("staff");
                 toast.info("Chuyển sang chat với nhân viên tư vấn");
               }}
@@ -593,7 +634,8 @@ export function HappyPawsChat({ className }: { className?: string }) {
     pathname?.startsWith("/staff") ||
     pathname?.startsWith("/groomer");
 
-  if (shouldHide) {
+  // Chỉ hiển thị chat button khi đã đăng nhập
+  if (shouldHide || !isLoggedIn) {
     return null;
   }
   return (
@@ -650,7 +692,8 @@ export function HappyPawsChat({ className }: { className?: string }) {
               <button
                 onClick={() => setChatMode("ai")}
                 className={cn(
-                  "flex-1 px-4 py-2.5 font-medium text-sm transition-all rounded-t-xl relative",
+                  "px-4 py-2.5 font-medium text-sm transition-all rounded-t-xl relative",
+                  isLoggedIn ? "flex-1" : "w-full",
                   chatMode === "ai"
                     ? "bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white before:content-[''] before:absolute before:bottom-0 before:left-[-8px] before:w-[8px] before:h-[8px] before:rounded-br-2xl before:shadow-[4px_4px_0_0] before:shadow-gray-50 dark:before:shadow-gray-800/50 after:content-[''] after:absolute after:bottom-0 after:right-[-8px] after:w-[8px] after:h-[8px] after:rounded-bl-2xl after:shadow-[-4px_4px_0_0] after:shadow-gray-50 dark:after:shadow-gray-800/50"
                     : "text-white/80 hover:bg-white/10 hover:text-white"
@@ -662,28 +705,30 @@ export function HappyPawsChat({ className }: { className?: string }) {
                 </div>
               </button>
 
-              <button
-                onClick={() => setChatMode("staff")}
-                className={cn(
-                  "flex-1 px-4 py-2.5 font-medium text-sm transition-all rounded-t-xl relative",
-                  chatMode === "staff"
-                    ? "bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white before:content-[''] before:absolute before:bottom-0 before:left-[-8px] before:w-[8px] before:h-[8px] before:rounded-br-2xl before:shadow-[4px_4px_0_0] before:shadow-gray-50 dark:before:shadow-gray-800/50 after:content-[''] after:absolute after:bottom-0 after:right-[-8px] after:w-[8px] after:h-[8px] after:rounded-bl-2xl after:shadow-[-4px_4px_0_0] after:shadow-gray-50 dark:after:shadow-gray-800/50"
-                    : "text-white/80 hover:bg-white/10 hover:text-white"
-                )}
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <MessageSquare className="h-4 w-4" />
-                  <span>Staff Support</span>
-                  {chatMode === "staff" && hasSession && (
-                    <div
-                      className={cn(
-                        "w-2 h-2 rounded-full animate-pulse",
-                        staffJoined ? "bg-green-500" : "bg-yellow-500"
-                      )}
-                    />
+              {isLoggedIn && (
+                <button
+                  onClick={() => setChatMode("staff")}
+                  className={cn(
+                    "flex-1 px-4 py-2.5 font-medium text-sm transition-all rounded-t-xl relative",
+                    chatMode === "staff"
+                      ? "bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white before:content-[''] before:absolute before:bottom-0 before:left-[-8px] before:w-[8px] before:h-[8px] before:rounded-br-2xl before:shadow-[4px_4px_0_0] before:shadow-gray-50 dark:before:shadow-gray-800/50 after:content-[''] after:absolute after:bottom-0 after:right-[-8px] after:w-[8px] after:h-[8px] after:rounded-bl-2xl after:shadow-[-4px_4px_0_0] after:shadow-gray-50 dark:after:shadow-gray-800/50"
+                      : "text-white/80 hover:bg-white/10 hover:text-white"
                   )}
-                </div>
-              </button>
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    <span>Staff Support</span>
+                    {chatMode === "staff" && hasSession && (
+                      <div
+                        className={cn(
+                          "w-2 h-2 rounded-full animate-pulse",
+                          staffJoined ? "bg-green-500" : "bg-yellow-500"
+                        )}
+                      />
+                    )}
+                  </div>
+                </button>
+              )}
             </div>
           </div>
 

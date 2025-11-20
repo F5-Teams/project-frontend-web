@@ -4,6 +4,7 @@ import { Suspense, useRef, useState, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import { Model3D } from "@/components/chat/Model3D";
+import { Model3DErrorBoundary } from "@/components/chat/Model3DErrorBoundary";
 import * as THREE from "three";
 
 function InteractiveModel3D() {
@@ -41,7 +42,7 @@ function InteractiveModel3D() {
   return (
     <group ref={groupRef}>
       <Model3D
-        modelPath="/models/scene.gltf"
+        modelPath="/models/Dogsong/scene.gltf"
         scale={1.3}
         position={[0, -0, 0]}
         rotation={[0, 0, 0]}
@@ -94,7 +95,9 @@ export function Background3D() {
         />
 
         <Suspense fallback={<LoadingFallback />}>
-          <InteractiveModel3D />
+          <Model3DErrorBoundary>
+            <InteractiveModel3D />
+          </Model3DErrorBoundary>
         </Suspense>
 
         <OrbitControls
