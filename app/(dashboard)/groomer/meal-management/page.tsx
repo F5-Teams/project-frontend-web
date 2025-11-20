@@ -89,7 +89,7 @@ export default function MealManagementPage() {
   };
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <div className="container mx-auto space-y-6">
       <MealManagementHeader date={date} onDateChange={setDate} />
 
       <div className="grid gap-4">

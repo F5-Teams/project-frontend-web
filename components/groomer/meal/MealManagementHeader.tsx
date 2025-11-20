@@ -22,9 +22,18 @@ export function MealManagementHeader({
   date,
   onDateChange,
 }: MealManagementHeaderProps) {
+  const [open, setOpen] = React.useState(false);
+
+  const handleDateSelect = (newDate: Date | undefined) => {
+    if (newDate) {
+      onDateChange(newDate);
+      setOpen(false);
+    }
+  };
+
   return (
     <div className="flex items-center justify-end ">
-      <Popover>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
@@ -45,7 +54,7 @@ export function MealManagementHeader({
           <CalendarComponent
             mode="single"
             selected={date}
-            onSelect={(newDate) => newDate && onDateChange(newDate)}
+            onSelect={handleDateSelect}
             initialFocus
           />
         </PopoverContent>

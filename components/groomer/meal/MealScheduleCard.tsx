@@ -48,13 +48,30 @@ export function MealScheduleCard({
     setNotes("");
   };
 
+  const getMealBorderColor = (mealType: string) => {
+    const colors = {
+      BREAKFAST: "border-l-orange-400",
+      LUNCH: "border-l-blue-400",
+      DINNER: "border-l-purple-400",
+    };
+    return colors[mealType as keyof typeof colors] || "border-l-gray-400";
+  };
+
   return (
-    <Card className="border-l-4 border-l-blue-400">
+    <Card className={`border-l-4 ${getMealBorderColor(schedule.mealType)}`}>
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 space-y-2">
             <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-blue-500" />
+              <Clock
+                className={`w-4 h-4 ${
+                  schedule.mealType === "BREAKFAST"
+                    ? "text-orange-500"
+                    : schedule.mealType === "LUNCH"
+                    ? "text-blue-500"
+                    : "text-purple-500"
+                }`}
+              />
               <h4 className="font-poppins-regular">
                 {getMealTypeLabel(schedule.mealType)}
               </h4>
@@ -108,24 +125,26 @@ export function MealScheduleCard({
             </div>
 
             {isExpanded && (
-              <div className="mt-4 pt-4 border-t space-y-3">
+              <div className=" pt-4 border-t space-y-3">
                 <div>
-                  <label className="block text-sm font-medium mb-1">
+                  <label className="block text-sm font-poppins-regular mb-1">
                     Khối lượng thực tế *
                   </label>
                   <Input
                     placeholder="Ví dụ: 200g, 1 chén"
                     value={quantity}
+                    className="font-poppins-light"
                     onChange={(e) => setQuantity(e.target.value)}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">
+                  <label className="block text-sm font-poppins-regular mb-1">
                     Ghi chú thêm
                   </label>
                   <Textarea
                     placeholder="Ghi chú về tình trạng ăn uống của thú cưng..."
                     value={notes}
+                    className="font-poppins-light"
                     onChange={(e) => setNotes(e.target.value)}
                     rows={3}
                   />
@@ -153,7 +172,7 @@ export function MealScheduleCard({
               ) : (
                 <Button
                   onClick={() => setIsExpanded(true)}
-                  className="bg-primary hover:bg-primary/90"
+                  className="bg-primary font-poppins-light hover:bg-primary/90"
                 >
                   Đã cho ăn
                 </Button>
