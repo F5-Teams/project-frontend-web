@@ -90,7 +90,20 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   }, [addressFee, totalWeight, calculateFee]);
 
   const handleSubmit = async () => {
-    if (!address) return;
+    if (!address) {
+      toast.error("Vui lòng chọn địa chỉ giao hàng!");
+      return;
+    }
+
+    if (!option) {
+      toast.error("Vui lòng chọn phương thức thanh toán!");
+      return;
+    }
+
+    if (!items || items.length === 0) {
+      toast.error("Giỏ hàng trống!");
+      return;
+    }
 
     setLoading(true);
 
@@ -189,6 +202,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       >
         <div className="flex">
           <h1 className="w-[30%]">Chọn địa chỉ:</h1>
+
           <Form.Item name="address" className="w-[60%]">
             <Select
               showSearch
