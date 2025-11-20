@@ -223,6 +223,8 @@ const OrderPage = () => {
         return "Tiền mặt";
       case "TRANSFER":
         return "Thanh toán qua ví";
+      case "VNPAY":
+        return "Thanh toán online";
       default:
         return "Không xác định";
     }

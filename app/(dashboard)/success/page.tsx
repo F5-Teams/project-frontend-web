@@ -6,20 +6,44 @@ import { CheckCircle, XCircle, Loader } from "lucide-react";
 import Link from "next/link";
 import Header from "@/components/shared/Header";
 
-export default function VNPayReturnPage() {
+export default function PaymentReturnPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+
   const [status, setStatus] = useState<"loading" | "success" | "failed">(
     "loading"
   );
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const paymentStatus = searchParams.get("status");
+    const paymentStatus = searchParams.get("status"); // VNPay
     const orderId =
-      searchParams.get("orderId") || searchParams.get("orderBookingId");
+      searchParams.get("orderId") || searchParams.get("orderBookingId"); // VNPay + Momo
     const depositAmount = searchParams.get("amount");
 
+    // ============================
+    // 🔥 1. CASE MOMO
+    // Momo chỉ trả orderId, không có status
+    // ============================
+    if (!paymentStatus && orderId) {
+      setStatus("success");
+      setMessage(`Thanh toán MOMO thành công! Mã đơn: ${orderId}`);
+
+      // Xóa cache
+      localStorage.removeItem("pendingPayment");
+      localStorage.removeItem("pendingOrderId");
+
+      setTimeout(() => {
+        router.push("/");
+      }, 3000);
+
+      return;
+    }
+
+    // ============================
+    // 🔥 2. CASE VNPAY
+    // Có status → VNPay
+    // ============================
     if (!paymentStatus || !orderId) {
       setStatus("failed");
       setMessage("Không tìm thấy thông tin giao dịch");
@@ -34,9 +58,8 @@ export default function VNPayReturnPage() {
       localStorage.removeItem("pendingBookingId");
       localStorage.removeItem("pendingPaymentMethod");
 
-      // ⭐ Redirect đúng theo yêu cầu
       setTimeout(() => {
-        router.push("/profile/calendar");
+        router.push("/");
       }, 3000);
     } else {
       setStatus("failed");
@@ -69,13 +92,13 @@ export default function VNPayReturnPage() {
               </h1>
               <p className="text-gray-600 mb-6">{message}</p>
               <p className="text-sm text-gray-500">
-                Tự động quay lại lịch sử đặt lịch trong 3 giây...
+                Tự động quay lại trang chủ trong 3 giây...
               </p>
               <Link
-                href="/profile/calendar"
+                href="/"
                 className="inline-block mt-4 px-6 py-2 bg-primary text-white rounded-lg"
               >
-                Quay lại lịch sử đặt lịch
+                Quay lại trang chủ
               </Link>
             </div>
           )}

@@ -148,13 +148,13 @@ export default function HistoryOrder() {
                   </div>
                 </div>
 
-                <p className="text-gray-600 mt-5 text-sm">
+                {/* <p className="text-gray-600 mt-5 text-sm">
                   Tiền ship:{" "}
                   {Number(order?.shipping?.shippingFee || 0).toLocaleString(
                     "vi-VN"
                   )}
                   đ
-                </p>
+                </p> */}
                 <div className="h-[0.5px] w-full mt-4 bg-gray-300"></div>
                 <div className="flex justify-between mt-5 font-medium">
                   <p>Tổng cộng:</p>
