@@ -5,13 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import {
-  Bot,
-  Send,
-  X,
-  MessageSquare,
-  Loader2,
-} from "lucide-react";
+import { Bot, Send, X, MessageSquare, Loader2 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import gsap from "gsap";
 import {
