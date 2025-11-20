@@ -313,17 +313,17 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       </div>
 
       <div className="flex gap-3 mt-6">
-        <button
+        <Button
           onClick={() => {
             setLoading(false);
             setNote("");
             form.resetFields();
             isCancel();
           }}
-          className="flex-1 py-2 rounded-xl border border-pink-500 cursor-pointer text-pink-600 font-semibold hover:bg-pink-50 transition"
+          className="flex-1! py-2! rounded-xl! border border-pink-500! cursor-pointer! text-pink-600! font-semibold! hover:bg-pink-50 transition"
         >
           Hủy
-        </button>
+        </Button>
 
         <Button
           type="primary"
