@@ -99,10 +99,12 @@ export function BagDrawer({ children }: BagDrawerProps) {
         }
       >
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Checkbox checked={isAllSelected} onChange={toggleSelectAll} />
-            <span className="font-medium">Chọn tất cả</span>
-          </div>
+          {items.length >= 1 && (
+            <div className="flex items-center gap-2">
+              <Checkbox checked={isAllSelected} onChange={toggleSelectAll} />
+              <span className="font-medium">Chọn tất cả</span>
+            </div>
+          )}
 
           {selectedItems.length > 0 && (
             <button
