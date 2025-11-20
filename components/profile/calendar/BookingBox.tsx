@@ -49,7 +49,6 @@ export function BookingBox({
         active ? "border-primary/60 ring-primary/20" : "border-gray-200"
       )}
     >
-      {/* Header */}
       <button
         className="w-full flex flex-col items-start gap-2 px-3 py-3"
         onClick={() => {
@@ -57,7 +56,6 @@ export function BookingBox({
           onSelect?.(data);
         }}
       >
-        {/* dot + chevron: full width row */}
         <div className="w-full flex items-center justify-between gap-2">
           <span
             className={cn("inline-block w-2.5 h-2.5 rounded-full", dotClass)}
@@ -67,7 +65,6 @@ export function BookingBox({
           />
         </div>
 
-        {/* main content below (title + preview) */}
         <div className="w-full min-w-0 text-left">
           <div className="text-sm font-medium text-gray-900 whitespace-normal wrap-break-words">
             {data.title}

@@ -4,7 +4,7 @@ export interface ApiService {
   id: number;
   name: string;
   price: string;
-  duration: number; // minutes
+  duration: number;
   description: string;
   isActive: boolean;
 }
@@ -20,7 +20,7 @@ export interface ApiCombo {
   id: number;
   name: string;
   price: string;
-  duration: number; // minutes
+  duration: number;
   description: string;
   isActive: boolean;
   serviceLinks: ApiServiceLink[];
@@ -28,8 +28,8 @@ export interface ApiCombo {
 
 export interface ApiSlot {
   id: number;
-  startDate: string; // ISO
-  endDate: string; // ISO
+  startDate: string;
+  endDate: string;
   totalPrice: string;
   roomId: number;
 }
@@ -40,7 +40,6 @@ export interface ApiRoom {
   class: string;
   price: string;
   status: string;
-  // mô tả và ảnh có thể có hoặc null từ API
   description?: string | null;
   imageUrl?: string | null;
 }
@@ -57,7 +56,6 @@ export interface ApiPet {
   note: string;
   userId: number;
   recordId: number | null;
-  // ảnh pet nếu có
   imageUrl?: string | null;
   avatar?: string | null;
 }
@@ -87,7 +85,6 @@ export interface ApiBooking {
   slot: ApiSlot | null;
 }
 
-// API Searched
 export interface ApiFilteredBooking {
   id: number;
   status: BookingStatus;
@@ -97,6 +94,7 @@ export interface ApiFilteredBooking {
   dropDownSlot: "MORNING" | "AFTERNOON" | "EVENING" | string;
   type?: "SPA" | "HOTEL" | string;
   totalPrice: number;
+  isPaid: boolean;
   pet: {
     id: number;
     name: string;

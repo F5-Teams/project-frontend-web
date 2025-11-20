@@ -5,6 +5,7 @@ import { useMyBookings } from "@/services/groomer/list/hooks";
 import type { Booking } from "@/services/groomer/list/type";
 import Image from "next/image";
 import { gsap } from "gsap";
+import { formatDMY } from "@/utils/date";
 
 type Props = {
   onSelectBooking?: (b: Booking | null) => void;
@@ -142,9 +143,7 @@ export default function BookingsWithImagesList({
                   </div>
                   <div className="font-poppins-regular">
                     {b.customer?.firstName || ""} {b.customer?.lastName || ""} —{" "}
-                    {b.bookingDate
-                      ? new Date(b.bookingDate).toLocaleString()
-                      : "—"}
+                    {b.bookingDate ? formatDMY(new Date(b.bookingDate)) : "—"}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     Trạng thái: {b.status}

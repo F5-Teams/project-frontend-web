@@ -39,7 +39,6 @@ export const WeekHeader: React.FC<Props> = ({
 
   return (
     <>
-      {/* tiêu đề + range tuần + hôm nay */}
       <div className="mb-3">
         <div className="text-xl font-poppins-medium text-gray-900 mb-2">
           Lịch tuần hôm nay{" "}
@@ -47,7 +46,6 @@ export const WeekHeader: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* hàng tiêu đề ngày/thu */}
       <div className="grid grid-cols-[60px_repeat(7,1fr)] gap-0 mb-2">
         <div />
         {Array.from({ length: 7 }).map((_, i) => {

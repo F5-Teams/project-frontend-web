@@ -26,14 +26,17 @@ export function MealManagementHeader({
 
   const handleDateSelect = (newDate: Date | undefined) => {
     if (newDate) {
-      onDateChange(newDate);
+      // Use setTimeout to ensure state update happens after popover closes
+      setTimeout(() => {
+        onDateChange(newDate);
+      }, 0);
       setOpen(false);
     }
   };
 
   return (
     <div className="flex items-center justify-end ">
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={setOpen} modal={true}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
@@ -50,12 +53,12 @@ export function MealManagementHeader({
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 ">
+        <PopoverContent className="w-auto p-0" align="end">
           <CalendarComponent
             mode="single"
             selected={date}
             onSelect={handleDateSelect}
-            initialFocus
+            autoFocus={false}
           />
         </PopoverContent>
       </Popover>

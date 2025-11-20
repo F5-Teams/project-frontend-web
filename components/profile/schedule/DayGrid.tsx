@@ -92,14 +92,17 @@ export const DayGrid: React.FC<Props> = ({
   // text thời gian
   const renderTimeText = (bk: Booking) => {
     const isSlot = !!bk.meta?.slotStart && !!bk.meta?.slotEnd;
-    const displayDate = toDateLocal(bk.meta?.bookingDate ?? bk.start);
+
     if (isSlot) {
       const s = toDateLocal(bk.meta!.slotStart as string);
       const e = toDateLocal(bk.meta!.slotEnd as string);
       if (s && e) return `${fmtHM(s)}–${fmtHM(e)}`;
     }
-    const e = addMinutes(displayDate, bk.durationMinutes);
-    return `${fmtHM(displayDate)}–${fmtHM(e)}`;
+
+    // Dùng bk.start (đã được tính đúng giờ từ dropDownSlot) thay vì bookingDate
+    const startTime = toDateLocal(bk.start);
+    const endTime = addMinutes(startTime, bk.durationMinutes);
+    return `${fmtHM(startTime)}–${fmtHM(endTime)}`;
   };
 
   return (
@@ -144,7 +147,6 @@ export const DayGrid: React.FC<Props> = ({
           );
         }
 
-        // nhóm overlap có nhiều booking
         const state = groupState[gi] ?? { open: false, activeId: g[0]?.id };
         const active = g.find((x) => x.id === state.activeId) ?? g[0];
         const petName = (active.meta?.pet as string) ?? "Pet";
