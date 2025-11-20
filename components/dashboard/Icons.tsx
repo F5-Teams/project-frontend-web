@@ -23,6 +23,7 @@ import {
   UserRoundPlus,
   UserRoundCheck,
   Clock,
+  HandPlatter,
 } from "lucide-react";
 
 export type IconKey =
@@ -48,7 +49,8 @@ export type IconKey =
   | "groomerCheck"
   | "clock"
   | "groomer"
-  | "chat";
+  | "chat"
+  | "meal";
 
 export const ICONS: Record<IconKey, LucideIcon> = {
   dashboard: LayoutDashboard,
@@ -74,4 +76,5 @@ export const ICONS: Record<IconKey, LucideIcon> = {
   groomerCheck: UserRoundCheck,
   clock: Clock,
   chat: MessageSquare,
+  meal: HandPlatter,
 };

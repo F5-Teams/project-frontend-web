@@ -187,7 +187,7 @@ const OurHappyClientsSection = () => {
                 <h3 className="font-poppins-medium text-black text-[20px] lg:text-[30px] tracking-[-0.18px] leading-10">
                   Trần Hoàng Long
                 </h3>
-                <p className="font-poppins-light text-black text-[14px] lg:text-[16px] leading-[20px]">
+                <p className="font-poppins-light text-black text-[14px] lg:text-[16px] leading-5">
                   Khách hàng thân thiết - bé mèo Miu
                 </p>
               </div>
@@ -225,7 +225,7 @@ const OurHappyClientsSection = () => {
                 <h3 className="font-poppins-medium text-black text-[20px] lg:text-[30px] tracking-[-0.18px] leading-10">
                   Phạm Thu Hà
                 </h3>
-                <p className="font-poppins-light text-black text-[14px] lg:text-[16px] leading-[20px]">
+                <p className="font-poppins-light text-black text-[14px] lg:text-[16px] leading-5">
                   Người nuôi mèo lần đầu - bé mèo Simba
                 </p>
               </div>
@@ -263,7 +263,7 @@ const OurHappyClientsSection = () => {
                 <h3 className="font-poppins-medium text-black text-[20px] lg:text-[30px] tracking-[-0.18px] leading-10">
                   Lê Quốc Khánh
                 </h3>
-                <p className="font-poppins-light text-black text-[14px] lg:text-[16px] leading-[20px]">
+                <p className="font-poppins-light text-black text-[14px] lg:text-[16px] leading-5">
                   Chủ nuôi - bé chó Corgi Luna
                 </p>
               </div>
@@ -278,7 +278,7 @@ const OurHappyClientsSection = () => {
               <p className="client-text font-poppins-light text-black text-[14px] lg:text-[16px] leading-[30px]">
                 Rất ưng dịch vụ đưa đón tận nơi và nhắc lịch tự động. Bé Corgi
                 được spa đúng quy trình, bác sĩ còn tư vấn thêm về da lông. Ứng
-                dụng theo dõi rõ ràng, ảnh trước–sau lưu lại cực tiện.
+                dụng theo dõi rõ ràng, ảnh trước với sau lưu lại cực tiện.
               </p>
             </div>
           </CardContent>
