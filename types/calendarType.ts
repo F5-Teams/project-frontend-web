@@ -18,12 +18,12 @@ export type CalendarBooking = {
   title: string;
   color: string;
   status?: string | null;
-  // allow null because we map ApiBooking fields to null when absent
   startDate?: string | null;
   endDate?: string | null;
   bookingDate?: string | null;
-
-  // optional detailed fields from API
+  dropDownSlot?: string | null;
+  totalPrice?: number | null;
+  isPaid?: boolean | null;
   slot?: {
     id?: number;
     startDate?: string | null;
@@ -53,7 +53,6 @@ export type CalendarBooking = {
     imageUrl?: string | null;
   } | null;
 
-  // add uppercase Room alias so components that read .Room still type-check
   Room?: {
     id?: number;
     name?: string;

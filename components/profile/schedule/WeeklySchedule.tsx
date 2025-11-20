@@ -63,7 +63,6 @@ export const WeeklySchedule: React.FC<WeeklyScheduleProps> = ({
 
   const rowHeight = 90 * (slotMinutes / 60);
 
-  // lọc booking theo tuần
   const weekBookings = React.useMemo(() => {
     return bookings.filter((b) => {
       const s = toDateLocal(b.start);
@@ -76,7 +75,6 @@ export const WeeklySchedule: React.FC<WeeklyScheduleProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [offsetWeeks, weekStart.getTime(), weekEnd.getTime()]);
 
-  // gom booking theo từng ngày
   const bookingsByDay = React.useMemo(() => {
     const map: Record<number, Booking[]> = {};
     for (let i = 0; i < 7; i++) map[i] = [];

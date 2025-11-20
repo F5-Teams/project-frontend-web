@@ -34,7 +34,6 @@ function getArray(
   return Array.isArray(v) ? v : undefined;
 }
 
-// accept both ApiBooking and ApiFilteredBooking shapes (they are compatible at runtime)
 export function mapApiToCalendar(
   b: ApiBooking | ApiFilteredBooking
 ): CalendarBooking {
@@ -134,6 +133,12 @@ export function mapApiToCalendar(
     ? (b.slot as unknown as Record<string, unknown>)
     : null;
 
+  const dropDownSlot =
+    "dropDownSlot" in b ? (b as ApiFilteredBooking).dropDownSlot : null;
+  const totalPrice =
+    "totalPrice" in b ? (b as ApiFilteredBooking).totalPrice : null;
+  const isPaid = "isPaid" in b ? (b as ApiFilteredBooking).isPaid : null;
+
   return {
     id: b.id,
     title,
@@ -141,6 +146,9 @@ export function mapApiToCalendar(
     status: b.status ?? null,
     startDate: rangeS ?? b.bookingDate ?? null,
     endDate: rangeE ?? null,
+    dropDownSlot: dropDownSlot ?? null,
+    totalPrice: totalPrice ?? null,
+    isPaid: isPaid ?? null,
     slot: b.slot
       ? {
           id: getNumber(slotRec, "id"),

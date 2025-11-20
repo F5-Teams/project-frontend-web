@@ -4,6 +4,7 @@ import React from "react";
 import Image from "next/image";
 import { StatusBadge } from "./StatusBadge";
 import { formatDMY, toDate } from "@/utils/dateRange";
+import { formatCurrency } from "@/utils/currency";
 import { CalendarBooking } from "@/types/calendarType";
 import {
   ApiBooking,
@@ -32,6 +33,15 @@ function isApiBooking(b: unknown): b is ApiBooking {
       "room" in (b as Record<string, unknown>) ||
       "room" in (b as Record<string, unknown>))
   );
+}
+
+function getDropDownSlotLabel(slot: string | undefined | null): string {
+  const slotMap: Record<string, string> = {
+    MORNING: "Sáng (7:00 - 11:30)",
+    AFTERNOON: "Trưa (12:30 - 16:30)",
+    EVENING: "Chiều (17:00 - 19:00)",
+  };
+  return slot ? slotMap[slot] || slot : "Chưa xác định";
 }
 
 export function BookingDetailPanel({ booking, onRequestFeedback }: Props) {
@@ -100,36 +110,6 @@ export function BookingDetailPanel({ booking, onRequestFeedback }: Props) {
     ? comboObj.serviceLinks
     : [];
 
-  // function getComboImage(c: unknown): string | null {
-  //   if (!c || typeof c !== "object") return null;
-  //   const obj = c as Record<string, unknown>;
-  //   if ("imageUrl" in obj && typeof obj.imageUrl === "string") {
-  //     return obj.imageUrl;
-  //   }
-  //   const sl = obj["serviceLinks"];
-  //   if (Array.isArray(sl) && sl.length > 0) {
-  //     const first = sl[0] as Record<string, unknown> | undefined;
-  //     const svc = first?.["service"];
-  //     if (
-  //       svc &&
-  //       typeof svc === "object" &&
-  //       typeof (svc as Record<string, unknown>)["imageUrl"] === "string"
-  //     ) {
-  //       return (svc as Record<string, unknown>)["imageUrl"] as string;
-  //     }
-  //   }
-  //   const services = obj["services"];
-  //   if (Array.isArray(services) && services.length > 0) {
-  //     const s0 = services[0] as Record<string, unknown> | undefined;
-  //     if (s0 && typeof s0["imageUrl"] === "string") {
-  //       return s0["imageUrl"] as string;
-  //     }
-  //   }
-  //   return null;
-  // }
-
-  // const comboImage: string | null = getComboImage(comboObj);
-
   const rawStart =
     api?.slot?.startDate ??
     (booking as CalendarBooking).startDate ??
@@ -149,6 +129,28 @@ export function BookingDetailPanel({ booking, onRequestFeedback }: Props) {
       (booking as CalendarBooking).bookingDate ??
       (booking as CalendarBooking).meta?.bookingDate
   );
+
+  const dropDownSlot =
+    api?.dropDownSlot ?? (booking as CalendarBooking).dropDownSlot ?? null;
+
+  const totalPrice =
+    (booking as CalendarBooking).totalPrice ??
+    api?.comboPrice ??
+    api?.servicePrice ??
+    (booking as CalendarBooking).slot?.totalPrice ??
+    null;
+
+  const calendarIsPaid = (booking as CalendarBooking).isPaid;
+  const apiIsPaid = api
+    ? (api as unknown as Record<string, unknown>).isPaid
+    : undefined;
+
+  const isPaid =
+    typeof calendarIsPaid === "boolean"
+      ? calendarIsPaid
+      : typeof apiIsPaid === "boolean"
+      ? apiIsPaid
+      : null;
 
   return (
     <div className="bg-[#ffdef0] rounded-3xl p-4 space-y-4 text-black">
@@ -206,13 +208,18 @@ export function BookingDetailPanel({ booking, onRequestFeedback }: Props) {
                   </div>
                 </div>
               ) : bookingDate ? (
-                <div>
+                <div className="space-y-1">
                   <div className="text-md font-poppins-regular text-black">
                     Thời gian:{" "}
                     <span className="text-sm font-poppins-light">
                       {formatDMY(bookingDate)}
                     </span>
                   </div>
+                  {dropDownSlot && (
+                    <div className="text-sm font-poppins-light text-black/70">
+                      Buổi {getDropDownSlotLabel(dropDownSlot)}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-sm font-poppins-light text-black/60">
@@ -291,7 +298,7 @@ export function BookingDetailPanel({ booking, onRequestFeedback }: Props) {
             )} */}
           </div>
         ) : comboObj ? (
-          <div className="text-sm text-black space-y-2 mt-4">
+          <div className="text-sm font-poppins-light text-black space-y-2 mt-4">
             <div>
               Gói: <span className="font-medium">{comboObj.name}</span>
             </div>
@@ -310,6 +317,37 @@ export function BookingDetailPanel({ booking, onRequestFeedback }: Props) {
             ) : null}
           </div>
         ) : null}
+
+        {(totalPrice || isPaid !== null) && (
+          <div className="mt-4 pt-4 border-t border-dashed border-pink/20 space-y-2">
+            {totalPrice && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-poppins-regular text-black">
+                  Tổng tiền:
+                </span>
+                <span className="text-md font-poppins-regular text-black">
+                  {formatCurrency(Number(totalPrice))}
+                </span>
+              </div>
+            )}
+            {isPaid !== null && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-poppins-regular text-black">
+                  Trạng thái thanh toán:
+                </span>
+                <span
+                  className={`text-sm font-poppins-medium px-3 py-1 rounded-full ${
+                    isPaid
+                      ? "bg-green-100 text-green-700"
+                      : "bg-orange-100 text-orange-700"
+                  }`}
+                >
+                  {isPaid ? "Đã thanh toán" : "Chưa thanh toán"}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
