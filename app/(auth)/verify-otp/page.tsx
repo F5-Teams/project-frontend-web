@@ -56,7 +56,7 @@ export default function VerifyOtpPage() {
     setIsLoading(true);
     setError("");
 
-    const payload = { email, code: code.trim(), otp: code.trim() };
+    const payload = { email, otp: code.trim() };
 
     const verifyPromise = api.post("auth/verify-otp", payload).then((res) => {
       const resObj = res as unknown as Record<string, unknown>;
