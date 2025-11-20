@@ -11,9 +11,6 @@ import {
   X,
   MessageSquare,
   Loader2,
-  CheckCheck,
-  Clock,
-  Minus,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import gsap from "gsap";
@@ -24,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getPetsByUser } from "@/services/profile/profile-pet/api";
 import type { Pet } from "@/services/profile/profile-pet/types";
@@ -608,11 +604,6 @@ export function HappyPawsChat({ className }: { className?: string }) {
     setConsultationTitle("");
     setStaffJoined(false);
     toast.info("Hãy tạo yêu cầu tư vấn mới");
-  };
-
-  const handleBackToAI = () => {
-    setChatMode("ai");
-    toast.info("Quay lại chat với AI");
   };
 
   const getInitials = (firstName: string, lastName: string) => {
