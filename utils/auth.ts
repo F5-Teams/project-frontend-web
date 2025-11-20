@@ -5,6 +5,7 @@ export function clearAuth() {
     window.localStorage.removeItem("accessToken");
     window.localStorage.removeItem("user");
     window.localStorage.removeItem("role");
+    window.localStorage.removeItem("onesignal-notification-prompt");
 
     const isHttps = window.location.protocol === "https:";
     const secure = isHttps ? "; Secure" : "";
