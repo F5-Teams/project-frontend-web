@@ -55,16 +55,6 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (!user?.address) return;
-
-    setAddress(user.address);
-
-    form.setFieldsValue({
-      address: user.address,
-    });
-  }, [user]);
-
-  useEffect(() => {
     if (!address) return;
 
     const found = addressList.find((item) => item.id === address);
