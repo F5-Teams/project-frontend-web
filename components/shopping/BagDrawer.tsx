@@ -36,6 +36,19 @@ export function BagDrawer({ children }: BagDrawerProps) {
     selectedItems.includes(String(item.productId))
   );
 
+  // --- ADD THIS ---
+  const isAllSelected =
+    selectedItems.length === items.length && items.length > 0;
+
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems(items.map((item) => String(item.productId)));
+    }
+  };
+  // --- END ---
+
   return (
     <>
       <div onClick={() => setOpen(true)}>{children}</div>
@@ -65,6 +78,7 @@ export function BagDrawer({ children }: BagDrawerProps) {
                 Giỏ của tôi
               </span>
             </div>
+
             {items.length > 1 && (
               <button
                 onClick={clearCart}
@@ -84,6 +98,22 @@ export function BagDrawer({ children }: BagDrawerProps) {
           </button>
         }
       >
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Checkbox checked={isAllSelected} onChange={toggleSelectAll} />
+            <span className="font-medium">Chọn tất cả</span>
+          </div>
+
+          {selectedItems.length > 0 && (
+            <button
+              onClick={() => setSelectedItems([])}
+              className="text-sm text-pink-600 hover:text-pink-700"
+            >
+              Bỏ chọn
+            </button>
+          )}
+        </div>
+
         {items.length === 0 ? (
           <div className="flex flex-col items-center h-full text-center text-gray-500">
             <p className="font-semibold text-lg mb-1">Giỏ hàng đang trống!</p>

@@ -4,14 +4,12 @@ import { useCalculateFee } from "@/services/calculateFee/hooks";
 import { useGetUser } from "@/services/users/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button, Form, Input, Modal, Radio, Select } from "antd";
-import { useForm } from "antd/es/form/Form";
 import React, { useEffect, useState } from "react";
-import { toast } from "sonner";
 import AddressModal from "./AddressModal";
 import { usePostOrder } from "@/services/orders/postOrder/hooks";
 import { useGetVoucher } from "@/services/vouchers/hooks";
 import { Voucher } from "@/services/vouchers/type";
-
+import { POST_ORDER_QUERY_KEY } from "@/services/orders/postOrder/hooks";
 interface CartItem {
   productId: number;
   price: number;
@@ -29,10 +27,11 @@ interface DataProps {
 }
 
 const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
-  const [form] = useForm();
+  const [form] = Form.useForm();
+  const selectedAddress = Form.useWatch("address", form);
+  const [option, setOption] = useState<string>("");
   const [note, setNote] = useState<string>("");
-  const [phone, setPhone] = useState<string>("");
-  const [address, setAddress] = useState<number>();
+  const [address, setAddress] = useState<number | undefined>();
   const { data: user } = useGetUser();
   const [loading, setLoading] = useState(false);
   const [addressFee, setAddressFee] = useState<Address>();
@@ -42,38 +41,41 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   const [chooseVoucher, setChooseVoucher] = useState<Voucher>();
   const { data: addressList = [] } = useGetAddress();
   const { data: voucher = [] } = useGetVoucher();
+
   const total = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+  const totalWeight = items.reduce(
+    (sum, item) => sum + Number(item.weight) * item.quantity,
     0
   );
 
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    setAddress(user?.address || "");
-    setPhone(user?.phoneNumber || "");
+    if (!user?.address) return;
+
+    setAddress(user.address);
 
     form.setFieldsValue({
-      phone: user?.phoneNumber,
-      address: user?.address,
+      address: user.address,
     });
   }, [user]);
 
   useEffect(() => {
-    const filterAddress = addressList.find((item) => item.id === address);
-    setAddressFee(filterAddress);
-  }, [address, addressList]);
+    if (!address) return;
 
-  const totalWeight = items.reduce(
-    (sum, item) => sum + Number(item.weight) * item.quantity,
-    0
-  );
+    const found = addressList.find((item) => item.id === address);
+    setAddressFee(found);
+  }, [address, addressList]);
 
   useEffect(() => {
     if (!addressFee) return;
+
     const payload: any = {
-      to_district_id: addressFee?.districtId,
-      to_ward_code: addressFee?.wardCode,
+      to_district_id: addressFee.districtId,
+      to_ward_code: addressFee.wardCode,
       weight: totalWeight,
       length: 20,
       width: 15,
@@ -83,50 +85,57 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       insurance_value: 0,
     };
 
-    try {
-      calculateFee(payload);
-    } catch (error) {
-      console.log(error);
-    }
-  }, [addressFee, calculateFee, totalWeight]);
+    calculateFee(payload).catch((err) => console.log(err));
+  }, [addressFee, totalWeight, calculateFee]);
 
   const handleSubmit = async () => {
+    if (!address) return;
+
     setLoading(true);
 
     const orderPayloadTransfer = {
-      status: "PENDING",
-      note: note,
+      status: "PAID",
+      note,
       customerId: user?.id,
       orderDetails: items.map((item) => ({
         productId: item.productId,
         quantity: item.quantity,
       })),
-      addressId: Number(address),
-      paymentMethod: "VNPAY",
+      addressId: address,
+      paymentMethod: option === "vnpay" ? "VNPAY" : "MOMO",
       voucherCode: chooseVoucher?.code || "",
     };
 
     try {
       const response = await createOrder(orderPayloadTransfer);
 
-      window.location.href = response.vnpUrl;
+      if (response?.vnpUrl) {
+        window.location.href = response.vnpUrl;
+      } else if (response?.momoUrl) {
+        window.location.href = response.momoUrl;
+      }
 
-      queryClient.invalidateQueries(["createOrder"]);
+      queryClient.invalidateQueries(POST_ORDER_QUERY_KEY);
+
       form.resetFields();
       clearCart();
+      setNote("");
     } catch (error) {
       console.log(error);
     } finally {
       setLoading(false);
+      isCancel();
     }
-
-    isCancel();
   };
 
   return (
     <Modal
       open={isOpen}
-      onCancel={isCancel}
+      onCancel={() => {
+        setNote("");
+        form.resetFields();
+        isCancel();
+      }}
       footer={null}
       width={600}
       title={<span className="font-semibold text-lg">🛒 Order Summary</span>}
@@ -159,21 +168,24 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
 
       <div className="border-t border-gray-200 my-2" />
 
-      <Form form={form} component={false}>
-        <div className="flex ">
+      <Form
+        form={form}
+        onValuesChange={(changedValues) => {
+          if (changedValues.address) setAddress(changedValues.address);
+        }}
+      >
+        <div className="flex">
           <h1 className="w-[30%]">Chọn địa chỉ:</h1>
-          <Form.Item className="w-[60%]">
+          <Form.Item name="address" className="w-[60%]">
             <Select
               showSearch
               placeholder="Chọn địa chỉ"
-              optionFilterProp="children"
-              // value={address}
-              onChange={(value) => setAddress(value)}
               className="mt-1 w-full"
+              optionFilterProp="children"
               popupRender={(menu) => (
                 <div>
                   {menu}
-                  {address && (
+                  {selectedAddress && (
                     <div
                       onClick={() => setIsAddressModalOpen(true)}
                       className="text-center py-2 cursor-pointer border-t hover:bg-pink-50 text-pink-600 font-medium"
@@ -198,6 +210,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
           </Form.Item>
         </div>
       </Form>
+
       <div className="flex">
         <h1 className="w-[30%] mb-2">Chọn voucher</h1>
         <Select
@@ -216,16 +229,41 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
           }))}
         />
       </div>
+
       <div className="border-t border-gray-200 my-2" />
 
       <div className="flex justify-between items-center mb-5">
-        <div className=" justify-between text-sm font-medium mt-1">
-          <p>Giá sản phẩm: {total.toLocaleString("vi-VN") || "0"} VNĐ </p>
+        <div className="text-sm font-medium mt-1">
+          <p>Giá sản phẩm: {total.toLocaleString("vi-VN")} VNĐ</p>
           <p>
             Phí vận chuyển:{" "}
-            {fee?.data?.service_fee?.toLocaleString("vi-VN") || "0"} VNĐ{" "}
+            {fee?.data?.service_fee?.toLocaleString("vi-VN") || 0} VNĐ
           </p>
         </div>
+      </div>
+
+      <div className="gap-2 items-center">
+        <h1 className="font-semibold mb-2">Phương thức thanh toán:</h1>
+
+        <Radio.Group
+          onChange={(e) => setOption(e.target.value)}
+          value={option}
+          className="flex gap-4 mt-1"
+        >
+          <Radio value="vnpay">
+            <div className="flex items-center gap-2">
+              <img src="/images/vnpay.png" alt="VNPAY" className="w-6 h-6" />
+              <span>VNPAY</span>
+            </div>
+          </Radio>
+
+          <Radio value="momo">
+            <div className="flex items-center gap-2">
+              <img src="/images/momo.png" alt="MOMO" className="w-6 h-6" />
+              <span>MOMO</span>
+            </div>
+          </Radio>
+        </Radio.Group>
       </div>
 
       <div className="flex justify-between items-center">
@@ -240,27 +278,13 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
         </span>
       </div>
 
-      <div className="">
-        <div className="flex gap-2">
-          <h1 className="font-semibold mb-2"> Phương thức thanh toán: </h1>
-          <h1 className=" mb-2"> Ví của tôi</h1>
-        </div>
-
-        <h1 className="font-semibold mb-2">Ghi chú:</h1>
-        <Input.TextArea
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          rows={3}
-        ></Input.TextArea>
-      </div>
-
       <div className="flex gap-3 mt-6">
         <button
           onClick={() => {
             setLoading(false);
-            isCancel();
             setNote("");
             form.resetFields();
+            isCancel();
           }}
           className="flex-1 py-2 rounded-xl border border-pink-500 cursor-pointer text-pink-600 font-semibold hover:bg-pink-50 transition"
         >
@@ -269,11 +293,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
 
         <Button
           type="primary"
-          onClick={() => {
-            handleSubmit();
-            setNote("");
-            form.resetFields();
-          }}
+          onClick={handleSubmit}
           loading={loading}
           className="flex-1! py-2! rounded-xl! text-white! bg-pink-500! hover:bg-pink-600!"
         >
