@@ -127,7 +127,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
 
     // Listen for storage changes (login/logout events)
     window.addEventListener("storage", checkAuthStatus);
-    
+
     // Listen for custom auth events
     window.addEventListener("auth-changed", checkAuthStatus);
 
