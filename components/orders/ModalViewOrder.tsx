@@ -73,9 +73,6 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
           <p className="text-sm text-gray-500">
             Ngày tạo: {dayjs(order.createdAt).format("DD/MM/YYYY HH:mm")}
           </p>
-          <p className="text-sm text-gray-500">
-            Trạng thái: {getStatusLabel(order.status)}
-          </p>
         </div>
 
         <div>
