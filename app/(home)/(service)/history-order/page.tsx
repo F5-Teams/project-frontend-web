@@ -134,7 +134,7 @@ export default function HistoryOrder() {
                       <span className="text-gray-400 text-lg">{`>`}</span>
                     </div>
 
-                    {order.status === "PENDING" && (
+                    {order.status === "PAID" && (
                       <button
                         onClick={() => {
                           setOpen(true);
