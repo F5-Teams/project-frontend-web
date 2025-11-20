@@ -7,7 +7,7 @@ import { ClockIcon, MapPinIcon, PhoneIcon } from "lucide-react";
 const InformationSection = () => {
   return (
     <section className="flex flex-col w-full items-center px-6 md:px-12 lg:px-16 pt-20 pb-12 relative">
-      <Card className="w-full bg-white rounded-2xl border-0 drop-shadow-[3px_5px_8px_rgba(210,180,140,0.1)]">
+      <Card className="w-full bg-white/50 backdrop-blur-sm rounded-2xl border-0 drop-shadow-[3px_5px_8px_rgba(210,180,140,0.1)]">
         <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-6 md:px-10 lg:px-12 py-6 ">
           <div className="flex items-start gap-4">
             <div className="w-[72px] h-[72px] lg:w-[89px] lg:h-[89px] bg-ring rounded-full flex items-center justify-center flex-shrink-0">
@@ -17,11 +17,17 @@ const InformationSection = () => {
               <h3 className="font-poppins-medium text-[22px] lg:text-[28px] text-dark leading-[28px]">
                 Thời gian mở cửa
               </h3>
-              <p className="font-poppins-light text-dark text-[16px] lg:text-[18px] leading-[28px]">
-                T2 - T6: 8:00 AM đến 6:00 PM
+              <p className="font-poppins-light text-dark text-[16px] lg:text-[18px] leading-[24px]">
+                Hoạt động cả tuần
               </p>
-              <p className="font-poppins-light text-dark text-[16px] lg:text-[18px] leading-[18px]">
-                T7 - CN: 8:00 AM đến 2:00 PM
+              <p className="font-poppins-light text-dark text-[15px] lg:text-[16px] leading-[22px]">
+                Sáng (7:00 - 11:30)
+              </p>
+              <p className="font-poppins-light text-dark text-[15px] lg:text-[16px] leading-[22px]">
+                Trưa (12:30 - 16:30)
+              </p>
+              <p className="font-poppins-light text-dark text-[15px] lg:text-[16px] leading-[22px]">
+                Chiều (17:00 - 19:00)
               </p>
             </div>
           </div>

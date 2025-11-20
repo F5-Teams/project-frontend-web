@@ -597,7 +597,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
     return null;
   }
   return (
-    <div className={cn("fixed bottom-25 right-6 z-20", className)}>
+    <div className={cn("fixed bottom-25 right-20 z-20", className)}>
       {!open && (
         <div className="relative" ref={containerRef}>
           <span
@@ -620,7 +620,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
           <Button
             ref={btnRef}
             size="lg"
-            className="rounded-full h-15 w-15 p-0 shadow-2xl bg-linear-to-br from-pink-500  to-indigo-400 text-white ring-2 ring-white/40 hover:ring-white/70"
+            className="rounded-full h-15 w-15 p-0 shadow-2xl bg-linear-to-br from-pink-500 to-indigo-400 text-white ring-2 ring-white/40 hover:ring-white/70"
             aria-label="Mở chat HappyPaws"
             onClick={() => setOpen(true)}
           >

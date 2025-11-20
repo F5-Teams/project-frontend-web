@@ -235,14 +235,16 @@ const HowItWorksSection = () => {
         ref={leftRef}
         className="hiw-left inline-flex justify-center sticky top-20 gap-4 flex-[0_0_auto] flex-col items-start"
       >
-        <h2 className="hiw-heading relative w-fit mt-[-1.00px] font-poppins-regular text-[80px] text-black text-center tracking-[-1.82px]">
-          HẸN THẾ NÀO?
-        </h2>
-        <p className="hiw-desc relative max-w-2xl font-poppins-light text-[20px] text-black leading-[30px]">
-          Tại HappyPaws, chúng tôi giúp bạn chăm sóc những người bạn lông xù một
-          cách dễ dàng và chu đáo. Quy trình của chúng tôi đơn giản, linh hoạt,
-          phù hợp với nhu cầu riêng của bạn.
-        </p>
+        <Card className="w-full bg-white/50 backdrop-blur-sm rounded-2xl border-0 drop-shadow-[3px_5px_8px_rgba(210,180,140,0.1)] p-6">
+          <h2 className="hiw-heading relative w-fit mt-[-1.00px] font-poppins-regular text-[80px] text-black text-center tracking-[-1.82px]">
+            HẸN THẾ NÀO?
+          </h2>
+          <p className="hiw-desc relative max-w-2xl font-poppins-light text-[20px] text-black leading-[30px]">
+            Tại HappyPaws, chúng tôi giúp bạn chăm sóc những người bạn lông xù
+            một cách dễ dàng và chu đáo. Quy trình của chúng tôi đơn giản, linh
+            hoạt, phù hợp với nhu cầu riêng của bạn.
+          </p>
+        </Card>
       </div>
 
       {/* RIGHT (list) */}

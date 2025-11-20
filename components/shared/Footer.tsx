@@ -12,7 +12,7 @@ import Link from "next/link";
 
 const Footer = () => {
   return (
-    <footer className="bg-linear-to-br from-yellow-500 to-pink-400 text-white pt-16 pb-8">
+    <footer className="relative z-10 bg-gradient-to-br from-yellow-500 to-pink-400 text-white pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
