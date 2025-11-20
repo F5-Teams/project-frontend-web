@@ -11,10 +11,15 @@ import { ComboDetailModal } from "@/components/modals/ComboDetailModal";
 import { useCartStore } from "@/stores/cart.store";
 import { BookingDraft } from "@/types/cart";
 import { useCombos } from "@/hooks/useCombos";
+import { useGetUser } from "@/services/users/hooks";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const PetCarePage = () => {
   const { addItems } = useCartStore();
   const { combos, loading, error, refetch } = useCombos();
+  const { data: user } = useGetUser();
+  const router = useRouter();
 
   // Modal states
   const [isSelectPetsOpen, setIsSelectPetsOpen] = useState(false);
@@ -29,6 +34,18 @@ const PetCarePage = () => {
   };
 
   const handleBookService = (serviceId: string) => {
+    // Kiểm tra đăng nhập
+    if (!user) {
+      toast.error("Vui lòng đăng nhập để đặt lịch", {
+        description: "Bạn cần đăng nhập để sử dụng dịch vụ booking",
+        action: {
+          label: "Đăng nhập",
+          onClick: () => router.push("/login"),
+        },
+      });
+      return;
+    }
+
     setSelectedServiceId(serviceId);
     setIsSelectPetsOpen(true);
   };
