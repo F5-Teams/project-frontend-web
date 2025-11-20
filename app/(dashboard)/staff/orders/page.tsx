@@ -249,7 +249,7 @@ const OrderPage = () => {
       case "REFUND":
         return "Hoàn tiền";
       case "REFUND_DONE":
-        return "Hoàn tiền";
+        return "Trả hàng/Hoàn tiền";
       default:
         return status;
     }
@@ -415,8 +415,17 @@ const OrderPage = () => {
             </>
           )}
 
-          {record.status === "FAILED" && (
-            <>
+          {record.status === "FAILED" &&
+            (record.payment?.paymentMethod === "CASH" ? (
+              <Button
+                className="bg-pink-500! text-white! hover:bg-pink-600!"
+                danger
+                size="small"
+                onClick={() => handleVoucher(record)}
+              >
+                Ghi nhận
+              </Button>
+            ) : (
               <Button
                 className="bg-[#f15e6a]! text-white! hover:bg-[#dd3744]!"
                 danger
@@ -425,8 +434,7 @@ const OrderPage = () => {
               >
                 Hoàn tiền
               </Button>
-            </>
-          )}
+            ))}
 
           {record.status === "REFUND" && (
             <>
