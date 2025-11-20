@@ -18,9 +18,14 @@ import { DateSelector } from "@/components/hotel/DateSelector";
 import { useCartStore } from "@/stores/cart.store";
 import { BookingDraft } from "@/types/cart";
 import { useHotelRooms } from "@/services/hotel";
+import { useGetUser } from "@/services/users/hooks";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const PetHotelPage = () => {
   const { addItems } = useCartStore();
+  const { data: user } = useGetUser();
+  const router = useRouter();
 
   // Date selection state
   const [checkInDate, setCheckInDate] = useState<Date | null>(null);
@@ -50,6 +55,18 @@ const PetHotelPage = () => {
   };
 
   const handleBookRoom = (roomId: string) => {
+    // Kiểm tra đăng nhập
+    if (!user) {
+      toast.error("Vui lòng đăng nhập để đặt lịch", {
+        description: "Bạn cần đăng nhập để sử dụng dịch vụ booking",
+        action: {
+          label: "Đăng nhập",
+          onClick: () => router.push("/login"),
+        },
+      });
+      return;
+    }
+
     setSelectedRoomId(roomId);
     setIsSelectPetsOpen(true);
   };

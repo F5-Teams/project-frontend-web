@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import Logo from "@/public/logo/HappyPaws Logo.svg";
 import { Button, Form, Input, message, Modal, Select, Upload } from "antd";
 import { ProductAdmin } from "@/services/product/getProduct/type";
-import { useForm } from "antd/es/form/Form";
 import { useAllProductType } from "@/services/product/getProductType/hooks";
 import { UploadOutlined } from "@ant-design/icons";
 import { uploadFile } from "@/utils/uploadFIle";
@@ -27,7 +26,7 @@ export const ModalProduct = ({
   cancel,
   mode,
 }: ModalProductProps) => {
-  const [form] = useForm();
+  const [form] = Form.useForm();
   const { data: productType = [] } = useAllProductType();
   const [loading, setLoading] = useState(false);
 
@@ -278,5 +277,3 @@ export const ModalProduct = ({
     </Modal>
   );
 };
-
-export default Modal;

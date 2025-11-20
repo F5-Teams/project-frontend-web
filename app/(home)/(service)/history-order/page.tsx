@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
 const statusLabel = {
-  PAID: "Đã thanh toán",
+  PAID: "Đang chờ duyệt",
   CANCELLED: "Đã hủy",
   APPROVED: "Đã duyệt",
   SHIPPING: "Đang giao",
@@ -57,7 +57,7 @@ export default function HistoryOrder() {
       <div className="flex gap-16 bg-white w-[85%] m-auto px-10 py-3 justify-center rounded-2xl mb-5">
         {[
           { key: "ALL", label: "Tất cả" },
-          { key: "PAID", label: "Đã thanh toán" },
+          { key: "PAID", label: "Đang chờ duyệt" },
 
           { key: "APPROVED", label: "Đã duyệt" },
           { key: "SHIPPING", label: "Vận chuyển" },
@@ -148,13 +148,13 @@ export default function HistoryOrder() {
                   </div>
                 </div>
 
-                <p className="text-gray-600 mt-5 text-sm">
+                {/* <p className="text-gray-600 mt-5 text-sm">
                   Tiền ship:{" "}
                   {Number(order?.shipping?.shippingFee || 0).toLocaleString(
                     "vi-VN"
                   )}
                   đ
-                </p>
+                </p> */}
                 <div className="h-[0.5px] w-full mt-4 bg-gray-300"></div>
                 <div className="flex justify-between mt-5 font-medium">
                   <p>Tổng cộng:</p>

@@ -30,6 +30,42 @@ export function logout(redirectTo: string = "/") {
       queryClient.clear();
     }
 
+    // Clear application-specific persisted stores (cart data)
+    try {
+      // Remove raw localStorage keys used by zustand persist to be safe
+      window.localStorage.removeItem("cart-storage");
+      window.localStorage.removeItem("product-cart-storage");
+
+      // Dynamically import stores and call their clear methods (client-only)
+      // Use dynamic import to avoid SSR/module-init issues
+      import("../stores/cart.store")
+        .then((mod) => {
+          // `useCartStore` is a zustand hook; call getState().clearCart()
+          try {
+            mod.useCartStore?.getState?.().clearCart?.();
+          } catch {
+            // ignore
+          }
+        })
+        .catch(() => {
+          /* ignore */
+        });
+
+      import("../stores/productCart.store")
+        .then((mod) => {
+          try {
+            mod.useProductCartStore?.getState?.().clearCart?.();
+          } catch {
+            // ignore
+          }
+        })
+        .catch(() => {
+          /* ignore */
+        });
+    } catch (e) {
+      /* silent */
+    }
+
     clearAuth();
   } finally {
     // Small delay to ensure cleanup completes

@@ -67,10 +67,29 @@ export default function HotelBookingsPage() {
 
   const handleCheckIn = async (id: number) => {
     try {
+      const booking = bookings.find((b) => b.id === id);
+      if (!booking) {
+        alert("Không tìm thấy đơn đặt phòng.");
+        return;
+      }
+
+      // ĐANG PENDING thì không cho check-in
+      if (booking.status === "PENDING") {
+        alert("Đơn đang ở trạng thái PENDING, chưa thể check-in.");
+        return;
+      }
+
+      // Nếu đã có check-in rồi thì không cho check-in lại
+      if (booking.checkInDate) {
+        alert("Đơn này đã được check-in rồi.");
+        return;
+      }
+
       setUpdating(id);
       await api.put(`/bookings/${id}/dates`, {
         checkInDate: new Date().toISOString(),
-        status: "ON_SERVICE",
+        // tùy backend, có thể gửi thêm status nếu cần
+        // status: "ON_SERVICE",
       });
       alert("Check-in thành công!");
       fetchBookings();
@@ -84,6 +103,24 @@ export default function HotelBookingsPage() {
 
   // mở modal nhập người đón trước khi check-out
   const openCheckoutModal = (booking: Booking) => {
+    // PENDING thì không cho
+    if (booking.status === "PENDING") {
+      alert("Đơn đang ở trạng thái PENDING, chưa thể check-out.");
+      return;
+    }
+
+    // chưa check-in thì không cho check-out
+    if (!booking.checkInDate) {
+      alert("Đơn này chưa được check-in, không thể check-out.");
+      return;
+    }
+
+    // đã check-out rồi thì không cho nữa
+    if (booking.checkOutDate) {
+      alert("Đơn này đã được check-out rồi.");
+      return;
+    }
+
     setCheckoutBookingId(booking.id);
     setPickupInfo({
       pickupPersonName: booking.pickupPersonName || "",
@@ -102,12 +139,32 @@ export default function HotelBookingsPage() {
   const handleConfirmCheckout = async () => {
     if (!checkoutBookingId) return;
 
-    // có thể thêm validate ở đây (bắt buộc nhập tên, sđt, ...)
+    const booking = bookings.find((b) => b.id === checkoutBookingId);
+    if (!booking) {
+      alert("Không tìm thấy đơn đặt phòng.");
+      return;
+    }
+
+    if (booking.status === "PENDING") {
+      alert("Đơn đang ở trạng thái PENDING, chưa thể check-out.");
+      return;
+    }
+
+    if (!booking.checkInDate) {
+      alert("Đơn này chưa được check-in, không thể check-out.");
+      return;
+    }
+
+    if (booking.checkOutDate) {
+      alert("Đơn này đã được check-out rồi.");
+      return;
+    }
+
     try {
       setUpdating(checkoutBookingId);
       await api.put(`/bookings/${checkoutBookingId}/dates`, {
         checkOutDate: new Date().toISOString(),
-        status: "COMPLETED",
+        // status: "COMPLETED",
         pickupPersonName: pickupInfo.pickupPersonName,
         pickupPersonPhone: pickupInfo.pickupPersonPhone,
         pickupPersonRelationship: pickupInfo.pickupPersonRelationship,
@@ -162,53 +219,61 @@ export default function HotelBookingsPage() {
               </tr>
             </thead>
             <tbody>
-              {bookings.map((b, index) => (
-                <tr
-                  key={b.id}
-                  className={`border-t ${
-                    index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                  } hover:bg-pink-50 transition-colors duration-150`}
-                >
-                  <td className="p-3 font-medium text-gray-800">
-                    {b.slotId ?? "-"}
-                  </td>
-                  <td className="p-3">{b.pet?.name ?? "-"}</td>
-                  <td className="p-3">
-                    {b.customer
-                      ? `${b.customer.firstName} ${b.customer.lastName}`
-                      : "-"}
-                  </td>
-                  <td className="p-3">{formatDate(b.slot?.startDate)}</td>
-                  <td className="p-3">{formatDate(b.slot?.endDate)}</td>
-                  <td className="p-3">{formatDateTime(b.checkInDate)}</td>
-                  <td className="p-3">{formatDateTime(b.checkOutDate)}</td>
+              {bookings.map((b, index) => {
+                const isPending = b.status === "PENDING";
 
-                  <td className="p-3 text-center">
-                    <div className="flex flex-col items-center gap-2">
-                      <button
-                        onClick={() => handleCheckIn(b.id)}
-                        disabled={updating === b.id}
-                        className="w-28 flex gap-1 items-center justify-center bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-xl text-xs font-semibold shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Check-in
-                      </button>
-                      <button
-                        onClick={() => openCheckoutModal(b)}
-                        disabled={updating === b.id}
-                        className="w-28 flex gap-1 items-center justify-center bg-blue-400 hover:bg-blue-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Check-out
-                      </button>
-                      <button
-                        onClick={() => openDetailModal(b)}
-                        className="w-28 flex gap-1 items-center justify-center border border-pink-300 text-pink-700 px-3 py-1.5 rounded-xl text-xs font-medium hover:bg-pink-100 transition"
-                      >
-                        Xem chi tiết
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                const canCheckIn = !isPending && !b.checkInDate; // đã confirm (hoặc trạng thái khác) và chưa check-in
+                const canCheckOut =
+                  !isPending && !!b.checkInDate && !b.checkOutDate; // đã check-in rồi và chưa check-out
+
+                return (
+                  <tr
+                    key={b.id}
+                    className={`border-t ${
+                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                    } hover:bg-pink-50 transition-colors duration-150`}
+                  >
+                    <td className="p-3 font-medium text-gray-800">
+                      {b.slotId ?? "-"}
+                    </td>
+                    <td className="p-3">{b.pet?.name ?? "-"}</td>
+                    <td className="p-3">
+                      {b.customer
+                        ? `${b.customer.firstName} ${b.customer.lastName}`
+                        : "-"}
+                    </td>
+                    <td className="p-3">{formatDate(b.slot?.startDate)}</td>
+                    <td className="p-3">{formatDate(b.slot?.endDate)}</td>
+                    <td className="p-3">{formatDateTime(b.checkInDate)}</td>
+                    <td className="p-3">{formatDateTime(b.checkOutDate)}</td>
+
+                    <td className="p-3 text-center">
+                      <div className="flex flex-col items-center gap-2">
+                        <button
+                          onClick={() => handleCheckIn(b.id)}
+                          disabled={updating === b.id || !canCheckIn}
+                          className="w-28 flex gap-1 items-center justify-center bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-xl text-xs font-semibold shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Check-in
+                        </button>
+                        <button
+                          onClick={() => openCheckoutModal(b)}
+                          disabled={updating === b.id || !canCheckOut}
+                          className="w-28 flex gap-1 items-center justify-center bg-blue-400 hover:bg-blue-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Check-out
+                        </button>
+                        <button
+                          onClick={() => openDetailModal(b)}
+                          className="w-28 flex gap-1 items-center justify-center border border-pink-300 text-pink-700 px-3 py-1.5 rounded-xl text-xs font-medium hover:bg-pink-100 transition"
+                        >
+                          Xem chi tiết
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
 
               {bookings.length === 0 && (
                 <tr>
