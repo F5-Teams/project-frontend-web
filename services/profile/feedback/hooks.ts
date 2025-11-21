@@ -17,9 +17,7 @@ export function useCreateBookingFeedback() {
     mutationFn: ({ bookingId, payload }) =>
       createBookingFeedback(bookingId, payload),
     onSuccess: (_data, variables) => {
-      // Invalidate bookings so any flags like hasFeedback/canLeaveFeedback refresh
       qc.invalidateQueries({ queryKey: BOOKINGS_QUERY_KEY });
-      // Invalidate per-booking feedback cache so UI hides the button immediately
       qc.invalidateQueries({
         queryKey: ["booking-feedback", variables.bookingId],
       });

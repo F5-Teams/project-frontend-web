@@ -1,7 +1,7 @@
 import api from "@/config/axios";
 
 export interface CreateFeedbackPayload {
-  rating: number; // 1..5
+  rating: number;
   comment: string;
 }
 
