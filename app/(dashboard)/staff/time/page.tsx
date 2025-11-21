@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -272,7 +273,7 @@ export default function HotelBookingsPage() {
                       <button
                         onClick={() => handleCheckIn(b.id)}
                         disabled={!canCheckIn(b) || updating === b.id}
-                        className="w-28 bg-green-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold disabled:opacity-50"
+                        className="w-28 bg-green-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold disabled:opacity-50 hover:bg-green-600"
                       >
                         Check-in
                       </button>
@@ -280,7 +281,7 @@ export default function HotelBookingsPage() {
                       <button
                         onClick={() => handleQuickCheckout(b.id)}
                         disabled={!canCheckOut(b) || updating === b.id}
-                        className="w-28 bg-blue-400 text-white px-3 py-1.5 rounded-xl text-xs font-semibold disabled:opacity-50"
+                        className="w-28 bg-blue-400 text-white px-3 py-1.5 rounded-xl text-xs font-semibold disabled:opacity-50 hover:bg-blue-600"
                       >
                         Check-out
                       </button>
@@ -288,14 +289,14 @@ export default function HotelBookingsPage() {
                       <button
                         onClick={() => openCheckoutModal(b)}
                         disabled={!canCheckOut(b) || updating === b.id}
-                        className="w-28 border border-pink-300 text-pink-700 px-3 py-1.5 rounded-xl text-xs"
+                        className="w-28 border border-pink-300 text-pink-700 px-3 py-1.5 rounded-xl text-xs hover:bg-gray-200"
                       >
                         Nhập người đón
                       </button>
 
                       <button
                         onClick={() => openDetailModal(b)}
-                        className="w-28 border border-pink-300 text-pink-700 px-3 py-1.5 rounded-xl text-xs"
+                        className="w-28 border border-pink-300 text-pink-700 px-3 py-1.5 rounded-xl text-xs hover:bg-gray-200"
                       >
                         Xem chi tiết
                       </button>
