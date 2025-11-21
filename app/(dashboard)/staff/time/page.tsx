@@ -322,20 +322,26 @@ export default function HotelBookingsPage() {
       {showCheckoutModal && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-8 w-full max-w-md border border-pink-200 shadow-xl">
-            <h2 className="text-xl font-semibold mb-6">
+            <h2 className="text-xl font-medium mb-6">
               Thông tin người đón thú cưng
             </h2>
 
             <div className="space-y-4 text-sm">
               {[
-                "pickupPersonName",
-                "pickupPersonPhone",
-                "pickupPersonRelationship",
-              ].map((field, i) => (
+                { field: "pickupPersonName", label: "Tên người đón" },
+                {
+                  field: "pickupPersonPhone",
+                  label: "Số điện thoại người đón",
+                },
+                {
+                  field: "pickupPersonRelationship",
+                  label: "Mối quan hệ với thú cưng",
+                },
+              ].map(({ field, label }, i) => (
                 <div key={i}>
-                  <label className="font-medium">{field}</label>
+                  <label className="font-medium">{label}</label>
                   <input
-                    className="w-full px-4 py-2 border rounded-xl bg-pink-50/30 focus:ring-2 focus:ring-pink-300"
+                    className="w-full px-4 py-2 border-2 border-gray-300 rounded-xl bg-pink-50/30 focus:ring-2 focus:ring-pink-300 focus:border-pink-500 outline-none transition"
                     value={(pickupInfo as any)[field]}
                     onChange={(e) =>
                       setPickupInfo((p) => ({
@@ -350,7 +356,7 @@ export default function HotelBookingsPage() {
               <div>
                 <label className="font-medium">Ghi chú xác minh</label>
                 <textarea
-                  className="w-full px-4 py-2 border rounded-xl bg-pink-50/30 focus:ring-2 focus:ring-pink-300"
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-xl bg-pink-50/30 focus:ring-2 focus:ring-pink-300 focus:border-pink-500 outline-none transition"
                   rows={3}
                   value={pickupInfo.verificationNotes}
                   onChange={(e) =>
