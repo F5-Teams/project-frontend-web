@@ -277,7 +277,7 @@ export default function ChatBubble() {
   return (
     <>
       {/* Chat Bubble */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-2 right-1 z-50">
         {!isOpen && (
           <button
             onClick={toggleOpen}

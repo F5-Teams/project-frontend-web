@@ -33,7 +33,7 @@ const mainNav: NavItem[] = [
   { href: "/profile/info", icon: Users, label: "Profile" },
   // { href: "/profile/bookings", icon: ClipboardList, label: "Bookings" },
   { href: "/profile/calendar", icon: CalendarIcon, label: "Calendar" },
-  { href: "/profile/log-feed", icon: Utensils, label: "Log Feed" },
+  // { href: "/profile/log-feed", icon: Utensils, label: "Log Feed" },
   // { href: "/profile/address", icon: ClipboardList, label: "Address" },
 
   // {
