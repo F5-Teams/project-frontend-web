@@ -49,6 +49,7 @@ export interface Customer {
   firstName: string;
   lastName: string;
   phoneNumber: string;
+  avatar: string | null;
 }
 
 export interface Staff {

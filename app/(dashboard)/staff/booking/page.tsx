@@ -5,6 +5,7 @@ import { useEffect, useState, Fragment, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/config/axios";
 import type { Booking } from "@/components/models/booking";
+import { toast } from "sonner";
 import {
   Loader2,
   ChevronDown,
@@ -59,13 +60,40 @@ export default function BookingPendingPage() {
   async function handleConfirmBooking(id: number) {
     try {
       setConfirmingId(id);
+      // Try to update payment status to PAID if a payment exists for the booking
+      const booking = bookings.find((b) => b.id === id);
+      const paymentId =
+        booking?.payments && booking.payments.length
+          ? booking.payments[0].id
+          : null;
+
+      if (paymentId) {
+        try {
+          await api.put(`/bookings/payments/${paymentId}/status`, {
+            status: "PAID",
+          });
+        } catch (e: any) {
+          // If payment update fails, surface a message but continue to attempt booking confirmation
+          // so staff can still confirm the booking; re-fetch will show actual state.
+          console.warn(
+            "Failed to update payment status:",
+            e?.response?.data || e?.message || e
+          );
+          toast(
+            e?.response?.data?.message ||
+              e?.message ||
+              "Cập nhật trạng thái thanh toán thất bại"
+          );
+        }
+      }
+
       await api.put(`/bookings/${id}/status`, { status: "CONFIRMED" });
       setBookings((prev) => prev.filter((b) => b.id !== id));
       if (expandedId === id) setExpandedId(null);
       await fetchPendingBookings();
       router.push("/staff/groomer");
     } catch (e: any) {
-      alert(e?.response?.data?.message || e?.message || "Xác nhận thất bại");
+      toast(e?.response?.data?.message || e?.message || "Xác nhận thất bại");
       await fetchPendingBookings();
     } finally {
       setConfirmingId(null);
