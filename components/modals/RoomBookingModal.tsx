@@ -297,7 +297,14 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
                     mode="single"
                     selected={checkInDate}
                     onSelect={setCheckInDate}
-                    disabled={(date) => date < new Date()}
+                    disabled={(date) => {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      const maxDate = new Date();
+                      maxDate.setDate(maxDate.getDate() + 30);
+                      maxDate.setHours(23, 59, 59, 999);
+                      return date < today || date > maxDate;
+                    }}
                     initialFocus
                   />
                 </PopoverContent>
@@ -331,7 +338,13 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
                     mode="single"
                     selected={checkOutDate}
                     onSelect={setCheckOutDate}
-                    disabled={(date) => date <= (checkInDate || new Date())}
+                    disabled={(date) => {
+                      const minDate = checkInDate || new Date();
+                      const maxDate = new Date();
+                      maxDate.setDate(maxDate.getDate() + 30);
+                      maxDate.setHours(23, 59, 59, 999);
+                      return date <= minDate || date > maxDate;
+                    }}
                     initialFocus
                   />
                 </PopoverContent>

@@ -58,6 +58,8 @@ export function HappyPawsChat({ className }: { className?: string }) {
   const [staffJoined, setStaffJoined] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [consultationTitle, setConsultationTitle] = useState("");
+  const [selectedConsultationType, setSelectedConsultationType] = useState("");
+  const [customConsultationInput, setCustomConsultationInput] = useState("");
   const [creatingSession, setCreatingSession] = useState(false);
 
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -877,29 +879,66 @@ export function HappyPawsChat({ className }: { className?: string }) {
               {!hasSession ? (
                 // Create Staff Session Form
                 <div className="flex-1 p-4 flex flex-col">
-                  <div className="mb-4">
-                    <p className="text-sm text-muted-foreground mb-4">
+                  <div className="mb-4 space-y-4">
+                    <p className="text-sm text-muted-foreground">
                       Nhập nội dung bạn cần tư vấn, đội ngũ staff sẽ hỗ trợ bạn
                       ngay
                     </p>
-                    <Input
-                      type="text"
-                      placeholder="VD: Tư vấn về dịch vụ spa cho chó..."
-                      value={consultationTitle}
-                      onChange={(e) => setConsultationTitle(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          handleCreateStaffSession();
-                        }
-                      }}
-                      disabled={creatingSession}
-                      className="w-full"
-                      maxLength={200}
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {consultationTitle.length}/200 ký tự
-                    </p>
+
+                    <div className="space-y-2">
+                      <Select
+                        value={selectedConsultationType}
+                        onValueChange={(value) => {
+                          setSelectedConsultationType(value);
+                          if (value !== "other") {
+                            setConsultationTitle(value);
+                            setCustomConsultationInput("");
+                          } else {
+                            setConsultationTitle("");
+                          }
+                        }}
+                        disabled={creatingSession}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Chọn loại yêu cầu tư vấn" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Tư vấn dịch vụ">
+                            Tư vấn dịch vụ
+                          </SelectItem>
+                          <SelectItem value="Hỗ trợ đơn hàng">
+                            Hỗ trợ đơn hàng
+                          </SelectItem>
+                          <SelectItem value="other">Khác</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {selectedConsultationType === "other" && (
+                      <div className="space-y-2">
+                        <Input
+                          type="text"
+                          placeholder="VD: Tư vấn về dịch vụ spa cho chó..."
+                          value={customConsultationInput}
+                          onChange={(e) => {
+                            setCustomConsultationInput(e.target.value);
+                            setConsultationTitle(e.target.value);
+                          }}
+                          onKeyPress={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                              e.preventDefault();
+                              handleCreateStaffSession();
+                            }
+                          }}
+                          disabled={creatingSession}
+                          className="w-full"
+                          maxLength={200}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          {customConsultationInput.length}/200 ký tự
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg text-sm mb-4">

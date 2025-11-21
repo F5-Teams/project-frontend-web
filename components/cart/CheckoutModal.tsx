@@ -236,6 +236,22 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               "pendingPaymentMethod",
               response.paymentMethod
             );
+
+            // Store hotel booking dates if there's a hotel booking
+            const hasHotelBooking = bookings.some((booking) => booking.roomId);
+            if (hasHotelBooking) {
+              const hotelBooking = bookings.find((booking) => booking.roomId);
+              if (hotelBooking?.startDate && hotelBooking?.endDate) {
+                localStorage.setItem(
+                  "pendingHotelCheckIn",
+                  hotelBooking.startDate
+                );
+                localStorage.setItem(
+                  "pendingHotelCheckOut",
+                  hotelBooking.endDate
+                );
+              }
+            }
           }
 
           // Redirect to payment gateway
@@ -271,6 +287,32 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           await queryClient.invalidateQueries({
             queryKey: GET_USER_QUERY_KEY,
           });
+
+          // Invalidate hotel rooms cache to refresh room availability status
+          // Check if any booking is a hotel booking
+          const hasHotelBooking = bookings.some((booking) => booking.roomId);
+          if (hasHotelBooking) {
+            // Invalidate all hotel-related queries to refresh room status
+            await queryClient.invalidateQueries({
+              predicate: (query) => {
+                const queryKey = query.queryKey as string[];
+                return queryKey[0] === "hotel" || queryKey[0] === "rooms";
+              },
+              refetchType: "active",
+            });
+
+            // Also trigger a full page refetch if on hotel page
+            if (
+              typeof window !== "undefined" &&
+              window.location.pathname.includes("/hotel")
+            ) {
+              // Small delay to ensure backend has processed the booking
+              setTimeout(() => {
+                window.location.reload();
+              }, 1000);
+            }
+          }
+
           onSuccess(response.bookingIds[0].toString());
         }
         onClose();
