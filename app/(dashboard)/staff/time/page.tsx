@@ -72,9 +72,16 @@ function CustomerAvatar({
 }
 
 /* ---------------------- Kiểm tra điều kiện hành động ---------------------- */
-const canCheckIn = (b: Booking) => b.status !== "PENDING" && !b.checkInDate;
-const canCheckOut = (b: Booking) =>
-  b.status !== "PENDING" && !!b.checkInDate && !b.checkOutDate;
+/* ❗ CHECK-IN: Không cho phép trước ngày bắt đầu */
+const canCheckIn = (b: Booking) => {
+  if (b.status === "PENDING" || b.checkInDate) return false;
+  const today = dayjs().startOf("day");
+  const start = dayjs(b.slot?.startDate).startOf("day");
+  return today.isSame(start) || today.isAfter(start);
+};
+
+/* CHECK-OUT: Chỉ khi đã check-in */
+const canCheckOut = (b: Booking) => !!b.checkInDate && !b.checkOutDate;
 
 /* ---------------------- MAIN COMPONENT ---------------------- */
 
@@ -106,10 +113,7 @@ export default function HotelBookingsPage() {
   const fetchBookings = async () => {
     try {
       const res = await api.get("/bookings/staff/hotel-service");
-
-      // ⛔ LỌC BỎ booking CANCELED
       const filtered = res.data.filter((b: Booking) => b.status !== "CANCELED");
-
       setBookings(filtered);
     } catch (error) {
       console.error("Error fetching bookings:", error);
@@ -127,7 +131,7 @@ export default function HotelBookingsPage() {
     }
 
     if (!canCheckIn(booking)) {
-      toast("Không thể check-in.");
+      toast("Chưa đến ngày bắt đầu, không thể check-in.");
       return;
     }
 
@@ -154,7 +158,7 @@ export default function HotelBookingsPage() {
     }
 
     if (!canCheckOut(booking)) {
-      toast("Không thể check-out.");
+      toast("Chưa check-in nên không thể check-out.");
       return;
     }
 
@@ -175,7 +179,7 @@ export default function HotelBookingsPage() {
   /* ---------------------- OPEN MODAL CHECK-OUT CÓ NGƯỜI ĐÓN ---------------------- */
   const openCheckoutModal = (booking: Booking) => {
     if (!canCheckOut(booking)) {
-      toast("Không thể check-out ở trạng thái này.");
+      toast("Chưa check-in nên không thể nhập thông tin người đón.");
       return;
     }
 
@@ -219,9 +223,7 @@ export default function HotelBookingsPage() {
   /* ---------------------- RENDER UI ---------------------- */
   return (
     <div className="p-8 min-h-screen bg-gradient-to-b from-pink-50 to-white">
-      <h1 className="text-3xl font-medium mb-8">
-        Check in / Check out phòng khách sạn
-      </h1>
+      <h1 className="text-3xl font-medium mb-8">Check in / Check out</h1>
 
       {loading ? (
         <div className="flex items-center justify-center py-10 text-gray-500">
