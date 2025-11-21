@@ -8,9 +8,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Pet } from "@/types/cart";
-import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle, Loader2, Plus } from "lucide-react";
 import api from "@/config/axios";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 interface SelectPetsModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ interface SelectPetsModalProps {
   maxPets?: number;
   title?: string;
   description?: string;
+  roomSize?: "S" | "M" | "L"; // Add room size prop for hotel bookings
 }
 
 export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
@@ -29,11 +31,39 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
   maxPets,
   title = "Chọn thú cưng",
   description = "Chọn thú cưng sẽ nhận dịch vụ này",
+  roomSize, // Add roomSize prop
 }) => {
+  const router = useRouter();
   const [selectedPetIds, setSelectedPetIds] = useState<string[]>([]);
   const [pets, setPets] = useState<Pet[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Calculate pet size based on weight
+  // Pet size S: < 5kg, M: 5kg - 15kg, L: > 15kg
+  const getPetSize = (weight?: number): "S" | "M" | "L" => {
+    if (!weight) return "S"; // Default to S if weight not provided
+    if (weight < 5) return "S";
+    if (weight <= 15) return "M";
+    return "L";
+  };
+
+  // Check if pet can fit in room based on size
+  const canPetFitInRoom = (petWeight?: number): boolean => {
+    if (!roomSize) return true; // If no room size specified, allow all pets
+
+    const petSize = getPetSize(petWeight);
+    const sizeOrder = { S: 1, M: 2, L: 3 };
+
+    // Pet can fit if pet size <= room size (e.g., S pet can fit in M or L room)
+    return sizeOrder[petSize] <= sizeOrder[roomSize];
+  };
+
+  // Get size label for display
+  const getSizeLabel = (weight?: number): string => {
+    const size = getPetSize(weight);
+    return `Size ${size} (${weight || 0}kg)`;
+  };
 
   // Chuẩn hóa loại thú cưng về 1 trong các giá trị: dog | cat | bird | rabbit | other
   const normalizePetType = (raw?: string) => {
@@ -135,6 +165,16 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
         // Unselect the pet
         return prev.filter((id) => id !== petId);
       } else {
+        // Check pet size compatibility with room
+        const pet = pets.find((p) => p.id === petId);
+        if (roomSize && pet && !canPetFitInRoom(pet.weight)) {
+          const petSize = getPetSize(pet.weight);
+          setErrors([
+            `Thú cưng "${pet.name}" (Size ${petSize}, ${pet.weight}kg) quá lớn cho phòng Size ${roomSize}. Vui lòng chọn phòng lớn hơn.`,
+          ]);
+          return prev;
+        }
+
         // Check if maxPets is 1 (hotel case - only 1 pet per room)
         if (maxPets === 1) {
           // Replace the current selection with the new pet
@@ -216,12 +256,15 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
           </p>
         )}
 
-        {/* Max pets warning */}
-        {maxPets && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Dịch vụ này chỉ cho phép tối đa {maxPets} thú cưng.
+        {/* Room size info */}
+        {roomSize && (
+          <Alert className="bg-blue-50 border-blue-200">
+            <AlertCircle className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-800">
+              Phòng Size {roomSize} - Chỉ phù hợp với thú cưng:{" "}
+              {roomSize === "S" && "< 5kg (Size S)"}
+              {roomSize === "M" && "< 15kg (Size S, M)"}
+              {roomSize === "L" && "Tất cả (Size S, M, L)"}
             </AlertDescription>
           </Alert>
         )}
@@ -255,8 +298,12 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {pets.map((pet) => {
               const isSelected = selectedPetIds.includes(pet.id);
+              const canFitInRoom = canPetFitInRoom(pet.weight);
               const isDisabled =
-                !!maxPets && selectedPetIds.length >= maxPets && !isSelected;
+                (!!maxPets &&
+                  selectedPetIds.length >= maxPets &&
+                  !isSelected) ||
+                (roomSize && !canFitInRoom);
 
               return (
                 <div className="p-2" key={pet.id}>
@@ -265,7 +312,7 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
                       isSelected
                         ? "ring-2 ring-blue-500 bg-blue-50"
                         : isDisabled
-                        ? "opacity-50 cursor-not-allowed"
+                        ? "opacity-50 cursor-not-allowed bg-gray-100"
                         : "hover:shadow-md hover:ring-1 hover:ring-gray-300"
                     }`}
                     onClick={() => !isDisabled && handlePetToggle(pet.id)}
@@ -314,6 +361,24 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
 
                           <div className="space-y-1 text-sm text-gray-600">
                             <p>Tuổi: {pet.age || 0} năm</p>
+                            {pet.weight && (
+                              <p className="text-xs">
+                                <span
+                                  className={`font-medium ${
+                                    !canFitInRoom
+                                      ? "text-red-600"
+                                      : "text-green-600"
+                                  }`}
+                                >
+                                  {getSizeLabel(pet.weight)}
+                                </span>
+                                {roomSize && !canFitInRoom && (
+                                  <span className="text-red-600 ml-1">
+                                    (Không phù hợp)
+                                  </span>
+                                )}
+                              </p>
+                            )}
                             {pet.notes && (
                               <p className="text-xs text-gray-500 truncate">
                                 Ghi chú: {pet.notes}
@@ -332,10 +397,20 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
 
         {/* Empty state */}
         {!loading && pets.length === 0 && (
-          <div className="text-center py-8">
+          <div className="text-center py-8 space-y-4">
             <p className="text-gray-500 font-poppins-light">
               Không tìm thấy thú cưng. Vui lòng thêm thú cưng trước.
             </p>
+            <Button
+              onClick={() => {
+                onClose();
+                router.push("/profile-pet/create-pet");
+              }}
+              className="mx-auto"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Thêm thú cưng
+            </Button>
           </div>
         )}
 

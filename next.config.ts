@@ -18,6 +18,14 @@ const nextConfig = {
       { protocol: "https", hostname: "images.ctfassets.net" },
     ],
   },
+  webpack: (config: any) => {
+    // Handle GLTF and other 3D model files
+    config.module.rules.push({
+      test: /\.(glb|gltf)$/,
+      type: "asset/resource",
+    });
+    return config;
+  },
 };
 
 module.exports = nextConfig;

@@ -238,9 +238,11 @@ const PetHotelPage = () => {
                         fill
                         className="object-cover"
                       />
-                      <div className="absolute top-4 left-4 w-12 h-12 flex items-center justify-center rounded-full bg-linear-to-tr from-pink-400 to-blue-500 text-white shadow-lg">
-                        <LucideHome className="w-6 h-6" />
-                      </div>
+                      {room.size && (
+                        <div className="absolute top-4 left-4 bg-blue-500 text-white px-3 py-1.5 rounded-full text-sm font-poppins-semibold shadow-md">
+                          Size {room.size}
+                        </div>
+                      )}
                       {isAvailable ? (
                         <div className="absolute top-4 right-4 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-poppins-regular">
                           Có sẵn
@@ -468,6 +470,7 @@ const PetHotelPage = () => {
         maxPets={1}
         title="Chọn thú cưng"
         description="Chọn thú cưng để đặt phòng khách sạn (chỉ chọn 1 thú cưng)"
+        roomSize={selectedRoom?.size as "S" | "M" | "L" | undefined}
       />
 
       <RoomBookingModal

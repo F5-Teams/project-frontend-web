@@ -5,10 +5,12 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { CheckCircle, XCircle, Loader } from "lucide-react";
 import Link from "next/link";
 import Header from "@/components/shared/Header";
+import { useCartStore } from "@/stores/cart.store";
 
 export default function PaymentReturnPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { clearCart } = useCartStore();
 
   const [status, setStatus] = useState<"loading" | "success" | "failed">(
     "loading"
@@ -26,6 +28,10 @@ export default function PaymentReturnPage() {
       setStatus("success");
       setMessage(`Thanh toán MOMO thành công! Mã đơn: ${orderId}`);
 
+      // Xóa cart sau khi thanh toán thành công
+      clearCart();
+
+      // Xóa cache
       localStorage.removeItem("pendingPayment");
       localStorage.removeItem("pendingOrderId");
 
@@ -45,6 +51,9 @@ export default function PaymentReturnPage() {
     if (paymentStatus === "success") {
       setStatus("success");
       setMessage(`Thanh toán thành công! Mã đơn: ${orderId}`);
+
+      // Xóa cart sau khi thanh toán thành công
+      clearCart();
 
       localStorage.removeItem("depositTxnRef");
       localStorage.removeItem("pendingBookingId");
