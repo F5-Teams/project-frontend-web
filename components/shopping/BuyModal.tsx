@@ -107,8 +107,8 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       })),
       addressId: address,
       paymentMethod:
-        option === "vnpay"
-          ? "VNPAY"
+        option === "wallet"
+          ? "TRANSFER"
           : option === "momo"
           ? "MOMO"
           : option === "cod"
@@ -133,7 +133,10 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       clearCart();
       setNote("");
 
-      if (orderPayloadTransfer.paymentMethod === "CASH") {
+      if (
+        orderPayloadTransfer.paymentMethod === "CASH" ||
+        orderPayloadTransfer.paymentMethod === "TRANSFER"
+      ) {
         toast.success("Đặt hàng thành công!");
       }
     } catch (error) {
@@ -281,8 +284,15 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
 
           <Radio value="cod">
             <div className="flex items-center gap-2">
-              <img src="/images/cash.png" alt="MOMO" className="w-6 h-6" />
+              <img src="/images/cash.png" alt="COD" className="w-6 h-6" />
               <span>COD</span>
+            </div>
+          </Radio>
+
+          <Radio value="wallet">
+            <div className="flex items-center gap-2">
+              <img src="/images/wallet.jpg" alt="WALLET" className="w-12 h-6" />
+              <span>Ví</span>
             </div>
           </Radio>
         </Radio.Group>
