@@ -43,6 +43,16 @@ export default function ListDetail({ booking }: Props) {
     [booking]
   );
 
+  // local optimistic after-images to show immediately after upload/complete
+  const [localAfterImages, setLocalAfterImages] = useState<
+    { id: number; imageUrl: string }[]
+  >([]);
+
+  const afterImagesCombined = useMemo(() => {
+    // local images (most recent) first, then server-provided ones
+    return [...localAfterImages, ...afterImagesAll];
+  }, [localAfterImages, afterImagesAll]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft") {
@@ -272,7 +282,7 @@ export default function ListDetail({ booking }: Props) {
                   </div>
                 </div>
                 {(() => {
-                  const afterImages = afterImagesAll;
+                  const afterImages = afterImagesCombined;
                   if (afterImages.length === 0) {
                     return (
                       <div className="text-sm font-poppins-light text-muted-foreground">
@@ -280,7 +290,7 @@ export default function ListDetail({ booking }: Props) {
                       </div>
                     );
                   }
-                  const current = afterImages[afterIndex];
+                  const current = afterImages[afterIndex % afterImages.length];
                   return (
                     <div className="flex items-center gap-2">
                       {afterImages.length >= 3 && (
@@ -399,7 +409,7 @@ export default function ListDetail({ booking }: Props) {
       <div className="mt-auto font-poppins-light text-xs text-muted-foreground">
         {booking.status === "ON_SERVICE" &&
           String(booking.type ?? "").toUpperCase() === "SPA" &&
-          afterImagesAll.length === 0 && (
+          afterImagesCombined.length === 0 && (
             <div className="flex justify-end">
               <button
                 type="button"
@@ -417,7 +427,18 @@ export default function ListDetail({ booking }: Props) {
           bookingId={booking.id}
           imageType="AFTER"
           onCancel={() => setShowModal(false)}
-          onDone={() => setShowModal(false)}
+          onDone={(uploadedUrls) => {
+            // close modal
+            setShowModal(false);
+            // if backend returns uploaded urls, show them immediately
+            if (uploadedUrls && uploadedUrls.length > 0) {
+              const mapped = uploadedUrls.map((u, i) => ({
+                id: Date.now() + i,
+                imageUrl: u,
+              }));
+              setLocalAfterImages((s) => [...mapped, ...s]);
+            }
+          }}
         />
       )}
 
