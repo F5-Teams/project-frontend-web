@@ -58,8 +58,9 @@ export default function OrderDetailPage() {
       </div>
 
       <h1 className="text-2xl font-medium mb-1">Theo dõi đơn hàng</h1>
-      <p className="text-gray-500">Mã đơn: #{order.id}</p>
+      <p className="text-gray-500 mb-4">Mã đơn: #{order.id}</p>
 
+      {/* Progress bar */}
       <div className="flex justify-between bg-white p-5 rounded-2xl shadow-sm relative">
         <div className="absolute top-1/2 left-12 right-12 h-1 bg-gray-300 -z-10"></div>
         <div
@@ -90,72 +91,71 @@ export default function OrderDetailPage() {
         })}
       </div>
 
-      {/* Products */}
-      <div className="bg-white p-5 rounded-2xl shadow-sm">
-        <p className="font-medium text-lg mb-2">Sản phẩm</p>
-        {order.orderDetails.map((d) => {
-          const img = d.product.images?.[0]?.imageUrl || "/placeholder.png";
-          return (
-            <div
-              key={d.id}
-              className="flex justify-between items-center py-4 border-b last:border-none"
-            >
-              <div className="flex items-center gap-4">
-                <Image
-                  src={img}
-                  width={60}
-                  height={60}
-                  className="rounded-xl object-cover"
-                  alt={d.product.name}
-                />
-                <div className="flex flex-col">
-                  <span className="font-medium text-gray-800">
-                    {d.product.name}
-                  </span>
-                  <span className="text-gray-500 text-sm">x{d.quantity}</span>
-                  <span className="text-gray-500 text-sm">
-                    Ngày tạo:{" "}
-                    {dayjs(order.createdAt).format("DD/MM/YYYY HH:mm")}
-                  </span>
+      {/* Combined Card: Products + Shipping */}
+      <div className="bg-white p-6 rounded-2xl shadow-md space-y-5">
+        {/* Products */}
+        <div>
+          <p className="font-medium text-lg mb-2">Sản phẩm</p>
+          {order.orderDetails.map((d) => {
+            const img = d.product.images?.[0]?.imageUrl || "/placeholder.png";
+            return (
+              <div
+                key={d.id}
+                className="flex justify-between items-center py-4 border-b last:border-none"
+              >
+                <div className="flex items-center gap-4">
+                  <Image
+                    src={img}
+                    width={60}
+                    height={60}
+                    className="rounded-xl object-cover"
+                    alt={d.product.name}
+                  />
+                  <div className="flex flex-col">
+                    <span className="font-medium text-gray-800">
+                      {d.product.name}
+                    </span>
+                    <span className="text-gray-500 text-sm">x{d.quantity}</span>
+                    <span className="text-gray-500 text-sm">
+                      Ngày tạo:{" "}
+                      {dayjs(order.createdAt).format("DD/MM/YYYY HH:mm")}
+                    </span>
+                  </div>
                 </div>
+                <span className="text-pink-500 font-semibold">
+                  {(
+                    Number(d.product.price) * Number(d.quantity)
+                  ).toLocaleString("vi-VN")}{" "}
+                  đ
+                </span>
               </div>
-              <span className="text-pink-500 font-semibold">
-                {(Number(d.product.price) * Number(d.quantity)).toLocaleString(
-                  "vi-VN"
-                )}{" "}
-                đ
-              </span>
-            </div>
-          );
-        })}
-        <p className="text-gray-600 text-sm mt-2">
-          Tiền ship:{" "}
-          {Number(order?.shipping?.shippingFee).toLocaleString("vi-VN")} đ
-        </p>
+            );
+          })}
 
-        <div className="h-[0.5px] w-full mt-4 bg-gray-300"></div>
-        <div className="flex justify-between mt-3 font-medium">
-          <p>Tổng cộng:</p>
-          <p className="text-green-600">
-            {totalPrice.toLocaleString("vi-VN")} đ
+          <p className="text-gray-600 text-sm mt-2">
+            Tiền ship:{" "}
+            {Number(order?.shipping?.shippingFee).toLocaleString("vi-VN")} đ
           </p>
-        </div>
-      </div>
 
-      {/* Shipping info */}
-      <div className="bg-white p-5 rounded-2xl shadow-sm">
-        <p className="font-medium text-lg mb-1">Thông tin giao hàng</p>
-        <p>{order.shipping.toName}</p>
-        <p className="text-gray-600 text-sm">
-          Số điện thoại: {order.shipping.toPhone}
-        </p>
-        <p className="text-gray-600 text-sm">
-          Địa chỉ: {order.shipping.toAddress}
-        </p>
-        <p className="text-gray-600 text-sm">
-          Tiền ship:{" "}
-          {Number(order?.shipping?.shippingFee).toLocaleString("vi-VN")} đ
-        </p>
+          <div className="h-[0.5px] w-full mt-4 bg-gray-300"></div>
+
+          <div className="flex justify-between mt-3 font-medium">
+            <p>Tổng cộng:</p>
+            <p className="text-green-600">
+              {totalPrice.toLocaleString("vi-VN")} đ
+            </p>
+          </div>
+        </div>
+
+        {/* Shipping info */}
+        <div>
+          <p className="font-medium text-lg mb-2">Thông tin giao hàng</p>
+          <div className="text-gray-600 space-y-1">
+            <p>Người nhận: {order.shipping.toName}</p>
+            <p>Số điện thoại: {order.shipping.toPhone}</p>
+            <p>Địa chỉ: {order.shipping.toAddress}</p>
+          </div>
+        </div>
       </div>
     </div>
   );
