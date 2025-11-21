@@ -13,11 +13,11 @@ const adminItems: SidebarItem[] = [
     label: "Báo cáo tiến trình",
     icon: "tasks",
   },
-  {
-    href: "/groomer/meal-management",
-    label: "Quản lý bữa ăn",
-    icon: "meal",
-  },
+  // {
+  //   href: "/groomer/meal-management",
+  //   label: "Quản lý bữa ăn",
+  //   icon: "meal",
+  // },
 ];
 
 export default function AdminLayout({
