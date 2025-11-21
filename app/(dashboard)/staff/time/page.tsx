@@ -56,7 +56,7 @@ export default function HotelBookingsPage() {
 
   const fetchBookings = async () => {
     try {
-      const res = await api.get("/bookings/staff/hotel");
+      const res = await api.get("/bookings/staff/hotel-service");
       setBookings(res.data);
     } catch (error) {
       console.error("Error fetching bookings:", error);

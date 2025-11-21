@@ -5,29 +5,31 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { CheckCircle, XCircle, Loader } from "lucide-react";
 import Link from "next/link";
 import Header from "@/components/shared/Header";
+import { useCartStore } from "@/stores/cart.store";
 
 export default function PaymentReturnPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { clearCart } = useCartStore();
 
   const [status, setStatus] = useState<"loading" | "success" | "failed">(
     "loading"
   );
+
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const paymentStatus = searchParams.get("status"); // VNPay
+    const paymentStatus = searchParams.get("status");
     const orderId =
-      searchParams.get("orderId") || searchParams.get("orderBookingId"); // VNPay + Momo
+      searchParams.get("orderId") || searchParams.get("orderBookingId");
     const depositAmount = searchParams.get("amount");
 
-    // ============================
-    // 🔥 1. CASE MOMO
-    // Momo chỉ trả orderId, không có status
-    // ============================
     if (!paymentStatus && orderId) {
       setStatus("success");
       setMessage(`Thanh toán MOMO thành công! Mã đơn: ${orderId}`);
+
+      // Xóa cart sau khi thanh toán thành công
+      clearCart();
 
       // Xóa cache
       localStorage.removeItem("pendingPayment");
@@ -40,10 +42,6 @@ export default function PaymentReturnPage() {
       return;
     }
 
-    // ============================
-    // 🔥 2. CASE VNPAY
-    // Có status → VNPay
-    // ============================
     if (!paymentStatus || !orderId) {
       setStatus("failed");
       setMessage("Không tìm thấy thông tin giao dịch");
@@ -53,6 +51,9 @@ export default function PaymentReturnPage() {
     if (paymentStatus === "success") {
       setStatus("success");
       setMessage(`Thanh toán thành công! Mã đơn: ${orderId}`);
+
+      // Xóa cart sau khi thanh toán thành công
+      clearCart();
 
       localStorage.removeItem("depositTxnRef");
       localStorage.removeItem("pendingBookingId");

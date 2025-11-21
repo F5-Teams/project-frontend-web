@@ -1,9 +1,10 @@
 "use client";
 
-import { Suspense, useRef } from "react";
+import { Suspense, useRef, useState, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import { Model3D } from "@/components/chat/Model3D";
+import { Model3DErrorBoundary } from "@/components/chat/Model3DErrorBoundary";
 import * as THREE from "three";
 
 function InteractiveModel3D() {
@@ -11,13 +12,16 @@ function InteractiveModel3D() {
   const mouseRef = useRef({ x: 0, y: 0 });
   const targetRotation = useRef({ x: 0, y: 0 });
 
-  // Track mouse position
-  if (typeof window !== "undefined") {
-    window.addEventListener("mousemove", (event) => {
+  // Track mouse position with proper cleanup
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
       mouseRef.current.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouseRef.current.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    });
-  }
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
 
   // Smooth rotation using lerp
   useFrame(() => {
@@ -38,7 +42,7 @@ function InteractiveModel3D() {
   return (
     <group ref={groupRef}>
       <Model3D
-        modelPath="/models/scene.gltf"
+        modelPath="/models/Dogsong/scene.gltf"
         scale={1.3}
         position={[0, -0, 0]}
         rotation={[0, 0, 0]}
@@ -47,7 +51,22 @@ function InteractiveModel3D() {
   );
 }
 
+function LoadingFallback() {
+  return (
+    <mesh>
+      <boxGeometry args={[1, 1, 1]} />
+      <meshBasicMaterial color="#ddd" wireframe />
+    </mesh>
+  );
+}
+
 export function Background3D() {
+  const [hasError, setHasError] = useState(false);
+
+  if (hasError) {
+    return null;
+  }
+
   return (
     <div className="fixed inset-0 w-full h-full pointer-events-none z-0">
       <Canvas
@@ -55,6 +74,10 @@ export function Background3D() {
           background:
             "linear-gradient(180deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%)",
         }}
+        onCreated={({ gl }) => {
+          gl.setClearColor("#e0f2fe");
+        }}
+        onError={() => setHasError(true)}
       >
         <PerspectiveCamera makeDefault position={[0, 1, 6]} />
         <ambientLight intensity={1.2} />
@@ -71,8 +94,10 @@ export function Background3D() {
           color="#ffffff"
         />
 
-        <Suspense fallback={null}>
-          <InteractiveModel3D />
+        <Suspense fallback={<LoadingFallback />}>
+          <Model3DErrorBoundary>
+            <InteractiveModel3D />
+          </Model3DErrorBoundary>
         </Suspense>
 
         <OrbitControls

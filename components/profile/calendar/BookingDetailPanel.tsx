@@ -152,6 +152,16 @@ export function BookingDetailPanel({ booking, onRequestFeedback }: Props) {
       ? apiIsPaid
       : null;
 
+  const rawStatus =
+    (api && (api as unknown as Record<string, unknown>).status) ??
+    (booking as CalendarBooking).status ??
+    (booking as unknown as { meta?: { status?: string } })?.meta?.status ??
+    "";
+
+  const normalizedStatus = String(rawStatus).toUpperCase().replace(/\s+/g, "_");
+  const isCompleted =
+    normalizedStatus === "COMPLETED" || normalizedStatus.includes("COMPLETED");
+
   return (
     <div className="bg-[#ffdef0] rounded-3xl p-4 space-y-4 text-black">
       <div className="rounded-xl border-2 border-dashed border-pink/20 p-4">
@@ -247,43 +257,9 @@ export function BookingDetailPanel({ booking, onRequestFeedback }: Props) {
                 </span>
               </div>
 
-              {String(api?.status ?? (booking as CalendarBooking).status ?? "")
-                .toUpperCase()
-                .replace(/\s+/g, "_") === "COMPLETED" &&
-                !feedback && (
-                  <FancyRateButton
-                    onClick={() =>
-                      booking &&
-                      onRequestFeedback?.(
-                        booking as ApiBooking | CalendarBooking
-                      )
-                    }
-                  >
-                    Đánh giá
-                  </FancyRateButton>
-                )}
+              {/* rating button intentionally moved to appear above the totals section */}
             </div>
-            {feedback ? (
-              <div className="mt-3 rounded-xl border bg-white/70 backdrop-blur shadow-lg p-3">
-                <div className="flex items-center gap-1 mb-1">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      size={18}
-                      className={
-                        i < (feedback?.rating ?? 0)
-                          ? "text-amber-300 fill-amber-300"
-                          : "text-slate-300"
-                      }
-                    />
-                  ))}
-                </div>
-                <div className="text-sm text-black/80 whitespace-pre-wrap">
-                  {String(feedback.comment ?? "").trim() ||
-                    "Không có nhận xét."}
-                </div>
-              </div>
-            ) : null}
+
             {/* 
             {roomObj?.imageUrl && (
               <div className="pt-2">
@@ -315,6 +291,39 @@ export function BookingDetailPanel({ booking, onRequestFeedback }: Props) {
                 <ServiceTagList items={serviceLinks} />
               </div>
             ) : null}
+          </div>
+        ) : null}
+
+        {isCompleted && !feedback && (
+          <div className="flex justify-end mb-2">
+            <FancyRateButton
+              onClick={() =>
+                booking &&
+                onRequestFeedback?.(booking as ApiBooking | CalendarBooking)
+              }
+            >
+              Đánh giá
+            </FancyRateButton>
+          </div>
+        )}
+        {feedback ? (
+          <div className="mt-3 rounded-xl border bg-white/70 backdrop-blur shadow-lg p-3">
+            <div className="flex items-center gap-1 mb-1">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star
+                  key={i}
+                  size={18}
+                  className={
+                    i < (feedback?.rating ?? 0)
+                      ? "text-amber-300 fill-amber-300"
+                      : "text-slate-300"
+                  }
+                />
+              ))}
+            </div>
+            <div className="text-sm text-black/80 whitespace-pre-wrap">
+              {String(feedback.comment ?? "").trim() || "Không có nhận xét."}
+            </div>
           </div>
         ) : null}
 

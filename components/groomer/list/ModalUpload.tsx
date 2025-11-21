@@ -17,7 +17,7 @@ type Props = {
   imageType?: ImageType;
   title?: string;
   submitLabel?: string;
-  onDone?: () => void;
+  onDone?: (uploadedUrls?: string[]) => void;
   onCancel?: () => void;
 };
 
@@ -75,10 +75,11 @@ export default function ModalUpload({
       };
 
       await completeMutation.mutateAsync({ bookingId, payload });
+      // Pass uploaded URLs back to parent so UI can update immediately
+      onDone?.(uploadedUrls);
       // Explicitly refetch bookings so List + Detail update instantly
       qc.invalidateQueries({ queryKey: GROOMER_CONFIRMED_BOOKINGS_KEY });
       toast.success("Đã hoàn tất dịch vụ và lưu ảnh");
-      onDone?.();
     } catch (err) {
       console.error(err);
       toast.error("Lỗi khi upload ảnh");

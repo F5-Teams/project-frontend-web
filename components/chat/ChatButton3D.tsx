@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import { Model3D } from "./Model3D";
+import { Model3DErrorBoundary } from "./Model3DErrorBoundary";
 
 export function ChatButton3D() {
   return (
@@ -21,11 +22,13 @@ export function ChatButton3D() {
         />
 
         <Suspense fallback={null}>
-          <Model3D
-            modelPath="/models/scene.gltf"
-            scale={1.5}
-            position={[0, 0, 0]}
-          />
+          <Model3DErrorBoundary>
+            <Model3D
+              modelPath="/models/Dogsong/scene.gltf"
+              scale={1.5}
+              position={[0, 0, 0]}
+            />
+          </Model3DErrorBoundary>
         </Suspense>
 
         <OrbitControls

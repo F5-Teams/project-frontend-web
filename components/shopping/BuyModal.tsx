@@ -202,14 +202,12 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
               popupRender={(menu) => (
                 <div>
                   {menu}
-                  {selectedAddress && (
-                    <div
-                      onClick={() => setIsAddressModalOpen(true)}
-                      className="text-center py-2 cursor-pointer border-t hover:bg-pink-50 text-pink-600 font-medium"
-                    >
-                      Thay đổi địa chỉ
-                    </div>
-                  )}
+                  <div
+                    onClick={() => setIsAddressModalOpen(true)}
+                    className="text-center py-2 cursor-pointer border-t hover:bg-pink-50 text-pink-600 font-medium"
+                  >
+                    Thay đổi địa chỉ
+                  </div>
                 </div>
               )}
             >
@@ -267,12 +265,12 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
           value={option}
           className="flex gap-4 mt-1"
         >
-          <Radio value="vnpay">
+          {/* <Radio value="vnpay">
             <div className="flex items-center gap-2">
               <img src="/images/vnpay.png" alt="VNPAY" className="w-6 h-6" />
               <span>VNPAY</span>
             </div>
-          </Radio>
+          </Radio> */}
 
           <Radio value="momo">
             <div className="flex items-center gap-2">
@@ -296,7 +294,9 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
           {(
             total +
             (fee?.data?.service_fee ?? 0) -
-            (chooseVoucher ? (total * chooseVoucher.percent) / 100 : 0)
+            (chooseVoucher
+              ? ((total + fee?.data?.service_fee) * chooseVoucher.percent) / 100
+              : 0)
           ).toLocaleString("vi-VN")}{" "}
           VNĐ
         </span>

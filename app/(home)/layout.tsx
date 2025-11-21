@@ -59,6 +59,9 @@ export default function HomeLayout({
         setCookie("accessToken", token, oneDay);
         setCookie("role", roleUpper, oneDay);
 
+        // Dispatch custom event để các component khác cập nhật
+        window.dispatchEvent(new Event("auth-changed"));
+
         // 🔹 Set Authorization mặc định cho API
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 

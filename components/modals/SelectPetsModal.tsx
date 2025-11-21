@@ -8,9 +8,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Pet } from "@/types/cart";
-import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle, Loader2, Plus } from "lucide-react";
 import api from "@/config/axios";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 interface SelectPetsModalProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
   description = "Chọn thú cưng sẽ nhận dịch vụ này",
   roomSize, // Add roomSize prop
 }) => {
+  const router = useRouter();
   const [selectedPetIds, setSelectedPetIds] = useState<string[]>([]);
   const [pets, setPets] = useState<Pet[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
@@ -395,10 +397,20 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
 
         {/* Empty state */}
         {!loading && pets.length === 0 && (
-          <div className="text-center py-8">
+          <div className="text-center py-8 space-y-4">
             <p className="text-gray-500 font-poppins-light">
               Không tìm thấy thú cưng. Vui lòng thêm thú cưng trước.
             </p>
+            <Button
+              onClick={() => {
+                onClose();
+                router.push("/profile-pet/create-pet");
+              }}
+              className="mx-auto"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Thêm thú cưng
+            </Button>
           </div>
         )}
 
