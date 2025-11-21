@@ -393,14 +393,14 @@ const OrderPage = () => {
 
           {record.status === "SHIPPING" && (
             <>
-              <Button
+              {/* <Button
                 className="bg-[#f15e6a]! text-white! hover:bg-[#dd3744]!"
                 danger
                 size="small"
                 onClick={() => handleCancelGHN(record)}
               >
                 Hủy vận đơn
-              </Button>
+              </Button> */}
               <Button
                 className="bg-[#47c7a0]! text-white! hover:bg-[#25b68b]!"
                 type="primary"
