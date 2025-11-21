@@ -6,7 +6,7 @@ export type BookingStatus =
   | "PENDING"
   | "CONFIRMED"
   | "ON_SERVICE"
-  | "CANCELLED"
+  | "CANCELED"
   | "COMPLETED";
 
 export type DropDownSlot = "MORNING" | "AFTERNOON" | "EVENING";
