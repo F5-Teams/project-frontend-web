@@ -222,7 +222,7 @@ const OrderPage = () => {
       case "CASH":
         return "Tiền mặt";
       case "TRANSFER":
-        return "Thanh toán qua ví";
+        return "Thanh toán qua Ví";
       case "VNPAY":
         return "Thanh toán VNPAY";
       case "MOMO":

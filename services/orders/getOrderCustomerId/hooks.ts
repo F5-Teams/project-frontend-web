@@ -9,5 +9,8 @@ export function useOrderCustomer(id?: number) {
     queryKey: [...ORDER_CUSTOMER_ID_QUERYKEY, id],
     queryFn: () => getOrderCustomerId({ id: id! }),
     enabled: !!id,
+    refetchInterval: 1000,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
 }
