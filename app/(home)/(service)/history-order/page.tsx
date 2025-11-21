@@ -10,6 +10,8 @@ import { useState } from "react";
 import { usePostOrderCancel } from "@/services/orders/postOrderCancel/hooks";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import dayjs from "dayjs";
 
 const statusLabel = {
   PAID: "Đang chờ duyệt",
@@ -38,7 +40,7 @@ export default function HistoryOrder() {
   const { data: orders } = useOrderCustomer(user?.id);
   const postOrderCancelMutation = usePostOrderCancel();
   const queryClient = useQueryClient();
-
+  const route = useRouter();
   const [open, setOpen] = useState(false);
   const [id, setId] = useState<number>();
   const [status, setStatus] = useState<string>("ALL");
@@ -88,7 +90,8 @@ export default function HistoryOrder() {
             return (
               <div
                 key={order.id}
-                className="bg-white p-5 rounded-2xl border border-gray-100 hover:shadow-md transition-all"
+                className="bg-white cursor-pointer p-5 rounded-2xl border border-gray-100 hover:shadow-md transition-all"
+                onClick={() => route.push(`/history-order/${order.id}`)}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-5">
@@ -119,7 +122,11 @@ export default function HistoryOrder() {
                       <p className="font-medium text-gray-800">
                         {firstItem?.product?.name}
                       </p>
-                      <p className="text-xs text-gray-500">HappyPaws Store</p>
+
+                      <p className="text-gray-500 text-[14px] ">
+                        Ngày tạo:{" "}
+                        {dayjs(order.createdAt).format("DD/MM/YYYY HH:mm")}
+                      </p>
                     </div>
                   </div>
 
