@@ -36,14 +36,14 @@ const HeroSection = () => {
     <section className="flex flex-col w-full items-center gap-[54px] px-0 pb-20 pt-20 relative">
       <div className="inline-flex flex-col items-center justify-center gap-4 relative flex-[0_0_auto] top-24">
         <h1
-          className="relative w-[1500px] -mt-5 font-poppins-regular text-[90px] text-foreground text-center leading-[100px] tracking-[-4px] whitespace-pre-line min-h-[200px]"
+          className="relative w-[1500px] -mt-5 font-poppins-regular text-[90px] text-white text-center leading-[100px] tracking-[-4px] whitespace-pre-line min-h-[200px] drop-shadow-[0_4px_12px_rgba(255,255,255,0.6)]"
           dangerouslySetInnerHTML={{
             __html: `${highlightText(
               displayText
             )}<span class="animate-blink">|</span>`,
           }}
         />
-        <p className="relative w-[587px] font-poppins-light text-[20px] text-foreground text-center leading-[30px] tracking-[0px]">
+        <p className="relative w-[587px] font-poppins-light text-[24px] text-white text-center leading-[30px] tracking-[0px] drop-shadow-[0_2px_8px_rgba(255,255,255,0.5)]">
           Hãy để chúng tôi đồng hành và mang đến cho bé sự chăm sóc ân cần, đầy
           yêu thương và thật riêng biệt.
         </p>

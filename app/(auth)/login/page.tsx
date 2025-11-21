@@ -133,6 +133,9 @@ export default function LoginPage() {
       localStorage.setItem("user", JSON.stringify(me));
       localStorage.setItem("role", roleUpper);
 
+      // Dispatch custom event để các component khác cập nhật
+      window.dispatchEvent(new Event("auth-changed"));
+
       // (6) Set cookie để middleware đọc (Next.js middleware)
       const oneDay = 60 * 60 * 24;
       setCookie("accessToken", token, oneDay);

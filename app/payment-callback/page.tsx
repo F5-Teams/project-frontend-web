@@ -5,10 +5,12 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useCartStore } from "@/stores/cart.store";
 
 export default function PaymentCallbackPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { clearCart } = useCartStore();
   const [status, setStatus] = useState<"processing" | "success" | "failed">(
     "processing"
   );
@@ -34,6 +36,9 @@ export default function PaymentCallbackPage() {
           setMessage(
             `Thanh toán qua ${paymentMethod} thành công! Đơn đặt của bạn đã được xác nhận.`
           );
+
+          // Clear cart after successful payment
+          clearCart();
 
           // Clear pending booking info
           localStorage.removeItem("pendingBookingId");

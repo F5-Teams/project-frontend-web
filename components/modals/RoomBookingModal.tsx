@@ -21,21 +21,39 @@ import {
   CheckCircle,
   Loader2,
 } from "lucide-react";
-import { format, differenceInDays } from "date-fns";
+import { format, differenceInDays, addDays } from "date-fns";
 import { BookingDraft } from "@/types/cart";
 import { generateTempId } from "@/utils/booking";
 import { HotelRoom } from "@/services/hotel";
 
 // Helper functions
-const calculateRoomPrice = (pricePerNight: number, nights: number): number => {
-  return pricePerNight * nights;
-};
+const calculateRoomPrice = (
+  pricePerNight: number,
+  checkInDate: Date,
+  checkOutDate: Date
+): { basePrice: number; weekendPrice: number; weekendNights: number } => {
+  const nights = differenceInDays(checkOutDate, checkInDate);
+  let weekendNights = 0;
 
-const applyWeekendSurcharge = (
-  price: number,
-  isWeekend: boolean = false
-): number => {
-  return isWeekend ? Math.round(price * 1.1) : price;
+  // Count weekend nights (Friday and Saturday nights)
+  for (let i = 0; i < nights; i++) {
+    const currentDate = addDays(checkInDate, i);
+    const dayOfWeek = currentDate.getDay();
+    // Friday (5) or Saturday (6) nights lead to weekend rates
+    if (dayOfWeek === 5 || dayOfWeek === 6) {
+      weekendNights++;
+    }
+  }
+
+  const regularNights = nights - weekendNights;
+  const basePrice = regularNights * pricePerNight;
+  const weekendPrice = weekendNights * pricePerNight * 1.1;
+
+  return {
+    basePrice: Math.round(basePrice),
+    weekendPrice: Math.round(weekendPrice),
+    weekendNights,
+  };
 };
 
 interface RoomBookingModalProps {
@@ -71,17 +89,16 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
       : 0;
 
   const pricePerNight = room ? parseInt(room.price) : 0;
-  const basePrice = calculateRoomPrice(pricePerNight, nights);
-  const finalPrice =
-    checkInDate && room
-      ? applyWeekendSurcharge(
-          basePrice,
-          checkInDate.getDay() === 0 || checkInDate.getDay() === 6
-        )
-      : basePrice;
 
-  const isWeekendStay =
-    checkInDate && (checkInDate.getDay() === 0 || checkInDate.getDay() === 6);
+  // Calculate prices with weekend surcharge
+  const priceBreakdown =
+    checkInDate && checkOutDate && room
+      ? calculateRoomPrice(pricePerNight, checkInDate, checkOutDate)
+      : { basePrice: 0, weekendPrice: 0, weekendNights: 0 };
+
+  const totalPrice = priceBreakdown.basePrice + priceBreakdown.weekendPrice;
+  const weekendSurcharge =
+    priceBreakdown.weekendPrice - priceBreakdown.weekendNights * pricePerNight;
 
   // Reset state and initialize dates when modal opens
   useEffect(() => {
@@ -351,24 +368,40 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
                 <span className="font-medium">{nights} đêm</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span>Giá gốc:</span>
+                <span>
+                  Giá phòng ({nights - priceBreakdown.weekendNights} đêm
+                  thường):
+                </span>
                 <span className="font-medium">
-                  {basePrice.toLocaleString()}đ
+                  {priceBreakdown.basePrice.toLocaleString()}đ
                 </span>
               </div>
-              {isWeekendStay && (
-                <div className="flex justify-between text-sm text-orange-600">
-                  <span>Phụ thu cuối tuần (+10%):</span>
-                  <span className="font-medium">
-                    +{(finalPrice - basePrice).toLocaleString()}đ
-                  </span>
-                </div>
+              {priceBreakdown.weekendNights > 0 && (
+                <>
+                  <div className="flex justify-between text-sm">
+                    <span>
+                      Giá phòng ({priceBreakdown.weekendNights} đêm T7/CN):
+                    </span>
+                    <span className="font-medium">
+                      {(
+                        priceBreakdown.weekendNights * pricePerNight
+                      ).toLocaleString()}
+                      đ
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm text-orange-600">
+                    <span>Phụ thu cuối tuần (+10%):</span>
+                    <span className="font-medium">
+                      +{weekendSurcharge.toLocaleString()}đ
+                    </span>
+                  </div>
+                </>
               )}
               <div className="border-t pt-3">
                 <div className="flex justify-between font-bold text-lg">
                   <span>Tổng cộng:</span>
                   <span className="text-green-600">
-                    {finalPrice.toLocaleString()}đ
+                    {totalPrice.toLocaleString()}đ
                   </span>
                 </div>
               </div>

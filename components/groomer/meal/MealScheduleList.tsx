@@ -73,7 +73,7 @@ export function MealScheduleList({
             {format(new Date(selectedDate), "dd/MM/yyyy", { locale: vi })}
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-1">
             {Array.from(groupedByBooking.entries()).map(
               ([bookingId, bookingSchedules]) => (
                 <BookingCard
