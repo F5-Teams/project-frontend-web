@@ -178,6 +178,7 @@ export default function BookingListPage() {
                 </div>
               </th>
               <th className="p-3 text-left">Thú cưng</th>
+              <th className="p-3 text-left">Dịch vụ</th>
               <th className="p-3 text-left">Khách hàng</th>
               <th className="p-3 text-left">Ngày đặt</th>
               <th className="p-3 text-left">Trạng thái</th>
@@ -190,6 +191,13 @@ export default function BookingListPage() {
               <tr key={item.id} className="border-t hover:bg-pink-50/50">
                 <td className="p-3">{item.id}</td>
                 <td className="p-3">{item.pet?.name ?? "-"}</td>
+                <td className="p-3">
+                  {item.Room || item.roomId
+                    ? "Hotel"
+                    : item.combo || item.comboId
+                    ? "Spa"
+                    : "-"}
+                </td>
                 <td className="p-3">
                   {`${item.customer?.firstName ?? ""} ${
                     item.customer?.lastName ?? ""
@@ -284,16 +292,30 @@ export default function BookingListPage() {
                     </span>
                     <span>
                       {new Date(selectedBooking.bookingDate).toLocaleDateString(
-                        "vi-VN"
+                        "vi-VN",
+                        { timeZone: "Asia/Ho_Chi_Minh" }
                       )}
                     </span>
                   </div>
 
                   <div className="flex gap-2">
                     <span className="font-semibold text-gray-600">
-                      Khung giờ:
+                      Dịch vụ:
                     </span>
-                    <span>{selectedBooking.dropDownSlot}</span>
+                    <span>
+                      {selectedBooking.Room || selectedBooking.roomId
+                        ? `Hotel${
+                            selectedBooking.Room?.name
+                              ? ` — ${selectedBooking.Room.name}`
+                              : ""
+                          }`
+                        : selectedBooking.combo || selectedBooking.comboId
+                        ? selectedBooking.combo?.serviceLinks &&
+                          selectedBooking.combo.serviceLinks.length > 0
+                          ? selectedBooking.combo.serviceLinks[0].service.name
+                          : selectedBooking.combo?.name ?? "Spa"
+                        : "-"}
+                    </span>
                   </div>
                 </div>
 
