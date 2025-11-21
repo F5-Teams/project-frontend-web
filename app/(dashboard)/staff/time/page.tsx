@@ -223,9 +223,7 @@ export default function HotelBookingsPage() {
   /* ---------------------- RENDER UI ---------------------- */
   return (
     <div className="p-8 min-h-screen bg-gradient-to-b from-pink-50 to-white">
-      <h1 className="text-3xl font-medium mb-8">
-        Check in / Check out phòng khách sạn
-      </h1>
+      <h1 className="text-3xl font-medium mb-8">Check in / Check out</h1>
 
       {loading ? (
         <div className="flex items-center justify-center py-10 text-gray-500">
