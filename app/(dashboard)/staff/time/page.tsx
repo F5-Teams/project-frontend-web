@@ -1,62 +1,118 @@
+/* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
 import api from "@/config/axios";
 import type { Booking } from "@/components/models/booking";
+import { toast } from "sonner";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { Loader2 } from "lucide-react";
 
+/* ---------------------- DayJS config ---------------------- */
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.tz.setDefault("Asia/Ho_Chi_Minh");
 
+/* ---------------------- Format helpers ---------------------- */
 const formatDateTime = (date: string | null | undefined) => {
   if (!date) return "-";
   return dayjs(date).tz().format("DD/MM/YYYY HH:mm");
 };
+
 const formatDate = (date: string | null | undefined) => {
   if (!date) return "-";
   return dayjs(date).tz().format("DD/MM/YYYY");
 };
 
-interface PickupInfo {
-  pickupPersonName: string;
-  pickupPersonPhone: string;
-  pickupPersonRelationship: string;
-  verificationNotes: string;
+/* ---------------------- Avatar helpers ---------------------- */
+function getInitials(firstName?: string, lastName?: string) {
+  const f = firstName?.trim() ?? "";
+  const l = lastName?.trim() ?? "";
+  if (!f && !l) return "?";
+  return `${f[0]?.toUpperCase() || ""}${l[0]?.toUpperCase() || ""}`;
 }
 
+/**
+ * Avatar khách hàng với fallback chữ cái đầu.
+ */
+function CustomerAvatar({
+  customer,
+  size = 56,
+}: {
+  customer?: {
+    firstName?: string;
+    lastName?: string;
+    avatar?: string | null;
+  } | null;
+  size?: number;
+}) {
+  const [imgError, setImgError] = useState(false);
+  const initials = getInitials(customer?.firstName, customer?.lastName);
+
+  if (customer?.avatar && !imgError) {
+    return (
+      <img
+        src={customer.avatar}
+        alt="avatar"
+        onError={() => setImgError(true)}
+        className="rounded-full object-cover border-2 border-pink-100 shadow-sm"
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+
+  return (
+    <div
+      className="flex items-center justify-center rounded-full bg-pink-50 border-2 border-pink-100 font-semibold text-pink-700 shadow-sm"
+      style={{ width: size, height: size }}
+    >
+      {initials}
+    </div>
+  );
+}
+
+/* ---------------------- Kiểm tra điều kiện hành động ---------------------- */
+const canCheckIn = (b: Booking) => b.status !== "PENDING" && !b.checkInDate;
+
+const canCheckOut = (b: Booking) =>
+  b.status !== "PENDING" && !!b.checkInDate && !b.checkOutDate;
+
+/* ---------------------- MAIN COMPONENT ---------------------- */
+
 export default function HotelBookingsPage() {
+  /* ---------------------- STATE ---------------------- */
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<number | null>(null);
 
-  // modal nhập thông tin người đón khi check-out
+  // Modal nhập người đón
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [checkoutBookingId, setCheckoutBookingId] = useState<number | null>(
     null
   );
-  const [pickupInfo, setPickupInfo] = useState<PickupInfo>({
+
+  const [pickupInfo, setPickupInfo] = useState({
     pickupPersonName: "",
     pickupPersonPhone: "",
     pickupPersonRelationship: "",
     verificationNotes: "",
   });
 
-  // modal xem chi tiết
+  // Modal xem chi tiết
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [detailBooking, setDetailBooking] = useState<Booking | null>(null);
 
+  /* ---------------------- FETCH DATA ---------------------- */
   useEffect(() => {
     fetchBookings();
   }, []);
 
   const fetchBookings = async () => {
     try {
-      const res = await api.get("/bookings/staff/hotel");
+      const res = await api.get("/bookings/staff/hotel-service");
       setBookings(res.data);
     } catch (error) {
       console.error("Error fetching bookings:", error);
@@ -65,59 +121,64 @@ export default function HotelBookingsPage() {
     }
   };
 
+  /* ---------------------- HANDLE CHECK-IN ---------------------- */
   const handleCheckIn = async (id: number) => {
+    const booking = bookings.find((b) => b.id === id);
+    if (!booking) {
+      toast("Không tìm thấy đơn.");
+      return;
+    }
+
+    if (!canCheckIn(booking)) {
+      toast("Không thể check-in.");
+      return;
+    }
+
     try {
-      const booking = bookings.find((b) => b.id === id);
-      if (!booking) {
-        alert("Không tìm thấy đơn đặt phòng.");
-        return;
-      }
-
-      // ĐANG PENDING thì không cho check-in
-      if (booking.status === "PENDING") {
-        alert("Đơn đang ở trạng thái PENDING, chưa thể check-in.");
-        return;
-      }
-
-      // Nếu đã có check-in rồi thì không cho check-in lại
-      if (booking.checkInDate) {
-        alert("Đơn này đã được check-in rồi.");
-        return;
-      }
-
       setUpdating(id);
       await api.put(`/bookings/${id}/dates`, {
         checkInDate: new Date().toISOString(),
-        // tùy backend, có thể gửi thêm status nếu cần
-        // status: "ON_SERVICE",
       });
-      alert("Check-in thành công!");
+      toast("Check-in thành công!");
       fetchBookings();
-    } catch (error) {
-      console.error("Check-in failed:", error);
-      alert("Lỗi khi check-in!");
+    } catch {
+      toast("Lỗi khi check-in!");
     } finally {
       setUpdating(null);
     }
   };
 
-  // mở modal nhập người đón trước khi check-out
+  /* ---------------------- HANDLE QUICK CHECK-OUT ---------------------- */
+  const handleQuickCheckout = async (id: number) => {
+    const booking = bookings.find((b) => b.id === id);
+    if (!booking) {
+      toast("Không tìm thấy đơn.");
+      return;
+    }
+
+    if (!canCheckOut(booking)) {
+      toast("Không thể check-out.");
+      return;
+    }
+
+    try {
+      setUpdating(id);
+      await api.put(`/bookings/${id}/dates`, {
+        checkOutDate: new Date().toISOString(),
+      });
+      toast("Check-out thành công!");
+      fetchBookings();
+    } catch {
+      toast("Lỗi khi check-out!");
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  /* ---------------------- OPEN MODAL CHECK-OUT CÓ NGƯỜI ĐÓN ---------------------- */
   const openCheckoutModal = (booking: Booking) => {
-    // PENDING thì không cho
-    if (booking.status === "PENDING") {
-      alert("Đơn đang ở trạng thái PENDING, chưa thể check-out.");
-      return;
-    }
-
-    // chưa check-in thì không cho check-out
-    if (!booking.checkInDate) {
-      alert("Đơn này chưa được check-in, không thể check-out.");
-      return;
-    }
-
-    // đã check-out rồi thì không cho nữa
-    if (booking.checkOutDate) {
-      alert("Đơn này đã được check-out rồi.");
+    if (!canCheckOut(booking)) {
+      toast("Không thể check-out ở trạng thái này.");
       return;
     }
 
@@ -128,80 +189,47 @@ export default function HotelBookingsPage() {
       pickupPersonRelationship: booking.pickupPersonRelationship || "",
       verificationNotes: booking.verificationNotes || "",
     });
-    setShowCheckoutModal(true);
-  };
 
-  const closeCheckoutModal = () => {
-    setShowCheckoutModal(false);
-    setCheckoutBookingId(null);
+    setShowCheckoutModal(true);
   };
 
   const handleConfirmCheckout = async () => {
     if (!checkoutBookingId) return;
 
-    const booking = bookings.find((b) => b.id === checkoutBookingId);
-    if (!booking) {
-      alert("Không tìm thấy đơn đặt phòng.");
-      return;
-    }
-
-    if (booking.status === "PENDING") {
-      alert("Đơn đang ở trạng thái PENDING, chưa thể check-out.");
-      return;
-    }
-
-    if (!booking.checkInDate) {
-      alert("Đơn này chưa được check-in, không thể check-out.");
-      return;
-    }
-
-    if (booking.checkOutDate) {
-      alert("Đơn này đã được check-out rồi.");
-      return;
-    }
-
     try {
       setUpdating(checkoutBookingId);
       await api.put(`/bookings/${checkoutBookingId}/dates`, {
         checkOutDate: new Date().toISOString(),
-        // status: "COMPLETED",
-        pickupPersonName: pickupInfo.pickupPersonName,
-        pickupPersonPhone: pickupInfo.pickupPersonPhone,
-        pickupPersonRelationship: pickupInfo.pickupPersonRelationship,
-        verificationNotes: pickupInfo.verificationNotes,
+        ...pickupInfo,
       });
-      alert("Check-out thành công!");
-      closeCheckoutModal();
+
+      toast("Check-out thành công!");
+      setShowCheckoutModal(false);
       fetchBookings();
-    } catch (error) {
-      console.error("Check-out failed:", error);
-      alert("Lỗi khi check-out!");
+    } catch {
+      toast("Lỗi khi check-out!");
     } finally {
       setUpdating(null);
     }
   };
 
-  // xem chi tiết booking (bao gồm người đón, sđt, quan hệ, notes)
+  /* ---------------------- DETAIL MODAL ---------------------- */
   const openDetailModal = (booking: Booking) => {
     setDetailBooking(booking);
     setShowDetailModal(true);
   };
 
-  const closeDetailModal = () => {
-    setShowDetailModal(false);
-    setDetailBooking(null);
-  };
-
+  /* ---------------------- RENDER UI ---------------------- */
   return (
     <div className="p-8 min-h-screen bg-gradient-to-b from-pink-50 to-white">
-      <h1 className="text-3xl font-medium mb-8 text-black-700 tracking-wide flex items-center gap-3">
+      <h1 className="text-3xl font-medium mb-8">
         Check in / Check out phòng khách sạn
       </h1>
 
+      {/* ---------------------- LOADING ---------------------- */}
       {loading ? (
         <div className="flex items-center justify-center py-10 text-gray-500">
-          <Loader2 className="animate-spin w-6 h-6 mr-2" />
-          Đang tải dữ liệu...
+          <Loader2 className="animate-spin w-6 h-6 mr-2" /> Đang tải dữ liệu...
         </div>
       ) : (
         <div className="overflow-x-auto shadow-lg rounded-2xl border border-pink-100 bg-white">
@@ -211,75 +239,77 @@ export default function HotelBookingsPage() {
                 <th className="p-3 text-left">Slot ID</th>
                 <th className="p-3 text-left">Thú cưng</th>
                 <th className="p-3 text-left">Khách hàng</th>
-                <th className="p-3 text-left">Ngày bắt đầu</th>
-                <th className="p-3 text-left">Ngày kết thúc</th>
+                <th className="p-3 text-left">Bắt đầu</th>
+                <th className="p-3 text-left">Kết thúc</th>
                 <th className="p-3 text-left">Check-in</th>
                 <th className="p-3 text-left">Check-out</th>
                 <th className="p-3 text-center">Hành động</th>
               </tr>
             </thead>
+
             <tbody>
-              {bookings.map((b, index) => {
-                const isPending = b.status === "PENDING";
+              {bookings.map((b, idx) => (
+                <tr
+                  key={b.id}
+                  className={`border-t ${
+                    idx % 2 ? "bg-gray-50" : "bg-white"
+                  } hover:bg-pink-50`}
+                >
+                  <td className="p-3 font-medium">{b.slotId ?? "-"}</td>
+                  <td className="p-3">{b.pet?.name ?? "-"}</td>
+                  <td className="p-3">
+                    {b.customer
+                      ? `${b.customer.firstName} ${b.customer.lastName}`
+                      : "-"}
+                  </td>
+                  <td className="p-3">{formatDate(b.slot?.startDate)}</td>
+                  <td className="p-3">{formatDate(b.slot?.endDate)}</td>
+                  <td className="p-3">{formatDateTime(b.checkInDate)}</td>
+                  <td className="p-3">{formatDateTime(b.checkOutDate)}</td>
 
-                const canCheckIn = !isPending && !b.checkInDate; // đã confirm (hoặc trạng thái khác) và chưa check-in
-                const canCheckOut =
-                  !isPending && !!b.checkInDate && !b.checkOutDate; // đã check-in rồi và chưa check-out
+                  {/* ---------------------- ACTIONS ---------------------- */}
+                  <td className="p-3 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <button
+                        onClick={() => handleCheckIn(b.id)}
+                        disabled={!canCheckIn(b) || updating === b.id}
+                        className="w-28 bg-green-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold disabled:opacity-50 hover:bg-green-600"
+                      >
+                        Check-in
+                      </button>
 
-                return (
-                  <tr
-                    key={b.id}
-                    className={`border-t ${
-                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    } hover:bg-pink-50 transition-colors duration-150`}
-                  >
-                    <td className="p-3 font-medium text-gray-800">
-                      {b.slotId ?? "-"}
-                    </td>
-                    <td className="p-3">{b.pet?.name ?? "-"}</td>
-                    <td className="p-3">
-                      {b.customer
-                        ? `${b.customer.firstName} ${b.customer.lastName}`
-                        : "-"}
-                    </td>
-                    <td className="p-3">{formatDate(b.slot?.startDate)}</td>
-                    <td className="p-3">{formatDate(b.slot?.endDate)}</td>
-                    <td className="p-3">{formatDateTime(b.checkInDate)}</td>
-                    <td className="p-3">{formatDateTime(b.checkOutDate)}</td>
+                      <button
+                        onClick={() => handleQuickCheckout(b.id)}
+                        disabled={!canCheckOut(b) || updating === b.id}
+                        className="w-28 bg-blue-400 text-white px-3 py-1.5 rounded-xl text-xs font-semibold disabled:opacity-50 hover:bg-blue-600"
+                      >
+                        Check-out
+                      </button>
 
-                    <td className="p-3 text-center">
-                      <div className="flex flex-col items-center gap-2">
-                        <button
-                          onClick={() => handleCheckIn(b.id)}
-                          disabled={updating === b.id || !canCheckIn}
-                          className="w-28 flex gap-1 items-center justify-center bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-xl text-xs font-semibold shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          Check-in
-                        </button>
-                        <button
-                          onClick={() => openCheckoutModal(b)}
-                          disabled={updating === b.id || !canCheckOut}
-                          className="w-28 flex gap-1 items-center justify-center bg-blue-400 hover:bg-blue-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          Check-out
-                        </button>
-                        <button
-                          onClick={() => openDetailModal(b)}
-                          className="w-28 flex gap-1 items-center justify-center border border-pink-300 text-pink-700 px-3 py-1.5 rounded-xl text-xs font-medium hover:bg-pink-100 transition"
-                        >
-                          Xem chi tiết
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                      <button
+                        onClick={() => openCheckoutModal(b)}
+                        disabled={!canCheckOut(b) || updating === b.id}
+                        className="w-28 border border-pink-300 text-pink-700 px-3 py-1.5 rounded-xl text-xs hover:bg-gray-200"
+                      >
+                        Nhập người đón
+                      </button>
+
+                      <button
+                        onClick={() => openDetailModal(b)}
+                        className="w-28 border border-pink-300 text-pink-700 px-3 py-1.5 rounded-xl text-xs hover:bg-gray-200"
+                      >
+                        Xem chi tiết
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
 
               {bookings.length === 0 && (
                 <tr>
                   <td
                     colSpan={8}
-                    className="text-center text-gray-500 py-6 italic"
+                    className="text-center py-6 text-gray-500 italic"
                   >
                     Không có dữ liệu đặt phòng nào
                   </td>
@@ -290,81 +320,42 @@ export default function HotelBookingsPage() {
         </div>
       )}
 
-      {/* Modal nhập thông tin người đón trước khi check-out */}
+      {/* ---------------------- MODAL: CHECKOUT WITH PICKUP INFO ---------------------- */}
       {showCheckoutModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 border border-pink-200 animate-fadeIn">
-            <h2 className="text-xl font-medium text-black-600 mb-6 flex items-center gap-2">
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 w-full max-w-md border border-pink-200 shadow-xl">
+            <h2 className="text-xl font-semibold mb-6">
               Thông tin người đón thú cưng
             </h2>
 
-            <div className="space-y-4 text-sm text-gray-700">
-              <div>
-                <label className="block font-medium text-black-600 mb-1">
-                  Tên người đón
-                </label>
-                <input
-                  type="text"
-                  className="w-full border border-pink-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-pink-50/30"
-                  value={pickupInfo.pickupPersonName}
-                  placeholder="Nhập họ và tên"
-                  onChange={(e) =>
-                    setPickupInfo((prev) => ({
-                      ...prev,
-                      pickupPersonName: e.target.value,
-                    }))
-                  }
-                />
-              </div>
+            {/* FORM INPUT */}
+            <div className="space-y-4 text-sm">
+              {[
+                "pickupPersonName",
+                "pickupPersonPhone",
+                "pickupPersonRelationship",
+              ].map((field, i) => (
+                <div key={i}>
+                  <label className="font-medium">{field}</label>
+                  <input
+                    className="w-full px-4 py-2 border rounded-xl bg-pink-50/30 focus:ring-2 focus:ring-pink-300"
+                    value={(pickupInfo as any)[field]}
+                    onChange={(e) =>
+                      setPickupInfo((p) => ({ ...p, [field]: e.target.value }))
+                    }
+                  />
+                </div>
+              ))}
 
               <div>
-                <label className="block font-medium text-black-600 mb-1">
-                  Số điện thoại người đón
-                </label>
-                <input
-                  type="tel"
-                  className="w-full border border-pink-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-pink-50/30"
-                  value={pickupInfo.pickupPersonPhone}
-                  placeholder="VD: 09xxxxxxxx"
-                  onChange={(e) =>
-                    setPickupInfo((prev) => ({
-                      ...prev,
-                      pickupPersonPhone: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-
-              <div>
-                <label className="block font-medium text-black-600 mb-1">
-                  Mối quan hệ với chủ
-                </label>
-                <input
-                  type="text"
-                  className="w-full border border-pink-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-pink-50/30"
-                  value={pickupInfo.pickupPersonRelationship}
-                  placeholder="VD: Chủ, Người nhà, Bạn bè..."
-                  onChange={(e) =>
-                    setPickupInfo((prev) => ({
-                      ...prev,
-                      pickupPersonRelationship: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-
-              <div>
-                <label className="block font-medium text-black-600 mb-1">
-                  Ghi chú xác minh
-                </label>
+                <label className="font-medium">Ghi chú xác minh</label>
                 <textarea
-                  className="w-full border border-pink-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-pink-50/30"
+                  className="w-full px-4 py-2 border rounded-xl bg-pink-50/30 focus:ring-2 focus:ring-pink-300"
                   rows={3}
                   value={pickupInfo.verificationNotes}
-                  placeholder="VD: Đã kiểm tra CMND/CCCD, giống thông tin trong hệ thống..."
                   onChange={(e) =>
-                    setPickupInfo((prev) => ({
-                      ...prev,
+                    setPickupInfo((p) => ({
+                      ...p,
                       verificationNotes: e.target.value,
                     }))
                   }
@@ -374,8 +365,8 @@ export default function HotelBookingsPage() {
 
             <div className="flex justify-end gap-3 mt-8">
               <button
-                onClick={closeCheckoutModal}
-                className="px-5 py-2 rounded-xl border border-pink-400 text-pink-700 font-semibold hover:bg-pink-100 transition shadow-sm"
+                onClick={() => setShowCheckoutModal(false)}
+                className="px-5 py-2 border rounded-xl text-pink-700"
               >
                 Hủy
               </button>
@@ -383,99 +374,94 @@ export default function HotelBookingsPage() {
               <button
                 onClick={handleConfirmCheckout}
                 disabled={updating === checkoutBookingId}
-                className="px-5 py-2 rounded-xl bg-pink-500 text-white font-semibold hover:bg-pink-600 transition shadow disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-5 py-2 bg-pink-500 text-white rounded-xl"
               >
-                {updating === checkoutBookingId
-                  ? " Đang xử lý..."
-                  : " Xác nhận check-out"}
+                Xác nhận
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal xem chi tiết booking */}
+      {/* ---------------------- MODAL: DETAIL ---------------------- */}
       {showDetailModal && detailBooking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-8 border border-pink-200 animate-fadeIn">
-            <h2 className="text-2xl font-bold text-pink-700 mb-6">
-              Chi tiết booking
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-10 text-gray-700 text-sm">
-              {/* Pet */}
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-8 w-full max-w-2xl border border-pink-200 shadow-xl">
+            {/* Header: Avatar + Customer Info */}
+            <div className="flex items-center gap-4 mb-6">
+              <CustomerAvatar customer={detailBooking.customer} size={64} />
               <div>
-                <p className="font-semibold text-pink-600"> Thú cưng</p>
-                <p className="mt-1">{detailBooking.pet?.name ?? "-"}</p>
-              </div>
-
-              {/* Customer */}
-              <div>
-                <p className="font-semibold text-pink-600"> Khách hàng</p>
-                <p className="mt-1">
+                <h2 className="text-2xl font-bold text-pink-700">
+                  {detailBooking.pet?.name}
+                </h2>
+                <p className="text-gray-600">
                   {detailBooking.customer
                     ? `${detailBooking.customer.firstName} ${detailBooking.customer.lastName}`
                     : "-"}
                 </p>
+                <p className="text-sm text-gray-500">
+                  {detailBooking.customer?.phoneNumber ?? "-"}
+                </p>
+              </div>
+            </div>
+
+            {/* GRID INFO */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-700">
+              <div>
+                <p className="font-semibold text-pink-600">Check-in</p>
+                <p>{formatDateTime(detailBooking.checkInDate)}</p>
               </div>
 
-              {/* Status */}
               <div>
-                <p className="font-semibold text-pink-600"> Trạng thái</p>
-                <span className="inline-block px-3 py-1 mt-1 rounded-lg text-xs font-bold bg-pink-100 text-pink-700">
-                  {detailBooking.status ?? "-"}
+                <p className="font-semibold text-pink-600">Check-out</p>
+                <p>{formatDateTime(detailBooking.checkOutDate)}</p>
+              </div>
+
+              <div className="flex gap-2">
+                <span className="font-semibold text-pink-600">Dịch vụ:</span>
+                <span>
+                  {detailBooking.Room || detailBooking.roomId
+                    ? `${
+                        detailBooking.Room?.name
+                          ? `  ${detailBooking.Room.name}`
+                          : ""
+                      }`
+                    : detailBooking.combo || detailBooking.comboId
+                    ? detailBooking.combo?.serviceLinks &&
+                      detailBooking.combo.serviceLinks.length > 0
+                      ? detailBooking.combo.serviceLinks[0].service.name
+                      : detailBooking.combo?.name ?? ""
+                    : "-"}
                 </span>
               </div>
 
-              {/* Check-in */}
               <div>
-                <p className="font-semibold text-pink-600"> Check-in</p>
-                <p className="mt-1">
-                  {formatDateTime(detailBooking.checkInDate)}
-                </p>
-              </div>
-
-              {/* Check-out */}
-              <div>
-                <p className="font-semibold text-pink-600"> Check-out</p>
-                <p className="mt-1">
-                  {formatDateTime(detailBooking.checkOutDate)}
-                </p>
-              </div>
-
-              {/* Pickup Person */}
-              <div>
-                <p className="font-semibold text-pink-600"> Người đón</p>
-                <p className="mt-1">{detailBooking.pickupPersonName || "-"}</p>
+                <p className="font-semibold text-pink-600">Người đón</p>
+                <p>{detailBooking.pickupPersonName || "-"}</p>
               </div>
 
               <div>
-                <p className="font-semibold text-pink-600"> SĐT người đón</p>
-                <p className="mt-1">{detailBooking.pickupPersonPhone || "-"}</p>
+                <p className="font-semibold text-pink-600">SĐT người đón</p>
+                <p>{detailBooking.pickupPersonPhone || "-"}</p>
               </div>
 
-              {/* Relationship */}
               <div className="md:col-span-2">
-                <p className="font-semibold text-pink-600"> Mối quan hệ</p>
-                <p className="mt-1">
-                  {detailBooking.pickupPersonRelationship || "-"}
-                </p>
+                <p className="font-semibold text-pink-600">Mối quan hệ</p>
+                <p>{detailBooking.pickupPersonRelationship || "-"}</p>
               </div>
 
-              {/* Verify Note */}
               <div className="md:col-span-2">
                 <p className="font-semibold text-pink-600">Ghi chú xác minh</p>
-                <p className="mt-1 whitespace-pre-line">
+                <p className="whitespace-pre-line">
                   {detailBooking.verificationNotes || "Không có"}
                 </p>
               </div>
             </div>
 
-            {/* Footer */}
-            <div className="mt-8 flex justify-end">
+            <div className="flex justify-end mt-8">
               <button
-                onClick={closeDetailModal}
-                className="px-6 py-2 rounded-xl border border-pink-400 text-pink-700 font-semibold hover:bg-pink-100 transition shadow-sm"
+                onClick={() => setShowDetailModal(false)}
+                className="px-6 py-2 border rounded-xl text-pink-700"
               >
                 Đóng
               </button>
