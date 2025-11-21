@@ -60,7 +60,7 @@ const formatCurrency = (value: number) =>
   }).format(value);
 
 export default function BookingListPage() {
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [allBookings, setAllBookings] = useState<Booking[]>([]);
 
   // Search & Filter
   const [searchText, setSearchText] = useState("");
@@ -72,6 +72,7 @@ export default function BookingListPage() {
   // Pagination
   const [page, setPage] = useState(1);
   const pageSize = 8;
+  const [totalPages, setTotalPages] = useState(1);
 
   // Modal
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -82,8 +83,12 @@ export default function BookingListPage() {
 
   const fetchBookings = async () => {
     try {
-      const res = await api.get("/bookings/all");
-      setBookings(res.data);
+      // Fetch all bookings for stats and filtering
+      const res = await api.get("/bookings/admin-staff", {
+        params: { page: 1, limit: 1000 },
+      });
+      const data = res.data?.data || res.data || [];
+      setAllBookings(data);
     } catch (err) {
       console.log(err);
     }
@@ -100,7 +105,7 @@ export default function BookingListPage() {
     let today = 0;
     let month = 0;
 
-    bookings.forEach((b) => {
+    allBookings.forEach((b) => {
       if (b.status !== "COMPLETED") return;
 
       // Doanh thu mỗi booking = servicePrice + comboPrice + Room.price (nếu có)
@@ -124,7 +129,7 @@ export default function BookingListPage() {
     });
 
     return { total, today, month };
-  }, [bookings]);
+  }, [allBookings]);
 
   // ----- DỮ LIỆU CHART THEO THÁNG -----
   const monthlyChartData = useMemo(() => {
@@ -149,7 +154,7 @@ export default function BookingListPage() {
       completed: 0,
     }));
 
-    bookings.forEach((b) => {
+    allBookings.forEach((b) => {
       const d = new Date(b.bookingDate);
       if (isNaN(d.getTime())) return;
 
@@ -161,13 +166,11 @@ export default function BookingListPage() {
     });
 
     return base;
-  }, [bookings]);
+  }, [allBookings]);
 
-  const totalOrders = bookings.length;
-
-  // FILTER + SEARCH + SORT
+  // FILTER + SEARCH + SORT (Frontend filtering)
   const filteredData = useMemo(() => {
-    let data = [...bookings];
+    let data = [...allBookings];
 
     if (searchText.trim() !== "") {
       const text = searchText.toLowerCase();
@@ -191,9 +194,20 @@ export default function BookingListPage() {
     data.sort((a, b) => (sortOrder === "asc" ? a.id - b.id : b.id - a.id));
 
     return data;
-  }, [bookings, searchText, statusFilter, sortOrder]);
+  }, [allBookings, searchText, statusFilter, sortOrder]);
 
-  const totalPage = Math.ceil(filteredData.length / pageSize);
+  // Update pagination based on filtered data
+  useEffect(() => {
+    const total = filteredData.length;
+    const totalPagesCalculated = Math.ceil(total / pageSize);
+    setTotalPages(totalPagesCalculated);
+
+    // Reset to page 1 if current page exceeds total pages
+    if (page > totalPagesCalculated && totalPagesCalculated > 0) {
+      setPage(1);
+    }
+  }, [filteredData, page, pageSize]);
+
   const paginatedData = filteredData.slice(
     (page - 1) * pageSize,
     page * pageSize
@@ -212,28 +226,28 @@ export default function BookingListPage() {
         <div className="p-6 rounded-xl border bg-pink-50 shadow-sm">
           <div className="text-sm text-pink-700">Tổng đơn hàng</div>
           <div className="text-3xl font-bold text-pink-700">
-            {bookings.length}
+            {allBookings.length}
           </div>
         </div>
 
         <div className="p-6 rounded-xl border bg-yellow-50 shadow-sm">
           <div className="text-sm text-yellow-700">Pending</div>
           <div className="text-3xl font-bold text-yellow-700">
-            {bookings.filter((b) => b.status === "PENDING").length}
+            {allBookings.filter((b) => b.status === "PENDING").length}
           </div>
         </div>
 
         <div className="p-6 rounded-xl border bg-blue-50 shadow-sm">
           <div className="text-sm text-blue-700">Confirmed</div>
           <div className="text-3xl font-bold text-blue-700">
-            {bookings.filter((b) => b.status === "CONFIRMED").length}
+            {allBookings.filter((b) => b.status === "CONFIRMED").length}
           </div>
         </div>
 
         <div className="p-6 rounded-xl border bg-green-50 shadow-sm">
           <div className="text-sm text-green-700">Completed</div>
           <div className="text-3xl font-bold text-green-700">
-            {bookings.filter((b) => b.status === "COMPLETED").length}
+            {allBookings.filter((b) => b.status === "COMPLETED").length}
           </div>
         </div>
       </div>
@@ -408,19 +422,19 @@ export default function BookingListPage() {
         <button
           disabled={page === 1}
           onClick={() => setPage((p) => p - 1)}
-          className="p-2 rounded-lg border bg-white disabled:opacity-50"
+          className="p-2 rounded-lg border bg-white disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <ChevronLeft />
         </button>
 
         <span className="px-4 py-2 rounded-lg bg-pink-100 text-pink-700 font-semibold">
-          {page}
+          {page} / {totalPages || 1}
         </span>
 
         <button
-          disabled={page === totalPage || totalPage === 0}
+          disabled={page === totalPages || totalPages === 0}
           onClick={() => setPage((p) => p + 1)}
-          className="p-2 rounded-lg border bg-white disabled:opacity-50"
+          className="p-2 rounded-lg border bg-white disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <ChevronRight />
         </button>

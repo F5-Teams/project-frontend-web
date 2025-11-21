@@ -151,7 +151,7 @@ export default function LoginPage() {
       console.error("Login error:", err);
       const error = err as {
         response?: {
-          data?: { message?: string; error?: string };
+          data?: { message?: string; error?: string; email?: string };
           status?: number;
         };
         message?: string;
@@ -165,13 +165,8 @@ export default function LoginPage() {
         error?.message ||
         "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.";
 
-      // Check if error indicates unverified account
-      if (
-        errorMessage.toLowerCase().includes("verify") ||
-        errorMessage.toLowerCase().includes("xác thực") ||
-        errorMessage.toLowerCase().includes("not verified") ||
-        error?.response?.status === 403
-      ) {
+      // Check if error indicates unverified account (only for 403 status)
+      if (error?.response?.status === 403) {
         // Try to get email from error response, otherwise leave empty for user to fill
         const email = error?.response?.data?.email || "";
         setUserEmail(email);
