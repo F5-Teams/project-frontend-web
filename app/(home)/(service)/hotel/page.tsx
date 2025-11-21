@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { cardVariants } from "@/constants";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SelectPetsModal } from "@/components/modals/SelectPetsModal";
 import { RoomBookingModal } from "@/components/modals/RoomBookingModal";
 import { HotelRoomDetailModal } from "@/components/modals/HotelRoomDetailModal";
@@ -43,6 +43,37 @@ const PetHotelPage = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState<string>("");
   const [selectedPetIds, setSelectedPetIds] = useState<string[]>([]);
+
+  // Listen for hotel booking success event to refetch with saved dates
+  useEffect(() => {
+    const handleBookingSuccess = (event: CustomEvent) => {
+      const { checkIn, checkOut } = event.detail;
+      if (checkIn && checkOut) {
+        // Set the dates from the successful booking
+        const checkInDateObj = new Date(checkIn);
+        const checkOutDateObj = new Date(checkOut);
+        setCheckInDate(checkInDateObj);
+        setCheckOutDate(checkOutDateObj);
+
+        // The useHotelRooms hook will automatically refetch when dates change
+        toast.success("Đã cập nhật trạng thái phòng!", {
+          description: "Danh sách phòng đã được làm mới",
+        });
+      }
+    };
+
+    window.addEventListener(
+      "hotelBookingSuccess",
+      handleBookingSuccess as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        "hotelBookingSuccess",
+        handleBookingSuccess as EventListener
+      );
+    };
+  }, []);
 
   const handleDateChange = (checkIn: Date | null, checkOut: Date | null) => {
     setCheckInDate(checkIn);

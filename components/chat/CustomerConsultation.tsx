@@ -13,14 +13,30 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { MessageSquare, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function CustomerConsultation() {
-  const [title, setTitle] = useState("");
+  const [selectedOption, setSelectedOption] = useState("");
+  const [customInput, setCustomInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [roomId, setRoomId] = useState<number | null>(null);
   const router = useRouter();
+
+  // Get the final title based on selection
+  const getTitle = () => {
+    if (selectedOption === "other") {
+      return customInput.trim();
+    }
+    return selectedOption;
+  };
 
   // Lấy room của customer khi component mount
   useEffect(() => {
@@ -49,8 +65,10 @@ export default function CustomerConsultation() {
   }, []);
 
   const handleCreateSession = async () => {
-    if (!title.trim()) {
-      toast.error("Vui lòng nhập nội dung yêu cầu tư vấn");
+    const title = getTitle();
+
+    if (!title) {
+      toast.error("Vui lòng chọn hoặc nhập nội dung yêu cầu tư vấn");
       return;
     }
 
@@ -62,7 +80,7 @@ export default function CustomerConsultation() {
     setLoading(true);
     try {
       // Tạo session tư vấn
-      const session = await chatApi.createSession(roomId, title.trim());
+      const session = await chatApi.createSession(roomId, title);
 
       toast.success("Đã tạo yêu cầu tư vấn thành công!");
 
@@ -92,28 +110,51 @@ export default function CustomerConsultation() {
       <CardContent>
         <div className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="title" className="text-sm font-medium">
-              Nội dung yêu cầu <span className="text-red-500">*</span>
+            <label htmlFor="consultation-type" className="text-sm font-medium">
+              Loại yêu cầu <span className="text-red-500">*</span>
             </label>
-            <Input
-              id="title"
-              type="text"
-              placeholder="VD: Tư vấn về dịch vụ spa cho chó..."
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !loading) {
-                  handleCreateSession();
-                }
-              }}
+            <Select
+              value={selectedOption}
+              onValueChange={setSelectedOption}
               disabled={loading || !roomId}
-              className="w-full"
-              maxLength={200}
-            />
-            <p className="text-xs text-muted-foreground">
-              {title.length}/200 ký tự
-            </p>
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Chọn loại yêu cầu tư vấn" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Tư vấn dịch vụ">Tư vấn dịch vụ</SelectItem>
+                <SelectItem value="Hỗ trợ đơn hàng">Hỗ trợ đơn hàng</SelectItem>
+                <SelectItem value="other">Khác (tự nhập)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+
+          {/* Show custom input when "Khác" is selected */}
+          {selectedOption === "other" && (
+            <div className="space-y-2">
+              <label htmlFor="custom-input" className="text-sm font-medium">
+                Nhập nội dung yêu cầu <span className="text-red-500">*</span>
+              </label>
+              <Input
+                id="custom-input"
+                type="text"
+                placeholder="VD: Tư vấn về dịch vụ spa cho chó..."
+                value={customInput}
+                onChange={(e) => setCustomInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !loading) {
+                    handleCreateSession();
+                  }
+                }}
+                disabled={loading || !roomId}
+                className="w-full"
+                maxLength={200}
+              />
+              <p className="text-xs text-muted-foreground">
+                {customInput.length}/200 ký tự
+              </p>
+            </div>
+          )}
 
           <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
             <p className="text-sm text-blue-800 dark:text-blue-200">
@@ -127,7 +168,7 @@ export default function CustomerConsultation() {
       <CardFooter>
         <Button
           onClick={handleCreateSession}
-          disabled={!title.trim() || loading || !roomId}
+          disabled={!getTitle() || loading || !roomId}
           className="w-full"
           size="lg"
         >

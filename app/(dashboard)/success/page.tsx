@@ -6,11 +6,13 @@ import { CheckCircle, XCircle, Loader } from "lucide-react";
 import Link from "next/link";
 import Header from "@/components/shared/Header";
 import { useCartStore } from "@/stores/cart.store";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function PaymentReturnPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { clearCart } = useCartStore();
+  const queryClient = useQueryClient();
 
   const [status, setStatus] = useState<"loading" | "success" | "failed">(
     "loading"
@@ -34,9 +36,33 @@ export default function PaymentReturnPage() {
       // Xóa cart sau khi thanh toán thành công
       clearCart();
 
+      // Invalidate hotel rooms cache to refresh room status
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const queryKey = query.queryKey as string[];
+          return queryKey[0] === "hotel" || queryKey[0] === "rooms";
+        },
+        refetchType: "active",
+      });
+
+      // Trigger custom event to notify hotel page to refetch with saved dates
+      if (typeof window !== "undefined") {
+        const checkIn = localStorage.getItem("pendingHotelCheckIn");
+        const checkOut = localStorage.getItem("pendingHotelCheckOut");
+        if (checkIn && checkOut) {
+          window.dispatchEvent(
+            new CustomEvent("hotelBookingSuccess", {
+              detail: { checkIn, checkOut },
+            })
+          );
+        }
+      }
+
       // Xóa cache
       localStorage.removeItem("pendingPayment");
       localStorage.removeItem("pendingOrderId");
+      localStorage.removeItem("pendingHotelCheckIn");
+      localStorage.removeItem("pendingHotelCheckOut");
 
       setTimeout(() => {
         router.push("/");
@@ -62,9 +88,33 @@ export default function PaymentReturnPage() {
       // Xóa cart sau khi thanh toán thành công
       clearCart();
 
+      // Invalidate hotel rooms cache to refresh room status
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const queryKey = query.queryKey as string[];
+          return queryKey[0] === "hotel" || queryKey[0] === "rooms";
+        },
+        refetchType: "active",
+      });
+
+      // Trigger custom event to notify hotel page to refetch with saved dates
+      if (typeof window !== "undefined") {
+        const checkIn = localStorage.getItem("pendingHotelCheckIn");
+        const checkOut = localStorage.getItem("pendingHotelCheckOut");
+        if (checkIn && checkOut) {
+          window.dispatchEvent(
+            new CustomEvent("hotelBookingSuccess", {
+              detail: { checkIn, checkOut },
+            })
+          );
+        }
+      }
+
       localStorage.removeItem("depositTxnRef");
       localStorage.removeItem("pendingBookingId");
       localStorage.removeItem("pendingPaymentMethod");
+      localStorage.removeItem("pendingHotelCheckIn");
+      localStorage.removeItem("pendingHotelCheckOut");
 
       setTimeout(() => {
         router.push("/");

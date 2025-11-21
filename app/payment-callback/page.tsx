@@ -6,11 +6,13 @@ import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/stores/cart.store";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function PaymentCallbackPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { clearCart } = useCartStore();
+  const queryClient = useQueryClient();
   const [status, setStatus] = useState<"processing" | "success" | "failed">(
     "processing"
   );
@@ -40,9 +42,33 @@ export default function PaymentCallbackPage() {
           // Clear cart after successful payment
           clearCart();
 
+          // Invalidate hotel rooms cache to refresh room status
+          queryClient.invalidateQueries({
+            predicate: (query) => {
+              const queryKey = query.queryKey as string[];
+              return queryKey[0] === "hotel" || queryKey[0] === "rooms";
+            },
+            refetchType: "active",
+          });
+
+          // Trigger custom event to notify hotel page to refetch with saved dates
+          if (typeof window !== "undefined") {
+            const checkIn = localStorage.getItem("pendingHotelCheckIn");
+            const checkOut = localStorage.getItem("pendingHotelCheckOut");
+            if (checkIn && checkOut) {
+              window.dispatchEvent(
+                new CustomEvent("hotelBookingSuccess", {
+                  detail: { checkIn, checkOut },
+                })
+              );
+            }
+          }
+
           // Clear pending booking info
           localStorage.removeItem("pendingBookingId");
           localStorage.removeItem("pendingPaymentMethod");
+          localStorage.removeItem("pendingHotelCheckIn");
+          localStorage.removeItem("pendingHotelCheckOut");
 
           // Redirect to booking history after 3 seconds
           setTimeout(() => {
