@@ -68,23 +68,34 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   useEffect(() => {
     if (!addressFee) return;
 
-    let length = 30,
-      width = 20,
-      height = 20;
+    // ✅ Kích thước thực tế hợp lý cho sản phẩm thú cưng
+    // Không ước lượng quá lớn để tránh phí ship cao
+    let length = 20,
+      width = 15,
+      height = 10;
+
     const weightKg = totalWeight / 1000;
 
     if (weightKg >= 10) {
-      length = 80;
-      width = 60;
-      height = 100;
+      // Trên 10kg: Thức ăn bulk hoặc nhiều sản phẩm
+      length = 50;
+      width = 40;
+      height = 40;
     } else if (weightKg >= 5) {
-      length = 60;
-      width = 45;
-      height = 80;
-    } else if (weightKg >= 2) {
+      // 5-10kg: Túi thức ăn lớn hoặc combo
       length = 40;
       width = 30;
       height = 30;
+    } else if (weightKg >= 2) {
+      // 2-5kg: Túi thức ăn nhỏ, đồ chơi
+      length = 30;
+      width = 25;
+      height = 20;
+    } else {
+      // Dưới 2kg: Phụ kiện, bánh thưởng
+      length = 20;
+      width = 15;
+      height = 10;
     }
 
     const payload: any = {
