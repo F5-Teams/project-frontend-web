@@ -7,7 +7,7 @@ import {
   PackageCheck,
   Clock,
   X,
-  Triangle,
+  RotateCcw,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -20,7 +20,7 @@ const statusSteps = [
   { key: "SHIPPING", label: "Đang giao hàng", icon: Truck },
   { key: "COMPLETED", label: "Hoàn thành", icon: PackageCheck },
   { key: "CANCELLED", label: "Đã hủy", icon: X },
-  { key: "REFUND", label: "Trả hàng/hoàn tiền", icon: Triangle },
+  { key: "REFUND", label: "Trả hàng/hoàn tiền", icon: RotateCcw },
 ];
 
 export default function OrderDetailPage() {
@@ -60,7 +60,6 @@ export default function OrderDetailPage() {
       <h1 className="text-2xl font-medium mb-1">Theo dõi đơn hàng</h1>
       <p className="text-gray-500 mb-4">Mã đơn: #{order.id}</p>
 
-      {/* Progress bar */}
       <div className="flex justify-between bg-white p-5 rounded-2xl shadow-sm relative">
         <div className="absolute top-1/2 left-12 right-12 h-1 bg-gray-300 -z-10"></div>
         <div
@@ -91,9 +90,7 @@ export default function OrderDetailPage() {
         })}
       </div>
 
-      {/* Combined Card: Products + Shipping */}
       <div className="bg-white p-6 rounded-2xl shadow-md space-y-5">
-        {/* Products */}
         <div>
           <p className="font-medium text-lg mb-2">Sản phẩm</p>
           {order.orderDetails.map((d) => {
@@ -147,7 +144,6 @@ export default function OrderDetailPage() {
           </div>
         </div>
 
-        {/* Shipping info */}
         <div>
           <p className="font-medium text-lg mb-2">Thông tin giao hàng</p>
           <div className="text-gray-600 space-y-1">
