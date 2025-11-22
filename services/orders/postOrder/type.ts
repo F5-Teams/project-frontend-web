@@ -29,5 +29,11 @@ export interface Orders {
   customerId: number;
   orderDetails: OrderDetails[];
   shipping: Shipping;
-  paymentMethod: "CASH" | "TRANSFER";
+  paymentMethod: "CASH" | "TRANSFER" | "MOMO" | "VNPAY";
+  addressId?: number;
+  voucherCode?: string;
+  vnpUrl?: string;
+  momoUrl?: string;
+  totalPrice?: number;
+  shippingFee?: number;
 }
