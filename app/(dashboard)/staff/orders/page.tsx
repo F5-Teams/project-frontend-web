@@ -24,7 +24,8 @@ const OrderPage = () => {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [openComplete, setOpenComplete] = useState(false);
   const [loadingDelete, setLoadingDelete] = useState(false);
-  const { data: allOrder } = useGetAllOrder();
+  const { data: orderResponse } = useGetAllOrder();
+  const allOrder = orderResponse?.data || [];
   const [selectedOrder, setSelectedOrder] = useState<Order>();
   const queryClient = useQueryClient();
   const { mutate: postOrderGhn } = usePostOrderGhn();
@@ -74,7 +75,7 @@ const OrderPage = () => {
     try {
       await patchOrder({ id: orderId, body });
       toast.success("Duyệt đơn hàng thành công!");
-      queryClient.invalidateQueries(["getAllOrder"]);
+      queryClient.invalidateQueries({ queryKey: ["getAllOrder"] });
     } catch (error) {
       toast.error("Duyệt đơn thất bại!");
       console.log(error);
@@ -87,7 +88,7 @@ const OrderPage = () => {
         toast.promise(
           (async () => {
             await patchOrder({ id: order.id, body: { status: "SHIPPING" } });
-            queryClient.invalidateQueries(["getAllOrder"]);
+            queryClient.invalidateQueries({ queryKey: ["getAllOrder"] });
             return res.ghnOrderCode;
           })(),
           {
@@ -115,7 +116,7 @@ const OrderPage = () => {
           toast.success(
             "Hủy vận đơn thành công! Đơn chuyển về trạng thái ĐÃ DUYỆT."
           );
-          queryClient.invalidateQueries(["getAllOrder"]);
+          queryClient.invalidateQueries({ queryKey: ["getAllOrder"] });
         } catch (err) {
           toast.error(
             "Hủy vận đơn thành công nhưng cập nhật trạng thái thất bại!"
@@ -137,7 +138,7 @@ const OrderPage = () => {
         toast.success("Xóa đơn hàng thành công!");
         setIsDeleteOpen(false);
         setSelectedOrder(undefined);
-        queryClient.invalidateQueries(["getAllOrder"]);
+        queryClient.invalidateQueries({ queryKey: ["getAllOrder"] });
       },
       onError: () => toast.error("Xóa đơn hàng thất bại!"),
       onSettled: () => setLoadingDelete(false),
@@ -169,7 +170,7 @@ const OrderPage = () => {
 
             await patchOrder({ id: order.id, body });
             toast.success("Hoàn tiền và cập nhật đơn thành công!");
-            queryClient.invalidateQueries(["getAllOrder"]);
+            queryClient.invalidateQueries({ queryKey: ["getAllOrder"] });
           } catch (err) {
             toast.error("Cập nhật trạng thái đơn thất bại!");
             console.log(err);
@@ -208,7 +209,7 @@ const OrderPage = () => {
 
           await patchOrder({ id: order.id, body });
           toast.success("Hoàn tiền và cập nhật đơn thành công!");
-          queryClient.invalidateQueries(["getAllOrder"]);
+          queryClient.invalidateQueries({ queryKey: ["getAllOrder"] });
         } catch (err) {
           toast.error("Cập nhật trạng thái đơn thất bại!");
           console.log(err);
@@ -255,7 +256,7 @@ const OrderPage = () => {
     }
   };
 
-  console.log("first", allOrder);
+  console.log("Order Response:", orderResponse);
 
   const columns = [
     {
@@ -406,8 +407,8 @@ const OrderPage = () => {
                 type="primary"
                 size="small"
                 onClick={() => {
-                  handleComplete(record);
                   setSelectedOrder(record);
+                  handleComplete();
                 }}
               >
                 Hoàn thành
@@ -462,7 +463,7 @@ const OrderPage = () => {
       <Table
         rowKey="id"
         columns={columns}
-        dataSource={allOrder || []}
+        dataSource={allOrder}
         pagination={{ pageSize: 8 }}
       />
 

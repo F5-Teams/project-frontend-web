@@ -17,14 +17,26 @@ export interface Product {
   id: number;
   name: string;
   description: string;
-  price: number;
+  price: string | number;
   stocks: number;
   type: string;
-  createAt: string;
-  note: string;
-  images: Images;
-  orderDetails: Order;
+  createAt?: string;
+  note?: string;
+  images: Images[];
+  orderDetails?: Order;
   weight: string;
+  inStock: boolean;
+  availabilityStatus: string;
 }
 
-export type GetAllProductResponse = Product[];
+export interface Pagination {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface GetAllProductResponse {
+  data: Product[];
+  pagination: Pagination;
+}
