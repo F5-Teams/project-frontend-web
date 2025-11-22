@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Trash2, X } from "lucide-react";
 import { ReactNode, useState, useMemo } from "react";
 import BuyModal from "./BuyModal";
+import { useGetWallet } from "@/services/wallets/hooks";
 
 interface BagDrawerProps {
   children: ReactNode;
@@ -14,10 +15,10 @@ interface BagDrawerProps {
 export function BagDrawer({ children }: BagDrawerProps) {
   const [open, setOpen] = useState(false);
   const [openBuy, setOpenBuy] = useState(false);
-  const { items, removeProduct, clearCart } = useProductCartStore();
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const { items, removeProduct, clearCart, updateQuantity } =
+    useProductCartStore();
 
-  // Tính tổng chỉ dựa trên sản phẩm được chọn
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const selectedTotal = useMemo(
     () =>
       items
@@ -36,7 +37,6 @@ export function BagDrawer({ children }: BagDrawerProps) {
     selectedItems.includes(String(item.productId))
   );
 
-  // --- ADD THIS ---
   const isAllSelected =
     selectedItems.length === items.length && items.length > 0;
 
@@ -47,7 +47,6 @@ export function BagDrawer({ children }: BagDrawerProps) {
       setSelectedItems(items.map((item) => String(item.productId)));
     }
   };
-  // --- END ---
 
   return (
     <>
@@ -150,10 +149,52 @@ export function BagDrawer({ children }: BagDrawerProps) {
                       </div>
                       <div className="text-left">
                         <p className="font-medium text-gray-800">{item.name}</p>
-                        <p className="text-sm text-gray-500">
-                          {item.quantity} × {item.price.toLocaleString("vi-VN")}
-                          đ
-                        </p>
+
+                        <div className="flex items-center justify-between mt-2">
+                          <div className="flex items-center border border-pink-300 rounded-full overflow-hidden">
+                            <button
+                              onClick={() =>
+                                updateQuantity(
+                                  item.productId,
+                                  Math.max(1, item.quantity - 1)
+                                )
+                              }
+                              className="w-8 h-2 flex items-center justify-center text-pink-600 hover:bg-pink-50 transition"
+                            >
+                              −
+                            </button>
+
+                            <input
+                              type="number"
+                              min={1}
+                              value={item.quantity}
+                              onChange={(e) => {
+                                const value = Number(e.target.value);
+                                if (!isNaN(value) && value >= 1) {
+                                  updateQuantity(item.productId, value);
+                                }
+                              }}
+                              className="w-10 text-center text-sm border-x border-pink-300 focus:outline-none"
+                            />
+
+                            <button
+                              onClick={() =>
+                                updateQuantity(
+                                  item.productId,
+                                  item.quantity + 1
+                                )
+                              }
+                              className="w-8 h-7 flex items-center justify-center text-pink-600 hover:bg-pink-50 transition"
+                            >
+                              +
+                            </button>
+                          </div>
+
+                          {/* Giá tiền */}
+                          <span className="text-sm font-semibold text-gray-600">
+                            {item.price.toLocaleString("vi-VN")} đ
+                          </span>
+                        </div>
                       </div>
                     </div>
 
