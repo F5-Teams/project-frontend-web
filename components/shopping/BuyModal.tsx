@@ -3,7 +3,7 @@ import { Address } from "@/services/address/getAddress/type";
 import { useCalculateFee } from "@/services/calculateFee/hooks";
 import { useGetUser } from "@/services/users/hooks";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button, Form, Input, Modal, Radio, Select } from "antd";
+import { Button, Form, Modal, Radio, Select } from "antd";
 import React, { useEffect, useState } from "react";
 import AddressModal from "./AddressModal";
 import { usePostOrder } from "@/services/orders/postOrder/hooks";
@@ -64,20 +64,46 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   useEffect(() => {
     if (!addressFee) return;
 
+    // ✅ Ước lượng kích thước dựa trên tổng trọng lượng
+    // Công thức tham khảo từ backend:
+    // - Dưới 2kg: 30x20x20cm
+    // - 2-5kg: 40x30x30cm
+    // - 5-10kg: 60x45x80cm (như backend)
+    // - Trên 10kg: 80x60x100cm
+
+    let length = 30,
+      width = 20,
+      height = 20;
+    const weightKg = totalWeight / 1000;
+
+    if (weightKg >= 10) {
+      length = 80;
+      width = 60;
+      height = 100;
+    } else if (weightKg >= 5) {
+      length = 60;
+      width = 45;
+      height = 80;
+    } else if (weightKg >= 2) {
+      length = 40;
+      width = 30;
+      height = 30;
+    }
+
     const payload: any = {
       to_district_id: addressFee.districtId,
       to_ward_code: addressFee.wardCode,
       weight: totalWeight,
-      length: 20,
-      width: 15,
-      height: 10,
+      length,
+      width,
+      height,
       service_type_id: 2,
-      cod_amount: 0,
-      insurance_value: 0,
+      cod_amount: total,
+      insurance_value: Math.round(total * 0.01),
     };
 
-    calculateFee(payload).catch((err) => console.log(err));
-  }, [addressFee, totalWeight, calculateFee]);
+    calculateFee(payload).catch((err) => console.error(err));
+  }, [addressFee, totalWeight, total, calculateFee]);
 
   const handleSubmit = async () => {
     if (!address) {
@@ -107,8 +133,8 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       })),
       addressId: address,
       paymentMethod:
-        option === "vnpay"
-          ? "VNPAY"
+        option === "wallet"
+          ? "TRANSFER"
           : option === "momo"
           ? "MOMO"
           : option === "cod"
@@ -133,11 +159,15 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       clearCart();
       setNote("");
 
-      if (orderPayloadTransfer.paymentMethod === "CASH") {
+      if (
+        orderPayloadTransfer.paymentMethod === "CASH" ||
+        orderPayloadTransfer.paymentMethod === "TRANSFER"
+      ) {
         toast.success("Đặt hàng thành công!");
       }
     } catch (error) {
-      console.log(error);
+      console.error("Order error:", error);
+      toast.error("Đặt hàng thất bại. Vui lòng thử lại!");
     } finally {
       setLoading(false);
       isCancel();
@@ -281,8 +311,15 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
 
           <Radio value="cod">
             <div className="flex items-center gap-2">
-              <img src="/images/cash.png" alt="MOMO" className="w-6 h-6" />
+              <img src="/images/cash.png" alt="COD" className="w-6 h-6" />
               <span>COD</span>
+            </div>
+          </Radio>
+
+          <Radio value="wallet">
+            <div className="flex items-center gap-2">
+              <img src="/images/wallet.jpg" alt="WALLET" className="w-12 h-6" />
+              <span>Ví</span>
             </div>
           </Radio>
         </Radio.Group>
