@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Trash2, X } from "lucide-react";
 import { ReactNode, useState, useMemo } from "react";
 import BuyModal from "./BuyModal";
+import { useGetWallet } from "@/services/wallets/hooks";
 
 interface BagDrawerProps {
   children: ReactNode;
@@ -18,7 +19,6 @@ export function BagDrawer({ children }: BagDrawerProps) {
     useProductCartStore();
 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
-
   const selectedTotal = useMemo(
     () =>
       items
