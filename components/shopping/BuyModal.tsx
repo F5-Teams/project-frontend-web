@@ -11,6 +11,7 @@ import { useGetVoucher } from "@/services/vouchers/hooks";
 import { Voucher } from "@/services/vouchers/type";
 import { POST_ORDER_QUERY_KEY } from "@/services/orders/postOrder/hooks";
 import { toast } from "sonner";
+import { useGetWallet } from "@/services/wallets/hooks";
 interface CartItem {
   productId: number;
   price: number;
@@ -42,6 +43,9 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   const [chooseVoucher, setChooseVoucher] = useState<Voucher>();
   const { data: addressList = [] } = useGetAddress();
   const { data: voucher = [] } = useGetVoucher();
+  const { data: wallets } = useGetWallet();
+
+  console.log("first", wallets);
 
   const total = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -69,6 +73,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
     let length = 20,
       width = 15,
       height = 10;
+
     const weightKg = totalWeight / 1000;
 
     if (weightKg >= 10) {
@@ -148,6 +153,18 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
     };
 
     try {
+      if (orderPayloadTransfer.paymentMethod === "TRANSFER") {
+        const money =
+          total +
+          (fee?.data?.service_fee ?? 0) -
+          (chooseVoucher
+            ? ((total + fee?.data?.service_fee) * chooseVoucher.percent) / 100
+            : 0);
+        if (money > Number(wallets?.balance || 0)) {
+          toast.error("Tiền trong ví không đủ, vui lòng nạp thêm!");
+          return;
+        }
+      }
       const response = await createOrder(orderPayloadTransfer);
 
       if (response?.vnpUrl) {
@@ -177,6 +194,12 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
     }
   };
 
+  const money =
+    total +
+    (fee?.data?.service_fee ?? 0) -
+    (chooseVoucher
+      ? ((total + fee?.data?.service_fee) * chooseVoucher.percent) / 100
+      : 0);
   return (
     <Modal
       open={isOpen}
