@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarBooking } from "@/types/calendarType";
+import { Booking } from "@/services/profile/profile-schedule/types";
 import { addDays, formatDMY, startOfDay, toDate } from "@/utils/dateRange";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import React from "react";
@@ -11,7 +11,7 @@ function daysInMonth(d: Date) {
 
 type Props = {
   month?: Date;
-  booking?: CalendarBooking | null;
+  booking?: Booking | null;
   className?: string;
   onMonthChange?: (d: Date) => void;
 };
@@ -26,10 +26,10 @@ export function MonthRangeCalendar({
   const total = daysInMonth(base);
 
   const s = booking
-    ? toDate(booking.meta?.startDate) ?? toDate(booking.meta?.bookingDate)!
+    ? toDate(booking.slot?.startDate ?? booking.bookingDate)!
     : null;
   const e = booking
-    ? toDate(booking.meta?.endDate) ?? toDate(booking.meta?.bookingDate)!
+    ? toDate(booking.slot?.endDate ?? booking.bookingDate)!
     : null;
 
   const firstWeekday =

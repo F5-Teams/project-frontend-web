@@ -7,11 +7,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Booking } from "@/types/scheduleType";
-import { addMinutes, fmtHM, toDateLocal } from "@/utils/scheduleUtils";
+import { CalendarEvent } from "@/services/profile/profile-schedule/types";
+import { fmtHM, toDateLocal } from "@/utils/scheduleUtils";
 import { BookingBlock } from "./BookingBlock";
 
-type WithPos = Booking & { _sMin: number; _eMin: number };
+type WithPos = CalendarEvent & {
+  _sMin: number;
+  _eMin: number;
+  _durationMinutes: number;
+};
 const minutesFromDayStart = (d: Date, startHour: number) =>
   (d.getHours() - startHour) * 60 + d.getMinutes();
 
@@ -41,7 +45,7 @@ type Props = {
   dayStartHour: number;
   slots: string[];
   rowHeight: number;
-  bookings: Booking[];
+  bookings: CalendarEvent[];
   dayDate: Date;
 };
 
@@ -56,14 +60,21 @@ export const DayGrid: React.FC<Props> = ({
   const dayBookings = React.useMemo<WithPos[]>(() => {
     const arr: WithPos[] = [];
     bookings.forEach((b) => {
-      const s = toDateLocal(b.start);
+      const s = toDateLocal(b.startDate);
+      const e = toDateLocal(b.endDate);
       if (
         s.getFullYear() === dayDate.getFullYear() &&
         s.getMonth() === dayDate.getMonth() &&
         s.getDate() === dayDate.getDate()
       ) {
         const sm = minutesFromDayStart(s, dayStartHour);
-        arr.push({ ...b, _sMin: sm, _eMin: sm + b.durationMinutes });
+        const durationMinutes = Math.round((e.getTime() - s.getTime()) / 60000);
+        arr.push({
+          ...b,
+          _sMin: sm,
+          _eMin: sm + durationMinutes,
+          _durationMinutes: durationMinutes,
+        });
       }
     });
     arr.sort((a, b) =>
@@ -74,7 +85,7 @@ export const DayGrid: React.FC<Props> = ({
 
   const groups = React.useMemo(() => groupOverlaps(dayBookings), [dayBookings]);
 
-  type GroupState = { open: boolean; activeId?: Booking["id"] };
+  type GroupState = { open: boolean; activeId?: CalendarEvent["id"] };
   const [groupState, setGroupState] = React.useState<
     Record<number, GroupState>
   >({});
@@ -90,18 +101,9 @@ export const DayGrid: React.FC<Props> = ({
   }, [groups]);
 
   // text thời gian
-  const renderTimeText = (bk: Booking) => {
-    const isSlot = !!bk.meta?.slotStart && !!bk.meta?.slotEnd;
-
-    if (isSlot) {
-      const s = toDateLocal(bk.meta!.slotStart as string);
-      const e = toDateLocal(bk.meta!.slotEnd as string);
-      if (s && e) return `${fmtHM(s)}–${fmtHM(e)}`;
-    }
-
-    // Dùng bk.start (đã được tính đúng giờ từ dropDownSlot) thay vì bookingDate
-    const startTime = toDateLocal(bk.start);
-    const endTime = addMinutes(startTime, bk.durationMinutes);
+  const renderTimeText = (bk: WithPos) => {
+    const startTime = toDateLocal(bk.startDate);
+    const endTime = toDateLocal(bk.endDate);
     return `${fmtHM(startTime)}–${fmtHM(endTime)}`;
   };
 
@@ -121,52 +123,47 @@ export const DayGrid: React.FC<Props> = ({
       {groups.map((g, gi) => {
         if (g.length === 1) {
           const b = g[0];
-          const petName = (b.meta?.pet as string) ?? "Pet";
+          const petName = b.booking.pet?.name ?? "Pet";
           return (
             <BookingBlock
               key={`${gi}-${b.id}`}
-              start={b.start}
-              durationMinutes={b.durationMinutes}
+              start={b.startDate}
+              durationMinutes={b._durationMinutes}
               dayStartHour={dayStartHour}
               rowHeight={rowHeight}
-              colorClass={b.colorClass ?? "bg-teal-50 border-teal-400"}
+              colorClass={b.color}
               allowOverflow={true}
             >
               <div className="text-xs font-poppins-medium text-gray-900 leading-tight">
-                {b.type}
+                {b.title}
               </div>
               <div className="text-[11px] text-gray-600 line-clamp-2">
                 {petName} <br /> {renderTimeText(b)}
               </div>
-              {b.meta?.items && (
-                <div className="text-[11px] text-gray-600">
-                  ({b.meta.items} items)
-                </div>
-              )}
             </BookingBlock>
           );
         }
 
         const state = groupState[gi] ?? { open: false, activeId: g[0]?.id };
         const active = g.find((x) => x.id === state.activeId) ?? g[0];
-        const petName = (active.meta?.pet as string) ?? "Pet";
+        const petName = active.booking.pet?.name ?? "Pet";
         const t = renderTimeText(active);
         const more = g.length - 1;
 
         return (
           <React.Fragment key={`grp-${gi}`}>
             <BookingBlock
-              start={active.start}
-              durationMinutes={active.durationMinutes}
+              start={active.startDate}
+              durationMinutes={active._durationMinutes}
               dayStartHour={dayStartHour}
               rowHeight={rowHeight}
-              colorClass={active.colorClass ?? "bg-teal-50 border-teal-400"}
+              colorClass={active.color}
               allowOverflow={true}
             >
               <div className="relative pt-4">
                 <div className="min-w-0">
                   <div className="text-xs font-poppins-medium text-gray-900 leading-tight">
-                    {active.type}
+                    {active.title}
                   </div>
                   <div className="text-[11px] text-gray-600">
                     {petName} <br /> {t}
@@ -198,7 +195,7 @@ export const DayGrid: React.FC<Props> = ({
                     <div className="max-h-56 overflow-y-auto overflow-x-hidden thin-scroll pe-1">
                       {g.map((item) => {
                         const tt = renderTimeText(item);
-                        const petN = (item.meta?.pet as string) ?? "Pet";
+                        const petN = item.booking.pet?.name ?? "Pet";
                         const isActive = item.id === state.activeId;
                         return (
                           <button
@@ -215,7 +212,7 @@ export const DayGrid: React.FC<Props> = ({
                             )}
                           >
                             <div className="text-sm font-poppins-medium truncate">
-                              {item.type}
+                              {item.title}
                             </div>
                             <div className="text-xs font-poppins-regular text-black">
                               {petN} • {tt}

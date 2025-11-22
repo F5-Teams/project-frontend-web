@@ -24,7 +24,7 @@ import { CalendarIcon, Clock, AlertCircle, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { BookingDraft } from "@/types/cart";
 import { generateTempId } from "@/utils/booking";
-import { generateTimeSlots } from "@/utils/timeSlots";
+import { generateTimeSlots, isTimeSlotPassed } from "@/utils/timeSlots";
 import api from "@/config/axios";
 
 interface SingleServiceBookingModalProps {
@@ -334,11 +334,21 @@ export const SingleServiceBookingModal: React.FC<
                 <SelectValue placeholder="Chọn khung giờ" />
               </SelectTrigger>
               <SelectContent>
-                {availableTimeSlots.map((slot) => (
-                  <SelectItem key={slot.value} value={slot.value}>
-                    {slot.label}
-                  </SelectItem>
-                ))}
+                {availableTimeSlots.map((slot) => {
+                  const isPassed = isTimeSlotPassed(slot, selectedDate);
+                  return (
+                    <SelectItem
+                      key={slot.value}
+                      value={slot.value}
+                      disabled={isPassed}
+                      className={
+                        isPassed ? "opacity-50 cursor-not-allowed" : ""
+                      }
+                    >
+                      {slot.label} {isPassed && "(Đã qua giờ)"}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
             {selectedDate && availableTimeSlots.length === 0 && (

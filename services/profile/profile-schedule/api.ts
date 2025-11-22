@@ -1,8 +1,8 @@
 import api from "@/config/axios";
-import { ApiBooking, ApiFilteredBooking } from "./types";
+import { Booking } from "./types";
 
-export async function getBookings(): Promise<ApiBooking[]> {
-  const { data } = await api.get<ApiBooking[]>("/bookings");
+export async function getBookings(): Promise<Booking[]> {
+  const { data } = await api.get<Booking[]>("/bookings");
   return data;
 }
 
@@ -10,9 +10,9 @@ export async function getFilteredBookings(params: {
   fromDate: string;
   toDate: string;
   type?: string;
-}): Promise<ApiFilteredBooking[]> {
+}): Promise<Booking[]> {
   const { fromDate, toDate, type } = params;
-  const { data } = await api.get<ApiFilteredBooking[]>("/bookings/filter", {
+  const { data } = await api.get<Booking[]>("/bookings/filter", {
     params: { fromDate, toDate, type },
   });
   return data;

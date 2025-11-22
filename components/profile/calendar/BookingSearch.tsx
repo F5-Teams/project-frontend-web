@@ -3,9 +3,7 @@
 import React from "react";
 import { useFilteredBookings } from "@/services/profile/profile-schedule/hooks";
 import { WeeklyGrid } from "./WeeklyGrid";
-import type { ApiFilteredBooking } from "@/services/profile/profile-schedule/types";
-import type { CalendarBooking } from "@/types/calendarType";
-import { mapApiToCalendar } from "./mapApiToCalendar";
+import type { Booking } from "@/services/profile/profile-schedule/types";
 
 import {
   Popover,
@@ -24,10 +22,6 @@ import {
 } from "@/components/ui/select";
 import { formatDMY } from "@/utils/date";
 
-function mapFilteredToCalendar(list: ApiFilteredBooking[]): CalendarBooking[] {
-  return list.map((b) => mapApiToCalendar(b));
-}
-
 function startOfWeekLocal(d: Date) {
   const day = (d.getDay() + 6) % 7;
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() - day);
@@ -42,9 +36,9 @@ function formatDateLocal(d: Date) {
 
 export function BookingSearch(props: {
   selectedId?: string | number | undefined;
-  onSelect?: (b: CalendarBooking) => void;
+  onSelect?: (b: Booking) => void;
   tzLabel?: string;
-  defaultData?: CalendarBooking[];
+  defaultData?: Booking[];
 }) {
   const { selectedId, onSelect, tzLabel, defaultData } = props;
 
@@ -78,14 +72,10 @@ export function BookingSearch(props: {
   );
 
   const apiList = resultQuery.data ?? [];
-  const mappedApiList = React.useMemo(
-    () => mapFilteredToCalendar(apiList),
-    [apiList]
-  );
 
-  const displayList = React.useMemo<CalendarBooking[]>(
-    () => (queryParams ? mappedApiList : defaultData ?? mappedApiList),
-    [queryParams, defaultData, mappedApiList]
+  const displayList = React.useMemo<Booking[]>(
+    () => (queryParams ? apiList : defaultData ?? apiList),
+    [queryParams, defaultData, apiList]
   );
 
   const parseDate = React.useCallback((v: unknown): Date | null => {
@@ -95,40 +85,31 @@ export function BookingSearch(props: {
   }, []);
 
   const earliestSearchStart = React.useMemo(() => {
-    if (!queryParams || mappedApiList.length === 0) return null;
+    if (!queryParams || apiList.length === 0) return null;
     let earliest: Date | null = null;
-    for (const b of mappedApiList) {
-      const bookingDateField = (b as unknown as Record<string, unknown>)[
-        "bookingDate"
-      ];
-      const s =
-        parseDate(b.meta?.startDate ?? b.startDate ?? bookingDateField) ?? null;
+    for (const b of apiList) {
+      const s = parseDate(b.slot?.startDate ?? b.bookingDate) ?? null;
       if (!s) continue;
       if (!earliest || s.getTime() < earliest.getTime()) earliest = s;
     }
     return earliest;
-  }, [queryParams, mappedApiList, parseDate]);
+  }, [queryParams, apiList, parseDate]);
 
   React.useEffect(() => {
     if (!queryParams) return;
-    if (mappedApiList.length === 0) return;
+    if (apiList.length === 0) return;
     if (!earliestSearchStart) {
-      onSelect?.(mappedApiList[0]);
+      onSelect?.(apiList[0]);
       return;
     }
     const match =
-      mappedApiList.find((b) => {
-        const bookingDateField = (b as unknown as Record<string, unknown>)[
-          "bookingDate"
-        ];
-        const s = parseDate(
-          b.meta?.startDate ?? b.startDate ?? bookingDateField
-        );
+      apiList.find((b: Booking) => {
+        const s = parseDate(b.slot?.startDate ?? b.bookingDate);
         return !!s && s.getTime() === earliestSearchStart.getTime();
-      }) ?? mappedApiList[0];
+      }) ?? apiList[0];
     onSelect?.(match);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [queryParams, mappedApiList, earliestSearchStart]);
+  }, [queryParams, apiList, earliestSearchStart]);
 
   const weekAnchor = React.useMemo<Date | undefined>(() => {
     if (!earliestSearchStart) return undefined;
@@ -296,7 +277,7 @@ export function BookingSearch(props: {
         <div className="p-4 text-sm text-gray-600">Đang tìm…</div>
       ) : resultQuery.isError ? (
         <div className="p-4 text-sm text-red-600">Lỗi khi tìm.</div>
-      ) : mappedApiList.length === 0 && queryParams ? (
+      ) : apiList.length === 0 && queryParams ? (
         <div className="p-6 text-center text-sm text-gray-500">
           Không tìm thấy booking nào cho khoảng thời gian này.
         </div>

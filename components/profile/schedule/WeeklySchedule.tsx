@@ -4,7 +4,7 @@ import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Booking, WeeklyScheduleProps } from "@/types/scheduleType";
+import { CalendarEvent } from "@/services/profile/profile-schedule/types";
 import {
   addDays,
   buildTimeSlots,
@@ -17,6 +17,19 @@ import { CustomeScrolling } from "@/components/shared/CustomeScrolling";
 import { WeekHeader } from "./WeekHeader";
 import { TimeColumn } from "./TimeColumn";
 import { DayGrid } from "./DayGrid";
+
+export interface WeeklyScheduleProps {
+  timeZone?: string;
+  anchorDate?: Date | string;
+  dayStartHour?: number;
+  dayEndHour?: number;
+  slotMinutes?: number;
+  enableWeekNav?: boolean;
+  onWeekChange?: (viewStart: Date, viewEnd: Date, offsetWeeks: number) => void;
+  bookings?: CalendarEvent[];
+  showTimeColumn?: boolean;
+  className?: string;
+}
 
 export const WeeklySchedule: React.FC<WeeklyScheduleProps> = ({
   timeZone,
@@ -65,7 +78,7 @@ export const WeeklySchedule: React.FC<WeeklyScheduleProps> = ({
 
   const weekBookings = React.useMemo(() => {
     return bookings.filter((b) => {
-      const s = toDateLocal(b.start);
+      const s = toDateLocal(b.startDate);
       return s >= weekStart && s < weekEnd;
     });
   }, [bookings, weekStart, weekEnd]);
@@ -76,10 +89,10 @@ export const WeeklySchedule: React.FC<WeeklyScheduleProps> = ({
   }, [offsetWeeks, weekStart.getTime(), weekEnd.getTime()]);
 
   const bookingsByDay = React.useMemo(() => {
-    const map: Record<number, Booking[]> = {};
+    const map: Record<number, CalendarEvent[]> = {};
     for (let i = 0; i < 7; i++) map[i] = [];
     weekBookings.forEach((bk) => {
-      const d = toDateLocal(bk.start)!;
+      const d = toDateLocal(bk.startDate)!;
       const idx = (d.getDay() + 6) % 7;
       map[idx].push(bk);
     });

@@ -2,8 +2,7 @@
 
 import React from "react";
 import { useBookings } from "@/services/profile/profile-schedule/hooks";
-import { mapApiListToCalendar } from "@/components/profile/calendar/mapApiToCalendar";
-import { CalendarBooking } from "@/types/calendarType"; // import type from central file
+import { Booking } from "@/services/profile/profile-schedule/types";
 import { BookingDetailPanel } from "@/components/profile/calendar/BookingDetailPanel";
 import { MonthRangeCalendar } from "@/components/profile/calendar/MonthRangeCalendar";
 import { BookingSearch } from "@/components/profile/calendar/BookingSearch";
@@ -11,25 +10,16 @@ import FeedbackModal from "@/components/profile/calendar/FeedbackModal";
 
 export default function ScheduleDetailPage() {
   const { data, isLoading, error } = useBookings();
-  const list: CalendarBooking[] = React.useMemo(
-    () => (data ? mapApiListToCalendar(data) : []),
-    [data]
-  );
 
-  const [selected, setSelected] = React.useState<CalendarBooking | null>(null);
+  const [selected, setSelected] = React.useState<Booking | null>(null);
   const [month, setMonth] = React.useState<Date>(new Date());
-  const [feedbackBooking, setFeedbackBooking] =
-    React.useState<CalendarBooking | null>(null);
+  const [feedbackBooking, setFeedbackBooking] = React.useState<Booking | null>(
+    null
+  );
 
   const feedbackBookingId: number | null = React.useMemo(() => {
     if (!feedbackBooking) return null;
-    const id: unknown = feedbackBooking.id as unknown;
-    if (typeof id === "number") return id;
-    if (typeof id === "string") {
-      const n = Number(id);
-      return Number.isNaN(n) ? null : n;
-    }
-    return null;
+    return feedbackBooking.id;
   }, [feedbackBooking]);
 
   if (isLoading) return <div className="p-6">Đang tải lịch…</div>;
@@ -42,26 +32,23 @@ export default function ScheduleDetailPage() {
           selectedId={selected?.id}
           onSelect={(b) => {
             setSelected(b);
-            setMonth(new Date(b.startDate ?? Date.now()));
+            setMonth(
+              new Date(b.slot?.startDate ?? b.bookingDate ?? Date.now())
+            );
           }}
           tzLabel={Intl.DateTimeFormat().resolvedOptions().timeZone}
-          defaultData={list}
+          defaultData={data}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
           <div>
             <BookingDetailPanel
               booking={selected}
-              onRequestFeedback={(b) =>
-                setFeedbackBooking(b as CalendarBooking)
-              }
+              onRequestFeedback={(b) => setFeedbackBooking(b)}
             />
           </div>
 
           <div className="bg-white rounded-2xl max-h-[60vh] overflow-auto">
-            {/* <div className="text-sm font-semibold text-gray-900 mb-2">
-            Lịch tháng
-          </div> */}
             <MonthRangeCalendar
               month={month}
               booking={selected}

@@ -10,10 +10,11 @@ import { useInitials } from "@/utils/useInitials";
 import { UserInfoCard } from "@/components/profile/UserInfoCard";
 import { MiniCalendar } from "@/components/profile/MiniCalendar";
 
-import { useBookings } from "@/services/profile/profile-schedule/hooks";
-import { mapApiToBookings } from "@/components/profile/schedule/mapApiBookings";
+import {
+  useBookings,
+  bookingsToCalendarEvents,
+} from "@/services/profile/profile-schedule/hooks";
 import { WeeklySchedule } from "@/components/profile/schedule/WeeklySchedule";
-import { Booking } from "@/types/scheduleType";
 import { useUserPets } from "@/services/profile/profile-pet/hooks";
 import { PetCard } from "@/components/profile/PetCard";
 
@@ -36,13 +37,9 @@ export default function InfoPage() {
   const dayStartHour = 7;
   const dayEndHour = 18;
 
-  const bookings: Booking[] = useMemo(() => {
+  const calendarEvents = useMemo(() => {
     if (!apiBookings) return [];
-    return mapApiToBookings(apiBookings, {
-      dayStartHour,
-      dayEndHour,
-      defaultDuration: 60,
-    });
+    return bookingsToCalendarEvents(apiBookings);
   }, [apiBookings]);
 
   useEffect(() => {
@@ -118,7 +115,7 @@ export default function InfoPage() {
           <div className="flex-1 space-y-4 lg:space-y-6">
             <WeeklySchedule
               enableWeekNav={false}
-              bookings={bookings}
+              bookings={calendarEvents}
               dayStartHour={dayStartHour}
               dayEndHour={dayEndHour}
               slotMinutes={60}

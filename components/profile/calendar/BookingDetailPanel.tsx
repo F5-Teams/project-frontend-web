@@ -5,35 +5,16 @@ import Image from "next/image";
 import { StatusBadge } from "./StatusBadge";
 import { formatDMY, toDate } from "@/utils/dateRange";
 import { formatCurrency } from "@/utils/currency";
-import { CalendarBooking } from "@/types/calendarType";
-import {
-  ApiBooking,
-  ApiRoom,
-  ApiPet,
-  ApiCombo,
-  ApiServiceLink,
-} from "@/services/profile/profile-schedule/types";
+import { Booking } from "@/services/profile/profile-schedule/types";
 import ServiceTagList from "./ServiceTagList";
 import FancyRateButton from "@/components/profile/calendar/FancyRateButton";
 import { useGetBookingFeedback } from "@/services/profile/feedback/hooks";
 import { Star } from "lucide-react";
 
 type Props = {
-  booking?: CalendarBooking | ApiBooking | null;
-  onRequestFeedback?: (booking: ApiBooking | CalendarBooking) => void;
+  booking?: Booking | null;
+  onRequestFeedback?: (booking: Booking) => void;
 };
-
-function isApiBooking(b: unknown): b is ApiBooking {
-  return (
-    !!b &&
-    typeof b === "object" &&
-    "bookingDate" in (b as Record<string, unknown>) &&
-    ("pet" in (b as Record<string, unknown>) ||
-      "slot" in (b as Record<string, unknown>) ||
-      "room" in (b as Record<string, unknown>) ||
-      "room" in (b as Record<string, unknown>))
-  );
-}
 
 function getDropDownSlotLabel(slot: string | undefined | null): string {
   const slotMap: Record<string, string> = {
@@ -45,21 +26,7 @@ function getDropDownSlotLabel(slot: string | undefined | null): string {
 }
 
 export function BookingDetailPanel({ booking, onRequestFeedback }: Props) {
-  const api = isApiBooking(booking) ? booking : null;
-
-  const bookingId: number | null = React.useMemo(() => {
-    if (!booking) return null;
-    const raw: unknown = api
-      ? (api as ApiBooking).id
-      : (booking as CalendarBooking).id;
-    if (typeof raw === "number") return raw;
-    if (typeof raw === "string") {
-      const n = Number(raw);
-      return Number.isNaN(n) ? null : n;
-    }
-    return null;
-  }, [api, booking]);
-
+  const bookingId = booking?.id ?? null;
   const { data: feedback } = useGetBookingFeedback(bookingId);
 
   if (!booking) {
@@ -72,93 +39,23 @@ export function BookingDetailPanel({ booking, onRequestFeedback }: Props) {
     );
   }
 
-  const petObj: ApiPet | CalendarBooking["pet"] | null = api
-    ? api.pet ?? null
-    : (booking as CalendarBooking).pet ?? null;
+  const petImg = booking.pet?.imageUrl ?? null;
+  const petName = booking.pet?.name ?? undefined;
+  const roomObj = booking.room ?? null;
+  const comboObj = booking.combo ?? null;
+  const serviceLinks = comboObj?.services ?? [];
 
-  const petNameFromMeta: string | undefined = !api
-    ? (booking as CalendarBooking).meta?.pet ?? undefined
-    : undefined;
+  const start = toDate(booking.slot?.startDate ?? booking.bookingDate);
+  const end = toDate(booking.slot?.endDate ?? booking.bookingDate);
+  const bookingDate = toDate(booking.bookingDate);
 
-  const petImg: string | null = petObj?.imageUrl ?? null;
-  const petName: string | undefined =
-    petObj?.name ?? petNameFromMeta ?? undefined;
+  const dropDownSlot = booking.dropDownSlot ?? null;
+  const totalPrice = booking.totalPrice ?? null;
+  const isPaid = booking.isPaid ?? null;
 
-  const roomObj: ApiRoom | CalendarBooking["room"] | null = api
-    ? api.room ?? api.Room ?? null
-    : (booking as CalendarBooking).room ?? null;
-
-  const roomNameFromMeta: string | undefined = !api
-    ? (booking as CalendarBooking).meta?.room ?? undefined
-    : undefined;
-
-  const comboObj: ApiCombo | CalendarBooking["combo"] | null = api
-    ? api.combo ?? null
-    : (booking as CalendarBooking).combo ?? null;
-
-  function hasServiceLinks(
-    c: unknown
-  ): c is { serviceLinks: ApiServiceLink[] } {
-    if (!c || typeof c !== "object") return false;
-    const obj = c as Record<string, unknown>;
-    if (!("serviceLinks" in obj)) return false;
-    const val = obj["serviceLinks"];
-    return Array.isArray(val) && val.every((it) => typeof it === "object");
-  }
-
-  const serviceLinks: ApiServiceLink[] = hasServiceLinks(comboObj)
-    ? comboObj.serviceLinks
-    : [];
-
-  const rawStart =
-    api?.slot?.startDate ??
-    (booking as CalendarBooking).startDate ??
-    (booking as CalendarBooking).meta?.startDate ??
-    (booking as CalendarBooking).meta?.bookingDate ??
-    (booking as ApiBooking)?.bookingDate;
-  const rawEnd =
-    api?.slot?.endDate ??
-    (booking as CalendarBooking).endDate ??
-    (booking as CalendarBooking).meta?.endDate ??
-    (booking as ApiBooking)?.bookingDate;
-
-  const start = toDate(rawStart);
-  const end = toDate(rawEnd);
-  const bookingDate = toDate(
-    api?.bookingDate ??
-      (booking as CalendarBooking).bookingDate ??
-      (booking as CalendarBooking).meta?.bookingDate
-  );
-
-  const dropDownSlot =
-    api?.dropDownSlot ?? (booking as CalendarBooking).dropDownSlot ?? null;
-
-  const totalPrice =
-    (booking as CalendarBooking).totalPrice ??
-    api?.comboPrice ??
-    api?.servicePrice ??
-    (booking as CalendarBooking).slot?.totalPrice ??
-    null;
-
-  const calendarIsPaid = (booking as CalendarBooking).isPaid;
-  const apiIsPaid = api
-    ? (api as unknown as Record<string, unknown>).isPaid
-    : undefined;
-
-  const isPaid =
-    typeof calendarIsPaid === "boolean"
-      ? calendarIsPaid
-      : typeof apiIsPaid === "boolean"
-      ? apiIsPaid
-      : null;
-
-  const rawStatus =
-    (api && (api as unknown as Record<string, unknown>).status) ??
-    (booking as CalendarBooking).status ??
-    (booking as unknown as { meta?: { status?: string } })?.meta?.status ??
-    "";
-
-  const normalizedStatus = String(rawStatus).toUpperCase().replace(/\s+/g, "_");
+  const normalizedStatus = String(booking.status)
+    .toUpperCase()
+    .replace(/\s+/g, "_");
   const isCompleted =
     normalizedStatus === "COMPLETED" || normalizedStatus.includes("COMPLETED");
 
@@ -240,50 +137,25 @@ export function BookingDetailPanel({ booking, onRequestFeedback }: Props) {
           </div>
 
           <div className="flex items-center gap-3">
-            <StatusBadge
-              status={api?.status ?? (booking as CalendarBooking).status}
-            />
+            <StatusBadge status={booking.status} />
           </div>
         </div>
 
-        {roomObj || roomNameFromMeta ? (
+        {roomObj ? (
           <div className="text-md text-black space-y-2 mt-4 ">
             <div className="flex items-center justify-between ">
               <div>
                 {" "}
                 Hạng:{" "}
-                <span className="font-poppins-medium">
-                  {roomObj?.name ?? roomNameFromMeta}
-                </span>
+                <span className="font-poppins-medium">{roomObj.name}</span>
               </div>
-
-              {/* rating button intentionally moved to appear above the totals section */}
             </div>
-
-            {/* 
-            {roomObj?.imageUrl && (
-              <div className="pt-2">
-                <Image
-                  src={roomObj.imageUrl}
-                  alt=""
-                  width={320}
-                  height={180}
-                  className="w-full max-w-xs rounded-md object-cover border"
-                />
-              </div>
-            )} */}
           </div>
         ) : comboObj ? (
           <div className="text-sm font-poppins-light text-black space-y-2 mt-4">
             <div>
               Gói: <span className="font-medium">{comboObj.name}</span>
             </div>
-            {comboObj.duration != null && (
-              <div>
-                Thời lượng:{" "}
-                <span className="font-medium">{comboObj.duration} phút</span>
-              </div>
-            )}
 
             {serviceLinks.length ? (
               <div>
@@ -297,10 +169,7 @@ export function BookingDetailPanel({ booking, onRequestFeedback }: Props) {
         {isCompleted && !feedback && (
           <div className="flex justify-end mb-2">
             <FancyRateButton
-              onClick={() =>
-                booking &&
-                onRequestFeedback?.(booking as ApiBooking | CalendarBooking)
-              }
+              onClick={() => booking && onRequestFeedback?.(booking)}
             >
               Đánh giá
             </FancyRateButton>

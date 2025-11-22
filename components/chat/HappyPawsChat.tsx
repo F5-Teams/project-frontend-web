@@ -626,7 +626,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
     return null;
   }
   return (
-    <div className={cn("fixed bottom-25 right-20 z-20", className)}>
+    <div className={cn("fixed bottom-4 right-4 z-50", className)}>
       {!open && (
         <div className="relative" ref={containerRef}>
           <span
