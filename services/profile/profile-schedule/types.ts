@@ -72,7 +72,6 @@ export interface Booking {
     id: number;
     name: string;
   };
-
   canLeaveFeedback?: boolean;
   hasFeedback?: boolean;
 }
