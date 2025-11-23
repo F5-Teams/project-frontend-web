@@ -437,7 +437,7 @@ export default function WalletPage() {
                           Số tiền
                         </TableHead>
                         <TableHead className="text-right w-[130px]">
-                          Còn lại
+                          Số dư
                         </TableHead>
                         <TableHead className="text-center w-[120px]">
                           Trạng thái
