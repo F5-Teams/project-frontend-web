@@ -2,24 +2,20 @@
 "use client";
 
 import { ArrowLeft, ChevronRight, Bell, Edit3 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useMe } from "@/services/profile/hooks";
 import { useInitials } from "@/utils/useInitials";
 import { UserInfoCard } from "@/components/profile/UserInfoCard";
 import { MiniCalendar } from "@/components/profile/MiniCalendar";
-
 import { useBookings } from "@/services/profile/profile-schedule/hooks";
-import { mapApiToBookings } from "@/components/profile/schedule/mapApiBookings";
-import { WeeklySchedule } from "@/components/profile/schedule/WeeklySchedule";
-import { Booking } from "@/types/scheduleType";
 import { useUserPets } from "@/services/profile/profile-pet/hooks";
 import { PetCard } from "@/components/profile/PetCard";
+import { BookingList } from "@/components/profile/info/BookingList";
 
 export default function InfoPage() {
   const { data: user, isLoading, error, refetch } = useMe();
-  // ADD: fetch user pets
+
   const { data: pets } = useUserPets(user?.id);
   const { data: apiBookings, isLoading: isBookingLoading } = useBookings();
   const [timeZone, setTimeZone] = useState<string>();
@@ -33,18 +29,6 @@ export default function InfoPage() {
     userName: user?.userName,
   });
 
-  const dayStartHour = 7;
-  const dayEndHour = 18;
-
-  const bookings: Booking[] = useMemo(() => {
-    if (!apiBookings) return [];
-    return mapApiToBookings(apiBookings, {
-      dayStartHour,
-      dayEndHour,
-      defaultDuration: 60,
-    });
-  }, [apiBookings]);
-
   useEffect(() => {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     setTimeZone(tz);
@@ -54,7 +38,7 @@ export default function InfoPage() {
       now.getFullYear(),
       now.getMonth(),
       now.getDate()
-    ); // 00:00 local
+    );
     setToday(todayStart);
     setCurrentMonth(
       new Date(todayStart.getFullYear(), todayStart.getMonth(), 1)
@@ -95,35 +79,16 @@ export default function InfoPage() {
                 Thông tin người dùng
               </h1>
             </div>
-
-            {/* <div className="flex items-center space-x-2 lg:space-x-4 ml-auto">
-              <button className="hidden md:block text-sm lg:text-base text-blue-500 hover:text-blue-600 font-medium">
-                Appointments history
-              </button>
-              <Button className="bg-blue-500 hover:bg-blue-600 text-white px-3 lg:px-6 text-sm lg:text-base">
-                <span className="hidden sm:inline">+ New Patient</span>
-                <span className="sm:hidden">+ Patient</span>
-              </Button>
-              <button className="relative hidden sm:block">
-                <Bell className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400" />
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-400 rounded-full" />
-              </button>
-            </div> */}
           </div>
 
           {/* Thông tin người dùng */}
           <UserInfoCard user={user} />
 
-          {/* Weekly Schedule */}
-          <div className="flex-1 space-y-4 lg:space-y-6">
-            <WeeklySchedule
-              enableWeekNav={false}
-              bookings={bookings}
-              dayStartHour={dayStartHour}
-              dayEndHour={dayEndHour}
-              slotMinutes={60}
-            />
-          </div>
+          {/* Booking List */}
+          <BookingList
+            bookings={apiBookings || []}
+            isLoading={isBookingLoading}
+          />
         </section>
 
         {/* Right Sidebar */}

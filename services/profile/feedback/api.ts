@@ -1,23 +1,11 @@
 import api from "@/config/axios";
-
-export interface CreateFeedbackPayload {
-  rating: number; // 1..5
-  comment: string;
-}
+import { CreateFeedbackPayload, BookingFeedback } from "./type";
 
 export async function createBookingFeedback(
   bookingId: number,
   payload: CreateFeedbackPayload
 ): Promise<void> {
   await api.post(`/feedback/booking/${bookingId}`, payload);
-}
-
-export interface BookingFeedback {
-  id: number;
-  rating: number;
-  comment: string;
-  createdAt: string;
-  booking?: unknown;
 }
 
 export async function getBookingFeedback(

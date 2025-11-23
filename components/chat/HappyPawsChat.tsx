@@ -394,7 +394,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
               key={`staff-${key++}`}
               variant="default"
               size="sm"
-              className="self-start bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+              className="self-start bg-linear-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
               onClick={() => {
                 const token = localStorage.getItem("accessToken");
                 if (!token) {
@@ -661,7 +661,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
       {open && (
         <div className="w-[340px] sm:w-[400px] h-[560px] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
           {/* Header with Tabs */}
-          <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-t-2xl">
+          <div className="bg-linear-to-r from-pink-500 to-purple-600 text-white rounded-t-2xl">
             <div className="flex items-center justify-between px-4 py-3">
               <div className="font-semibold text-lg">HappyPaws Chat</div>
               <Button
@@ -775,13 +775,13 @@ export function HappyPawsChat({ className }: { className?: string }) {
               {/* AI Conversation */}
               <div
                 ref={viewportRef}
-                className="flex-1 px-4 py-3 overflow-y-auto bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800"
+                className="flex-1 px-4 py-3 overflow-y-auto bg-linear-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800"
               >
                 <ul className="space-y-4">
                   {messages.map((m, idx) => (
                     <li key={idx} className="flex items-start gap-3">
                       {m.sender === "bot" && (
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-linear-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
                           <Bot className="h-4 w-4 text-white" />
                         </div>
                       )}
@@ -789,14 +789,14 @@ export function HappyPawsChat({ className }: { className?: string }) {
                         className={cn(
                           "max-w-[80%] rounded-2xl px-4 py-3 text-sm shadow-sm",
                           m.sender === "user"
-                            ? "ml-auto bg-gradient-to-br from-pink-500 to-purple-600 text-white rounded-tr-sm"
+                            ? "ml-auto bg-linear-to-br from-pink-500 to-purple-600 text-white rounded-tr-sm"
                             : "mr-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-tl-sm"
                         )}
                       >
                         {m.sender === "bot" ? renderBotContent(m.text) : m.text}
                       </div>
                       {m.sender === "user" && (
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-white text-xs font-semibold">
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-linear-to-br from-pink-500 to-purple-600 flex items-center justify-center text-white text-xs font-semibold">
                           You
                         </div>
                       )}
@@ -819,7 +819,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
                   <Button
                     onClick={() => void sendMessage()}
                     disabled={!canSend}
-                    className="h-10 w-10 p-0 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+                    className="h-10 w-10 p-0 rounded-full bg-linear-to-br from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
                     size="icon"
                   >
                     {sending ? (
@@ -951,7 +951,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
                   <Button
                     onClick={handleCreateStaffSession}
                     disabled={!consultationTitle.trim() || creatingSession}
-                    className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+                    className="w-full bg-linear-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
                   >
                     {creatingSession ? (
                       <>
@@ -969,10 +969,10 @@ export function HappyPawsChat({ className }: { className?: string }) {
               ) : (
                 // Staff Chat Messages
                 <>
-                  <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+                  <div className="flex-1 overflow-y-auto p-4 bg-linear-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
                     {staffMessages.length === 0 ? (
                       <div className="flex flex-col items-center justify-center h-full text-center py-12">
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-100 to-purple-100 dark:from-pink-900/20 dark:to-purple-900/20 flex items-center justify-center mb-4">
+                        <div className="w-16 h-16 rounded-full bg-linear-to-br from-pink-100 to-purple-100 dark:from-pink-900/20 dark:to-purple-900/20 flex items-center justify-center mb-4">
                           <MessageSquare className="h-8 w-8 text-pink-500" />
                         </div>
                         <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -1002,8 +1002,8 @@ export function HappyPawsChat({ className }: { className?: string }) {
                                   className={cn(
                                     "text-xs font-semibold",
                                     isOwn
-                                      ? "bg-gradient-to-br from-pink-500 to-purple-600 text-white"
-                                      : "bg-gradient-to-br from-blue-500 to-indigo-600 text-white"
+                                      ? "bg-linear-to-br from-pink-500 to-purple-600 text-white"
+                                      : "bg-linear-to-br from-blue-500 to-indigo-600 text-white"
                                   )}
                                 >
                                   {getInitials(
@@ -1037,7 +1037,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
                                   className={cn(
                                     "px-4 py-3 rounded-2xl text-sm shadow-sm",
                                     isOwn
-                                      ? "bg-gradient-to-br from-pink-500 to-purple-600 text-white rounded-tr-sm"
+                                      ? "bg-linear-to-br from-pink-500 to-purple-600 text-white rounded-tr-sm"
                                       : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-tl-sm"
                                   )}
                                 >
@@ -1059,7 +1059,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
                     {currentSession?.status === "CLOSED" ? (
                       <Button
                         onClick={handleResetToNewSession}
-                        className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+                        className="w-full bg-linear-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
                       >
                         <MessageSquare className="h-4 w-4 mr-2" />
                         Tạo phiên tư vấn mới
@@ -1086,7 +1086,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
                             !staffInput.trim() || staffSending || !isConnected
                           }
                           size="icon"
-                          className="h-10 w-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+                          className="h-10 w-10 rounded-full bg-linear-to-br from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
                         >
                           {staffSending ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -1107,4 +1107,16 @@ export function HappyPawsChat({ className }: { className?: string }) {
   );
 }
 
-export default HappyPawsChat;
+// Wrapper component to conditionally render chat
+function HappyPawsChatWrapper({ className }: { className?: string }) {
+  const pathname = usePathname();
+
+  // Hide chat on wallet page
+  if (pathname?.includes("/wallet")) {
+    return null;
+  }
+
+  return <HappyPawsChat className={className} />;
+}
+
+export default HappyPawsChatWrapper;
