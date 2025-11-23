@@ -2,10 +2,13 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { getBookingTitle } from "@/services/profile/profile-schedule/hooks";
+import {
+  getBookingTitle,
+  getBookingStatusText,
+  getBookingStatusColor,
+} from "@/services/profile/profile-schedule/hooks";
 import { Booking } from "@/services/profile/profile-schedule/types";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
+import { formatDateTime24 } from "@/utils/date";
 import {
   Pagination,
   PaginationContent,
@@ -44,7 +47,7 @@ export const BookingList: React.FC<BookingListProps> = ({
   }, [typeFilter]);
 
   return (
-    <div className="bg-white rounded-2xl p-4 md:p-6 space-y-4">
+    <div className="bg-white/40 backdrop-blur shadow-lg rounded-2xl p-4 md:p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg lg:text-xl font-poppins-medium text-gray-900">
           Lịch đặt của bạn
@@ -54,6 +57,7 @@ export const BookingList: React.FC<BookingListProps> = ({
             variant={typeFilter === "ALL" ? "default" : "outline"}
             size="sm"
             onClick={() => setTypeFilter("ALL")}
+            className="font-poppins-light"
           >
             Tất cả
           </Button>
@@ -61,13 +65,15 @@ export const BookingList: React.FC<BookingListProps> = ({
             variant={typeFilter === "SPA" ? "default" : "outline"}
             size="sm"
             onClick={() => setTypeFilter("SPA")}
+            className="font-poppins-light"
           >
-            SPA
+            Spa
           </Button>
           <Button
             variant={typeFilter === "HOTEL" ? "default" : "outline"}
             size="sm"
             onClick={() => setTypeFilter("HOTEL")}
+            className="font-poppins-light"
           >
             Khách sạn
           </Button>
@@ -86,69 +92,64 @@ export const BookingList: React.FC<BookingListProps> = ({
             {paginatedBookings.map((booking) => (
               <div
                 key={booking.id}
-                className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                className="border border-gray-200 rounded-2xl p-4 hover:shadow-md transition-shadow"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span
-                        className={`px-2 py-1 rounded text-xs font-medium text-white ${
-                          booking.type === "HOTEL"
-                            ? "bg-violet-500"
-                            : "bg-teal-500"
-                        }`}
-                      >
-                        {booking.type}
-                      </span>
-                      <span className="text-sm font-poppins-medium text-gray-900">
-                        {getBookingTitle(booking)}
-                      </span>
-                    </div>
-                    <div className="text-sm text-gray-600 space-y-1">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`px-2 py-1 rounded text-xs font-poppins-light text-white ${
+                        booking.type === "HOTEL" ? "bg-primary" : "bg-secondary"
+                      }`}
+                    >
+                      {booking.type}
+                    </span>
+                    <span className="text-sm font-poppins-medium text-gray-900">
+                      {getBookingTitle(booking)}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 text-sm text-black">
+                    <div className="space-y-1">
                       <div>
-                        <span className="font-medium">Pet:</span>{" "}
-                        {booking.pet?.name || "N/A"}
+                        <span className="font-poppins-medium">Pet:</span>{" "}
+                        <span className="font-poppins-light">
+                          {booking.pet?.name || "N/A"}
+                        </span>
                       </div>
                       <div>
-                        <span className="font-medium">Mã booking:</span>{" "}
-                        {booking.bookingCode}
+                        <span className="font-poppins-medium">Mã booking:</span>{" "}
+                        <span className="font-poppins-light">
+                          {booking.bookingCode}
+                        </span>
                       </div>
-                      {booking.slot?.startDate && booking.slot?.endDate && (
-                        <div>
-                          <span className="font-medium">Thời gian:</span>{" "}
-                          {format(
-                            new Date(booking.slot.startDate),
-                            "dd/MM/yyyy HH:mm",
-                            { locale: vi }
-                          )}{" "}
-                          -{" "}
-                          {format(
-                            new Date(booking.slot.endDate),
-                            "dd/MM/yyyy HH:mm",
-                            { locale: vi }
-                          )}
-                        </div>
-                      )}
                       {booking.bookingDate && (
                         <div>
-                          <span className="font-medium">Ngày:</span>{" "}
-                          {format(new Date(booking.bookingDate), "dd/MM/yyyy", {
-                            locale: vi,
-                          })}
+                          <span className="font-poppins-medium">Ngày đặt:</span>{" "}
+                          <span className="font-poppins-light">
+                            {formatDateTime24(booking.bookingDate)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      {booking.slot?.startDate && booking.slot?.endDate && (
+                        <div>
+                          <span className="font-poppins-medium">
+                            Thời gian:
+                          </span>{" "}
+                          <span className="font-poppins-light">
+                            {formatDateTime24(booking.slot.startDate)} -{" "}
+                            {formatDateTime24(booking.slot.endDate)}
+                          </span>
                         </div>
                       )}
                       <div>
-                        <span className="font-medium">Trạng thái:</span>{" "}
-                        <span
-                          className={`${
-                            booking.status === "COMPLETED"
-                              ? "text-green-600"
-                              : booking.status === "CANCELLED"
-                              ? "text-red-600"
-                              : "text-blue-600"
-                          }`}
-                        >
-                          {booking.status}
+                        <span className="font-poppins-medium">Trạng thái:</span>{" "}
+                        <span className={getBookingStatusColor(booking.status)}>
+                          <span className="font-poppins-light">
+                            {getBookingStatusText(booking.status)}
+                          </span>
                         </span>
                       </div>
                     </div>

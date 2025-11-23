@@ -1,19 +1,17 @@
 import React from "react";
-import { ApiServiceLink } from "@/services/profile/profile-schedule/types";
 
 type Props = {
   items:
-    | ApiServiceLink[]
     | {
         service?: { name?: string } | undefined;
         serviceId?: number | undefined;
         id?: number | undefined;
         name?: string | undefined;
-      }[];
+      }[]
+    | undefined;
   className?: string;
 };
 
-// palette with explicit bottom-border color (use light border color)
 const PALETTE: { bg: string; text: string; border: string }[] = [
   { bg: "bg-pink-50", text: "text-pink-700", border: "border-pink-200" },
   { bg: "bg-amber-50", text: "text-amber-800", border: "border-amber-200" },

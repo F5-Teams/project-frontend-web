@@ -5,7 +5,7 @@ import { useGetUser } from "@/services/users/hooks";
 import { Button, Modal } from "antd";
 import Image from "next/image";
 import Logo from "@/public/logo/HappyPaws Logo.svg";
-import { X } from "lucide-react";
+import { Eye, X } from "lucide-react";
 import { useState } from "react";
 import { usePostOrderCancel } from "@/services/orders/postOrderCancel/hooks";
 import { toast } from "sonner";
@@ -91,7 +91,6 @@ export default function HistoryOrder() {
               <div
                 key={order.id}
                 className="bg-white cursor-pointer p-5 rounded-2xl border border-gray-100 hover:shadow-md transition-all"
-                onClick={() => route.push(`/history-order/${order.id}`)}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-5">
@@ -141,13 +140,21 @@ export default function HistoryOrder() {
                       <span className="text-gray-400 text-lg">{`>`}</span>
                     </div>
 
+                    <button
+                      className="flex gap-2 items-center px-2 mt-2 py-1 text-[13px] text-white rounded-xl w-full bg-blue-400 hover:bg-blue-600 cursor-pointer font-medium transition"
+                      onClick={() => route.push(`/history-order/${order.id}`)}
+                    >
+                      <Eye size={16} />
+                      Xem chi tiết
+                    </button>
+
                     {order.status === "PAID" && (
                       <button
                         onClick={() => {
                           setOpen(true);
                           setId(order.id);
                         }}
-                        className="mt-8 py-1 text-[13px] text-white rounded-xl w-full bg-pink-500 hover:bg-pink-600 cursor-pointer font-medium transition px-2"
+                        className="mt-2 py-1 text-[13px] text-white rounded-xl w-full bg-pink-500 hover:bg-pink-600 cursor-pointer font-medium transition"
                       >
                         Hủy đơn
                       </button>

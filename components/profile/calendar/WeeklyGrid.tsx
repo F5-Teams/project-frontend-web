@@ -13,6 +13,7 @@ type Props = {
   weekAnchor?: Date;
   selectedId?: string | number;
   onSelect?: (b: Booking) => void;
+  onRequestFeedback?: (b: Booking) => void;
   tzLabel?: string;
   onWeekChange?: (anchor: Date) => void;
 };
@@ -24,6 +25,7 @@ export function WeeklyGrid({
   weekAnchor,
   selectedId,
   onSelect,
+  onRequestFeedback,
   onWeekChange,
 }: Props) {
   const [anchor, setAnchor] = React.useState<Date>(() =>
@@ -228,6 +230,7 @@ export function WeeklyGrid({
                     setOpenId((cur) => (cur === bk.id ? null : bk.id))
                   }
                   onSelect={onSelect}
+                  onRequestFeedback={onRequestFeedback}
                 />
               </div>
             ))

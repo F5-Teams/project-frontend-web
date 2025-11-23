@@ -17,3 +17,8 @@ export async function getFilteredBookings(params: {
   });
   return data;
 }
+
+export async function getBookingById(id: number): Promise<Booking> {
+  const { data } = await api.get<Booking>(`/bookings/${id}`);
+  return data;
+}

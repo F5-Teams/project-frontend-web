@@ -37,10 +37,12 @@ function formatDateLocal(d: Date) {
 export function BookingSearch(props: {
   selectedId?: string | number | undefined;
   onSelect?: (b: Booking) => void;
+  onRequestFeedback?: (b: Booking) => void;
   tzLabel?: string;
   defaultData?: Booking[];
 }) {
-  const { selectedId, onSelect, tzLabel, defaultData } = props;
+  const { selectedId, onSelect, onRequestFeedback, tzLabel, defaultData } =
+    props;
 
   const [fromDate, setFromDate] = React.useState<string>("");
   const [toDate, setToDate] = React.useState<string>("");
@@ -291,6 +293,7 @@ export function BookingSearch(props: {
             weekAnchor={weekAnchor}
             selectedId={selectedId}
             onSelect={(b) => onSelect?.(b)}
+            onRequestFeedback={onRequestFeedback}
             tzLabel={tzLabel}
           />
         </>

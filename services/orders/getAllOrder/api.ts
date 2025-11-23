@@ -1,7 +1,7 @@
 import api from "@/config/axios";
-import { Order } from "./type";
+import { GetAllOrderResponse } from "./type";
 
-export async function getAllOrder(): Promise<Order[]> {
-  const { data } = await api.get<Order[]>("/orders");
+export async function getAllOrder(): Promise<GetAllOrderResponse> {
+  const { data } = await api.get<GetAllOrderResponse>("/orders");
   return data;
 }

@@ -161,7 +161,8 @@ export const ProductCard = ({ product }: { product: Product }) => {
 };
 
 const PetStorePage = () => {
-  const { data: products = [], isLoading, error } = useAllProduct();
+  const { data: response, isLoading, error } = useAllProduct();
+  const products = response?.data || [];
   const [type, setType] = useState<string[]>([]);
   const [select, setSelect] = useState<string>("All");
   const [search, setSearch] = useState<string>("");
@@ -173,7 +174,7 @@ const PetStorePage = () => {
     }
   }, [products]);
 
-  console.log("PRODUCT", products);
+  console.log("PRODUCT", response);
 
   if (isLoading)
     return (

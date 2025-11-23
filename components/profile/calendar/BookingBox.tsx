@@ -2,6 +2,7 @@
 import React from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 import { getStatusDotClass } from "./StatusBadge";
 import { formatDMY } from "@/utils/dateRange";
@@ -13,6 +14,7 @@ type Props = {
   open?: boolean;
   onToggle?: (b: Booking) => void;
   onSelect?: (b: Booking) => void;
+  onRequestFeedback?: (b: Booking) => void;
 };
 
 export function BookingBox({
@@ -21,7 +23,9 @@ export function BookingBox({
   open = false,
   onToggle,
   onSelect,
+  onRequestFeedback,
 }: Props) {
+  const router = useRouter();
   const bodyRef = React.useRef<HTMLDivElement>(null);
   const [height, setHeight] = React.useState(0);
 
@@ -96,12 +100,23 @@ export function BookingBox({
       >
         <div
           ref={bodyRef}
-          className="px-4 pb-4 pt-1 text-xs text-gray-700 space-y-1.5"
+          className="px-4 pb-4 pt-1 text-xs text-gray-700 space-y-2"
         >
-          Boss yêu của Sen:{" "}
-          <span className="font-poppins-semibold text-primary">
-            {data.pet?.name}
-          </span>
+          <div>
+            Boss yêu của Sen:{" "}
+            <span className="font-poppins-semibold text-primary">
+              {data.pet?.name}
+            </span>
+          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/profile/calendar/${data.id}`);
+            }}
+            className="w-full py-2 px-3 bg-primary hover:bg-primary/90 text-white text-xs font-poppins-medium rounded-lg transition-colors"
+          >
+            Xem chi tiết
+          </button>
         </div>
       </div>
     </div>

@@ -11,6 +11,7 @@ import { useGetVoucher } from "@/services/vouchers/hooks";
 import { Voucher } from "@/services/vouchers/type";
 import { POST_ORDER_QUERY_KEY } from "@/services/orders/postOrder/hooks";
 import { toast } from "sonner";
+import { useGetWallet } from "@/services/wallets/hooks";
 interface CartItem {
   productId: number;
   price: number;
@@ -42,6 +43,9 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   const [chooseVoucher, setChooseVoucher] = useState<Voucher>();
   const { data: addressList = [] } = useGetAddress();
   const { data: voucher = [] } = useGetVoucher();
+  const { data: wallets } = useGetWallet();
+
+  console.log("first", wallets);
 
   const total = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -64,30 +68,28 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   useEffect(() => {
     if (!addressFee) return;
 
-    // ✅ Ước lượng kích thước dựa trên tổng trọng lượng
-    // Công thức tham khảo từ backend:
-    // - Dưới 2kg: 30x20x20cm
-    // - 2-5kg: 40x30x30cm
-    // - 5-10kg: 60x45x80cm (như backend)
-    // - Trên 10kg: 80x60x100cm
+    let length = 20,
+      width = 15,
+      height = 10;
 
-    let length = 30,
-      width = 20,
-      height = 20;
     const weightKg = totalWeight / 1000;
 
     if (weightKg >= 10) {
-      length = 80;
-      width = 60;
-      height = 100;
+      length = 50;
+      width = 40;
+      height = 40;
     } else if (weightKg >= 5) {
-      length = 60;
-      width = 45;
-      height = 80;
-    } else if (weightKg >= 2) {
       length = 40;
       width = 30;
       height = 30;
+    } else if (weightKg >= 2) {
+      length = 30;
+      width = 25;
+      height = 20;
+    } else {
+      length = 20;
+      width = 15;
+      height = 10;
     }
 
     const payload: any = {
@@ -145,6 +147,18 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
     };
 
     try {
+      if (orderPayloadTransfer.paymentMethod === "TRANSFER") {
+        const money =
+          total +
+          (fee?.data?.service_fee ?? 0) -
+          (chooseVoucher
+            ? ((total + fee?.data?.service_fee) * chooseVoucher.percent) / 100
+            : 0);
+        if (money > Number(wallets?.balance || 0)) {
+          toast.error("Tiền trong ví không đủ, vui lòng nạp thêm!");
+          return;
+        }
+      }
       const response = await createOrder(orderPayloadTransfer);
 
       if (response?.vnpUrl) {
@@ -174,6 +188,12 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
     }
   };
 
+  const money =
+    total +
+    (fee?.data?.service_fee ?? 0) -
+    (chooseVoucher
+      ? ((total + fee?.data?.service_fee) * chooseVoucher.percent) / 100
+      : 0);
   return (
     <Modal
       open={isOpen}
