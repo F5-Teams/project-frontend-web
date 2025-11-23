@@ -10,13 +10,18 @@ import {
   Filter,
   ArrowLeft,
   CalendarIcon,
+  Eye,
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { vi } from "date-fns/locale";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { TransactionType, PaymentMethod } from "@/services/wallets/type";
+import {
+  TransactionType,
+  PaymentMethod,
+  TransactionHistoryItem,
+} from "@/services/wallets/type";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -32,6 +37,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function WalletPage() {
   const router = useRouter();
@@ -49,6 +60,9 @@ export default function WalletPage() {
   const [filterEndDate, setFilterEndDate] = useState<Date | undefined>(
     undefined
   );
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<TransactionHistoryItem | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const {
     data: transactionHistory,
@@ -428,19 +442,16 @@ export default function WalletPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-40">Loại</TableHead>
-                        <TableHead>Mô tả</TableHead>
-                        <TableHead className="w-[120px]">Mã booking</TableHead>
-                        <TableHead className="w-[120px]">Phương thức</TableHead>
-                        <TableHead className="w-[150px]">Thời gian</TableHead>
-                        <TableHead className="text-right w-[130px]">
+                        <TableHead className="w-[150px]">Mã booking</TableHead>
+                        <TableHead className="w-[180px]">Thời gian</TableHead>
+                        <TableHead className="text-right w-[150px]">
                           Số tiền
-                        </TableHead>
-                        <TableHead className="text-right w-[130px]">
-                          Còn lại
                         </TableHead>
                         <TableHead className="text-center w-[120px]">
                           Trạng thái
+                        </TableHead>
+                        <TableHead className="text-center w-[100px]">
+                          Chi tiết
                         </TableHead>
                       </TableRow>
                     </TableHeader>
@@ -453,86 +464,45 @@ export default function WalletPage() {
 
                         return (
                           <TableRow key={transaction.id}>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <div
-                                  className={`p-2 rounded-lg ${
-                                    typeInfo.icon === "up"
-                                      ? "bg-green-100"
-                                      : "bg-red-100"
-                                  }`}
-                                >
-                                  {typeInfo.icon === "up" ? (
-                                    <TrendingUp
-                                      className={`w-4 h-4 ${typeInfo.color}`}
-                                    />
-                                  ) : (
-                                    <TrendingDown
-                                      className={`w-4 h-4 ${typeInfo.color}`}
-                                    />
-                                  )}
-                                </div>
-                                <span className="font-poppins-light text-sm">
-                                  {typeInfo.label}
-                                </span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="font-poppins-light text-sm">
-                              {transaction.description}
-                            </TableCell>
                             <TableCell className="font-poppins-light text-sm">
                               {transaction.bookingCode || "-"}
                             </TableCell>
-                            <TableCell className="font-poppins-light text-sm">
-                              {transaction.paymentMethod
-                                ? paymentMethods.find(
-                                    (m) => m.value === transaction.paymentMethod
-                                  )?.label || transaction.paymentMethod
-                                : "-"}
-                            </TableCell>
-                            <TableCell className="font-poppins-light text-xs text-gray-500">
-                              <div>
-                                {new Date(transaction.createdAt).toLocaleString(
-                                  "vi-VN",
-                                  {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "numeric",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  }
-                                )}
-                              </div>
-                              <div className="text-gray-400">
-                                (
-                                {formatDistanceToNow(
-                                  new Date(transaction.createdAt),
-                                  {
-                                    addSuffix: true,
-                                    locale: vi,
-                                  }
-                                )}
-                                )
-                              </div>
+                            <TableCell className="font-poppins-light text-sm text-gray-500">
+                              {new Date(transaction.createdAt).toLocaleString(
+                                "vi-VN",
+                                {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )}
                             </TableCell>
                             <TableCell
-                              className={`text-right font-poppins-light ${typeInfo.color}`}
+                              className={`text-right text-sm font-poppins-light ${typeInfo.color}`}
                             >
                               {formatCurrency(transaction.amount)} VNĐ
                             </TableCell>
-                            <TableCell className="text-right font-poppins-light text-sm">
-                              {transaction.balanceAfter
-                                ? `${formatCurrency(
-                                    transaction.balanceAfter
-                                  )} VNĐ`
-                                : "-"}
-                            </TableCell>
                             <TableCell className="text-center">
                               <span
-                                className={`inline-block px-2 py-1 rounded-full text-xs font-poppins-medium ${statusInfo.bgColor} ${statusInfo.textColor}`}
+                                className={`inline-block px-2 py-1 rounded-full text-xs font-poppins-regular ${statusInfo.bgColor} ${statusInfo.textColor}`}
                               >
                                 {statusInfo.label}
                               </span>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setSelectedTransaction(transaction);
+                                  setIsDetailModalOpen(true);
+                                }}
+                                className="h-8 w-8"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
                             </TableCell>
                           </TableRow>
                         );
@@ -581,6 +551,149 @@ export default function WalletPage() {
             )}
           </div>
         </div>
+
+        {/* Transaction Detail Modal */}
+        <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-white rounded-2xl">
+            <DialogHeader>
+              <DialogTitle className="font-poppins-light text-xl">
+                Chi tiết giao dịch
+              </DialogTitle>
+            </DialogHeader>
+            {selectedTransaction &&
+              (() => {
+                const typeInfo = getTransactionTypeLabel(
+                  selectedTransaction.type
+                );
+                const statusInfo = getStatusBadge(selectedTransaction.status);
+
+                return (
+                  <div className="space-y-4">
+                    {/* loại */}
+                    <div className="flex items-start gap-3 p-4 bg-white/40 backdrop-blur shadow-lg rounded-2xl">
+                      <div
+                        className={`p-3 rounded-2xl ${
+                          typeInfo.icon === "up" ? "bg-green-100" : "bg-red-100"
+                        }`}
+                      >
+                        {typeInfo.icon === "up" ? (
+                          <TrendingUp className={`w-6 h-6 ${typeInfo.color}`} />
+                        ) : (
+                          <TrendingDown
+                            className={`w-6 h-6 ${typeInfo.color}`}
+                          />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-poppins-regular text-lg">
+                          {typeInfo.label}
+                        </p>
+                        <p className="text-xs text-gray-600 font-poppins-light mt-1">
+                          {selectedTransaction.description}
+                        </p>
+                      </div>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-poppins-regular ${statusInfo.bgColor} ${statusInfo.textColor}`}
+                      >
+                        {statusInfo.label}
+                      </span>
+                    </div>
+
+                    {/* Amount */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 bg-white/40 backdrop-blur shadow-lg rounded-2xl">
+                        <p className="text-sm text-gray-600 font-poppins-light mb-1">
+                          Số tiền giao dịch
+                        </p>
+                        <p
+                          className={`text-2xl font-poppins-regular ${typeInfo.color}`}
+                        >
+                          {formatCurrency(selectedTransaction.amount)} VNĐ
+                        </p>
+                      </div>
+                      <div className="p-4 bg-white/40 backdrop-blur shadow-lg rounded-2xl">
+                        <p className="text-sm text-gray-600 font-poppins-light mb-1">
+                          Số dư sau giao dịch
+                        </p>
+                        <p className="text-2xl font-poppins-medium text-gray-900">
+                          {selectedTransaction.balanceAfter
+                            ? `${formatCurrency(
+                                selectedTransaction.balanceAfter
+                              )} VNĐ`
+                            : "-"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Details */}
+                    <div className="space-y-3">
+                      <div className="flex justify-between py-2 border-b">
+                        <span className="text-sm text-gray-600 font-poppins-light">
+                          Mã giao dịch
+                        </span>
+                        <span className="text-md font-poppins-regular">
+                          Mã số {selectedTransaction.id}
+                        </span>
+                      </div>
+
+                      {selectedTransaction.bookingCode && (
+                        <div className="flex justify-between py-2 border-b">
+                          <span className="text-sm text-gray-600 font-poppins-light">
+                            Mã booking
+                          </span>
+                          <span className="text-md font-poppins-regular">
+                            {selectedTransaction.bookingCode}
+                          </span>
+                        </div>
+                      )}
+
+                      {selectedTransaction.paymentMethod && (
+                        <div className="flex justify-between py-2 border-b">
+                          <span className="text-sm text-gray-600 font-poppins-light">
+                            Phương thức thanh toán
+                          </span>
+                          <span className="text-md font-poppins-regular">
+                            {paymentMethods.find(
+                              (m) =>
+                                m.value === selectedTransaction.paymentMethod
+                            )?.label || selectedTransaction.paymentMethod}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex justify-between py-2 border-b">
+                        <span className="text-sm text-gray-600 font-poppins-light">
+                          Thời gian
+                        </span>
+                        <div className="text-right">
+                          <p className="text-md font-poppins-regular">
+                            {new Date(
+                              selectedTransaction.createdAt
+                            ).toLocaleString("vi-VN", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                          <p className="text-xs text-gray-500 font-poppins-light">
+                            {formatDistanceToNow(
+                              new Date(selectedTransaction.createdAt),
+                              {
+                                addSuffix: true,
+                                locale: vi,
+                              }
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+          </DialogContent>
+        </Dialog>
       </div>
     </main>
   );
