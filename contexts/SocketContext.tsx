@@ -18,24 +18,51 @@ export const useSocket = () => useContext(SocketContext);
 export function SocketProvider({ children }: { children: React.ReactNode }) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [authToken, setAuthToken] = useState<string | null>(null);
 
   useEffect(() => {
-    // Lấy token từ localStorage
-    const token = localStorage.getItem("accessToken");
+    const readToken = () => localStorage.getItem("accessToken");
 
-    if (!token) {
-      // Không hiển thị cảnh báo - đây là hành vi bình thường khi chưa đăng nhập
-      console.log("ℹ️ User not logged in - WebSocket will not connect");
+    setAuthToken(readToken());
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === "accessToken") {
+        setAuthToken(event.newValue);
+      }
+    };
+
+    const handleAuthChanged = () => {
+      setAuthToken(readToken());
+    };
+
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("auth-changed", handleAuthChanged as EventListener);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener(
+        "auth-changed",
+        handleAuthChanged as EventListener
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!authToken) {
+      if (socket) {
+        console.log("🔌 Disconnecting socket because user is logged out");
+        socket.disconnect();
+        setSocket(null);
+      }
+      setIsConnected(false);
       return;
     }
 
-    // Lấy URL từ environment variable hoặc dùng default
     const socketUrl =
       process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3000";
 
-    // Kết nối WebSocket
     const socketInstance = io(`${socketUrl}/chat`, {
-      auth: { token },
+      auth: { token: authToken },
       transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionAttempts: 5,
@@ -69,8 +96,10 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     return () => {
       console.log("🔌 Disconnecting socket...");
       socketInstance.disconnect();
+      setIsConnected(false);
+      setSocket(null);
     };
-  }, []);
+  }, [authToken]);
 
   return (
     <SocketContext.Provider value={{ socket, isConnected }}>
