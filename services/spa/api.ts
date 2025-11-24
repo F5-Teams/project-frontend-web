@@ -43,7 +43,27 @@ export const spaApi = {
   getAvailableCombos: async (): Promise<SpaCombo[]> => {
     try {
       const response = await api.get("/combos/available");
-      return response.data || []; // API returns array directly
+      // Normalize response: API should return an array directly, or
+      // { data: SpaCombo[] } in some cases. Validate to avoid returning
+      // an HTML string or other unexpected payload which breaks callers.
+      const payload = response.data;
+
+      if (Array.isArray(payload)) {
+        return payload;
+      }
+
+      if (payload && Array.isArray(payload.data)) {
+        return payload.data;
+      }
+
+      // Unexpected shape (e.g. HTML string when backend redirected to login).
+      const receivedType = typeof payload;
+      console.error(
+        "spaApi.getAvailableCombos: unexpected response shape:",
+        receivedType,
+        payload
+      );
+      throw new Error("Không thể tải danh sách combo spa (invalid response)");
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error && "response" in error
