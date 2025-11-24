@@ -21,19 +21,22 @@ export default function PaymentReturnPage() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const paymentStatus = searchParams.get("status");
+    const paymentStatus =
+      searchParams.get("payment_status") || searchParams.get("status");
+
     const orderId =
-      searchParams.get("orderId") || searchParams.get("orderBookingId");
+      searchParams.get("id") ||
+      searchParams.get("orderId") ||
+      searchParams.get("orderBookingId");
+
     const depositAmount = searchParams.get("amount");
 
     if (!paymentStatus && orderId) {
       setStatus("success");
       setMessage(`Thanh toán MOMO thành công! Mã đơn: ${orderId}`);
 
-      // Xóa cart sau khi thanh toán thành công
       clearCart();
 
-      // Invalidate hotel rooms cache to refresh room status
       queryClient.invalidateQueries({
         predicate: (query) => {
           const queryKey = query.queryKey as string[];
@@ -42,7 +45,6 @@ export default function PaymentReturnPage() {
         refetchType: "active",
       });
 
-      // Trigger custom event to notify hotel page to refetch with saved dates
       if (typeof window !== "undefined") {
         const checkIn = localStorage.getItem("pendingHotelCheckIn");
         const checkOut = localStorage.getItem("pendingHotelCheckOut");
@@ -55,7 +57,6 @@ export default function PaymentReturnPage() {
         }
       }
 
-      // Xóa cache
       localStorage.removeItem("pendingPayment");
       localStorage.removeItem("pendingOrderId");
       localStorage.removeItem("pendingHotelCheckIn");
