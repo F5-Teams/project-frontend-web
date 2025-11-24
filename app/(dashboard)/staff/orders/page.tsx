@@ -238,6 +238,8 @@ const OrderPage = () => {
     switch (status) {
       case "PAID":
         return "Chờ duyệt";
+      case "ON_PROGRESSING":
+        return "Chờ thanh toán";
       case "APPROVED":
         return "Đã duyệt";
       case "SHIPPING":
