@@ -6,24 +6,26 @@ import { BookingBox } from "./BookingBox";
 import { formatDMY, startOfWeek, addDays, toDate } from "@/utils/dateRange";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { STATUS_ORDER, getStatusDotClass, getStatusLabel } from "./StatusBadge";
-import { CalendarBooking } from "@/types/calendarType";
+import { Booking } from "@/services/profile/profile-schedule/types";
 
 type Props = {
-  data: CalendarBooking[];
+  data: Booking[];
   weekAnchor?: Date;
   selectedId?: string | number;
-  onSelect?: (b: CalendarBooking) => void;
+  onSelect?: (b: Booking) => void;
+  onRequestFeedback?: (b: Booking) => void;
   tzLabel?: string;
   onWeekChange?: (anchor: Date) => void;
 };
 
-type Span = { b: CalendarBooking; startIdx: number; endIdx: number };
+type Span = { b: Booking; startIdx: number; endIdx: number };
 
 export function WeeklyGrid({
   data,
   weekAnchor,
   selectedId,
   onSelect,
+  onRequestFeedback,
   onWeekChange,
 }: Props) {
   const [anchor, setAnchor] = React.useState<Date>(() =>
@@ -57,12 +59,15 @@ export function WeeklyGrid({
   const spans = React.useMemo<Span[]>(() => {
     const out: Span[] = [];
     data.forEach((b) => {
-      const rawS = toDate(
-        b.meta?.startDate ?? b.meta?.bookingDate ?? b.startDate
-      );
-      const rawE = toDate(
-        b.meta?.endDate ?? b.meta?.bookingDate ?? b.endDate ?? b.startDate
-      );
+      // For HOTEL bookings with slot, use slot dates
+      // For SPA bookings, use bookingDate
+      const rawS = b.slot?.startDate
+        ? toDate(b.slot.startDate)
+        : toDate(b.bookingDate);
+      const rawE = b.slot?.endDate
+        ? toDate(b.slot.endDate)
+        : toDate(b.bookingDate);
+
       if (!rawS || !rawE) return;
 
       const s = new Date(
@@ -225,6 +230,7 @@ export function WeeklyGrid({
                     setOpenId((cur) => (cur === bk.id ? null : bk.id))
                   }
                   onSelect={onSelect}
+                  onRequestFeedback={onRequestFeedback}
                 />
               </div>
             ))
