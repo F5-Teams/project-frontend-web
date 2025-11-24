@@ -19,3 +19,50 @@ export interface Wallet {
   userId: number;
   transactions: Transaction[];
 }
+
+export type TransactionType =
+  | "WALLET_DEPOSIT"
+  | "WALLET_WITHDRAW"
+  | "WALLET_PAYMENT"
+  | "WALLET_REFUND"
+  | "BOOKING_PAYMENT"
+  | "ORDER_PAYMENT"
+  | "WITHDRAW";
+
+export type PaymentMethod =
+  | "CASH"
+  | "BANK_TRANSFER"
+  | "WALLET"
+  | "MOMO"
+  | "VNPAY"
+  | "PAYOS";
+
+export interface TransactionHistoryItem {
+  id: number;
+  type: TransactionType;
+  paymentMethod: PaymentMethod;
+  amount: number;
+  status: "PENDING" | "SUCCEED" | "FAILED" | "REFUNDED" | "PAID";
+  description: string;
+  createdAt: string;
+  bookingId?: number | null;
+  bookingCode?: string | null;
+  balanceAfter: number;
+}
+
+export interface TransactionHistoryParams {
+  page?: number;
+  limit?: number;
+  type?: TransactionType;
+  paymentMethod?: PaymentMethod;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface TransactionHistoryResponse {
+  transactions: TransactionHistoryItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}

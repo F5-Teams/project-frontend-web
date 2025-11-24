@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useGetAllOrder } from "@/services/orders/getAllOrder/hooks";
@@ -24,7 +25,8 @@ const OrderPage = () => {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [openComplete, setOpenComplete] = useState(false);
   const [loadingDelete, setLoadingDelete] = useState(false);
-  const { data: allOrder } = useGetAllOrder();
+  const { data: orderResponse } = useGetAllOrder();
+  const allOrder = orderResponse?.data || [];
   const [selectedOrder, setSelectedOrder] = useState<Order>();
   const queryClient = useQueryClient();
   const { mutate: postOrderGhn } = usePostOrderGhn();
@@ -74,7 +76,7 @@ const OrderPage = () => {
     try {
       await patchOrder({ id: orderId, body });
       toast.success("Duyệt đơn hàng thành công!");
-      queryClient.invalidateQueries(["getAllOrder"]);
+      queryClient.invalidateQueries({ queryKey: ["getAllOrder"] });
     } catch (error) {
       toast.error("Duyệt đơn thất bại!");
       console.log(error);
@@ -87,7 +89,7 @@ const OrderPage = () => {
         toast.promise(
           (async () => {
             await patchOrder({ id: order.id, body: { status: "SHIPPING" } });
-            queryClient.invalidateQueries(["getAllOrder"]);
+            queryClient.invalidateQueries({ queryKey: ["getAllOrder"] });
             return res.ghnOrderCode;
           })(),
           {
@@ -104,6 +106,17 @@ const OrderPage = () => {
     });
   };
 
+  const handleInternalShipping = async (order: Order) => {
+    try {
+      await patchOrder({ id: order.id, body: { status: "SHIPPING" } });
+      toast.success("Đơn hàng đã chuyển sang giao hàng nội bộ!");
+      queryClient.invalidateQueries({ queryKey: ["getAllOrder"] });
+    } catch (error) {
+      toast.error("Cập nhật thất bại!");
+      console.log(error);
+    }
+  };
+
   const handleCancelGHN = (order: Order) => {
     postOrderGhnCancel(order.id, {
       onSuccess: async () => {
@@ -115,7 +128,7 @@ const OrderPage = () => {
           toast.success(
             "Hủy vận đơn thành công! Đơn chuyển về trạng thái ĐÃ DUYỆT."
           );
-          queryClient.invalidateQueries(["getAllOrder"]);
+          queryClient.invalidateQueries({ queryKey: ["getAllOrder"] });
         } catch (err) {
           toast.error(
             "Hủy vận đơn thành công nhưng cập nhật trạng thái thất bại!"
@@ -137,7 +150,7 @@ const OrderPage = () => {
         toast.success("Xóa đơn hàng thành công!");
         setIsDeleteOpen(false);
         setSelectedOrder(undefined);
-        queryClient.invalidateQueries(["getAllOrder"]);
+        queryClient.invalidateQueries({ queryKey: ["getAllOrder"] });
       },
       onError: () => toast.error("Xóa đơn hàng thất bại!"),
       onSettled: () => setLoadingDelete(false),
@@ -169,7 +182,7 @@ const OrderPage = () => {
 
             await patchOrder({ id: order.id, body });
             toast.success("Hoàn tiền và cập nhật đơn thành công!");
-            queryClient.invalidateQueries(["getAllOrder"]);
+            queryClient.invalidateQueries({ queryKey: ["getAllOrder"] });
           } catch (err) {
             toast.error("Cập nhật trạng thái đơn thất bại!");
             console.log(err);
@@ -208,7 +221,7 @@ const OrderPage = () => {
 
           await patchOrder({ id: order.id, body });
           toast.success("Hoàn tiền và cập nhật đơn thành công!");
-          queryClient.invalidateQueries(["getAllOrder"]);
+          queryClient.invalidateQueries({ queryKey: ["getAllOrder"] });
         } catch (err) {
           toast.error("Cập nhật trạng thái đơn thất bại!");
           console.log(err);
@@ -236,6 +249,8 @@ const OrderPage = () => {
     switch (status) {
       case "PAID":
         return "Chờ duyệt";
+      case "ON_PROGRESSING":
+        return "Chờ thanh toán";
       case "APPROVED":
         return "Đã duyệt";
       case "SHIPPING":
@@ -255,7 +270,7 @@ const OrderPage = () => {
     }
   };
 
-  console.log("first", allOrder);
+  console.log("Order Response:", orderResponse);
 
   const columns = [
     {
@@ -380,16 +395,29 @@ const OrderPage = () => {
             </Button>
           )}
 
-          {record.status === "APPROVED" && (
-            <Button
-              type="default"
-              size="small"
-              className="bg-[#5ecdf1]! text-white! hover:bg-[#3ebbe5]!"
-              onClick={() => handleCreateGHN(record)}
-            >
-              Tạo vận đơn GHN
-            </Button>
-          )}
+          {record.status === "APPROVED" &&
+            record.shipping?.provider !== "INTERNAL" && (
+              <Button
+                type="default"
+                size="small"
+                className="bg-[#5ecdf1]! text-white! hover:bg-[#3ebbe5]!"
+                onClick={() => handleCreateGHN(record)}
+              >
+                Tạo vận đơn GHN
+              </Button>
+            )}
+
+          {record.status === "APPROVED" &&
+            record.shipping?.provider === "INTERNAL" && (
+              <Button
+                type="default"
+                size="small"
+                className="bg-purple-500! text-white! hover:bg-purple-600!"
+                onClick={() => handleInternalShipping(record)}
+              >
+                Giao hàng nội bộ
+              </Button>
+            )}
 
           {record.status === "SHIPPING" && (
             <>
@@ -406,8 +434,8 @@ const OrderPage = () => {
                 type="primary"
                 size="small"
                 onClick={() => {
-                  handleComplete(record);
                   setSelectedOrder(record);
+                  handleComplete();
                 }}
               >
                 Hoàn thành
@@ -462,7 +490,7 @@ const OrderPage = () => {
       <Table
         rowKey="id"
         columns={columns}
-        dataSource={allOrder || []}
+        dataSource={allOrder}
         pagination={{ pageSize: 8 }}
       />
 
