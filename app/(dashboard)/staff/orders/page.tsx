@@ -106,6 +106,17 @@ const OrderPage = () => {
     });
   };
 
+  const handleInternalShipping = async (order: Order) => {
+    try {
+      await patchOrder({ id: order.id, body: { status: "SHIPPING" } });
+      toast.success("Đơn hàng đã chuyển sang giao hàng nội bộ!");
+      queryClient.invalidateQueries({ queryKey: ["getAllOrder"] });
+    } catch (error) {
+      toast.error("Cập nhật thất bại!");
+      console.log(error);
+    }
+  };
+
   const handleCancelGHN = (order: Order) => {
     postOrderGhnCancel(order.id, {
       onSuccess: async () => {
@@ -384,16 +395,29 @@ const OrderPage = () => {
             </Button>
           )}
 
-          {record.status === "APPROVED" && (
-            <Button
-              type="default"
-              size="small"
-              className="bg-[#5ecdf1]! text-white! hover:bg-[#3ebbe5]!"
-              onClick={() => handleCreateGHN(record)}
-            >
-              Tạo vận đơn GHN
-            </Button>
-          )}
+          {record.status === "APPROVED" &&
+            record.shipping?.provider !== "INTERNAL" && (
+              <Button
+                type="default"
+                size="small"
+                className="bg-[#5ecdf1]! text-white! hover:bg-[#3ebbe5]!"
+                onClick={() => handleCreateGHN(record)}
+              >
+                Tạo vận đơn GHN
+              </Button>
+            )}
+
+          {record.status === "APPROVED" &&
+            record.shipping?.provider === "INTERNAL" && (
+              <Button
+                type="default"
+                size="small"
+                className="bg-purple-500! text-white! hover:bg-purple-600!"
+                onClick={() => handleInternalShipping(record)}
+              >
+                Giao hàng nội bộ
+              </Button>
+            )}
 
           {record.status === "SHIPPING" && (
             <>
