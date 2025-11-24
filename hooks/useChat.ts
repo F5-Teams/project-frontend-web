@@ -34,7 +34,9 @@ export function useChat({
     if (!socket || !isConnected || !roomId) return;
 
     setLoading(true);
-    console.log(`📣 useChat emitting join_room (roomId: ${roomId}) socketId: ${socket.id}`);
+    console.log(
+      `📣 useChat emitting join_room (roomId: ${roomId}) socketId: ${socket.id}`
+    );
     socket.emit("join_room", { roomId });
 
     socket.on("joined_room", () => {
@@ -78,7 +80,9 @@ export function useChat({
     if (!socket) return;
     const onConnect = () => {
       if (!roomId) return;
-      console.log(`🔌 useChat socket reconnected - re-emit join_room: ${roomId}`);
+      console.log(
+        `🔌 useChat socket reconnected - re-emit join_room: ${roomId}`
+      );
       socket.emit("join_room", { roomId });
     };
     socket.on("connect", onConnect);

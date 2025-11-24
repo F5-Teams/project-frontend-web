@@ -526,7 +526,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
             cache = { userId, pets: parsed as Pet[] };
             break;
           }
-        } catch {}
+        } catch { }
       }
 
       const FRESH_MS = 10 * 60 * 1000; // 10 minutes
@@ -550,7 +550,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
               "userPetsCache_v1",
               JSON.stringify({ userId, pets: data ?? [], ts: Date.now() })
             );
-          } catch {}
+          } catch { }
         })
         .catch(() => {
           // ignore errors; UI will keep manual fields
@@ -802,8 +802,8 @@ export function HappyPawsChat({ className }: { className?: string }) {
                               loadingPets
                                 ? "Đang tải thú cưng..."
                                 : pets.length
-                                ? "Chọn thú cưng của bạn"
-                                : "Chưa có thú cưng để chọn"
+                                  ? "Chọn thú cưng của bạn"
+                                  : "Chưa có thú cưng để chọn"
                             }
                           />
                         </SelectTrigger>
