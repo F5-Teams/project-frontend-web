@@ -141,6 +141,8 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
           ? "MOMO"
           : option === "cod"
           ? "CASH"
+          : option === "vnpay"
+          ? "VNPAY"
           : "",
 
       voucherCode: chooseVoucher?.code || "",
@@ -315,12 +317,12 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
           value={option}
           className="flex gap-4 mt-1"
         >
-          {/* <Radio value="vnpay">
+          <Radio value="vnpay">
             <div className="flex items-center gap-2">
               <img src="/images/vnpay.png" alt="VNPAY" className="w-6 h-6" />
               <span>VNPAY</span>
             </div>
-          </Radio> */}
+          </Radio>
 
           <Radio value="momo">
             <div className="flex items-center gap-2">
