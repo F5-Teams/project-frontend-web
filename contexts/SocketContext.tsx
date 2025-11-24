@@ -61,6 +61,15 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     const socketUrl =
       process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3000";
 
+    // Debug: log where we are connecting and ensure the access token is available
+    console.log(`🔌 Attempting WebSocket connection to: ${socketUrl}/chat`);
+    console.log(
+      `🔐 Has token: ${!!authToken} | token (truncated): ${authToken?.slice(
+        0,
+        12
+      )}...`
+    );
+
     const socketInstance = io(`${socketUrl}/chat`, {
       auth: { token: authToken },
       transports: ["websocket", "polling"],
@@ -72,6 +81,18 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     socketInstance.on("connect", () => {
       console.log("✅ WebSocket connected:", socketInstance.id);
       setIsConnected(true);
+    });
+
+    socketInstance.on("reconnect_attempt", (attempt) => {
+      console.log(`🔁 WebSocket reconnect attempt #${attempt}`);
+    });
+
+    socketInstance.on("reconnect", (attempt) => {
+      console.log(`🔁 WebSocket reconnected on attempt #${attempt}`);
+    });
+
+    socketInstance.on("reconnect_failed", () => {
+      console.error("🔴 WebSocket reconnection failed");
     });
 
     socketInstance.on("connected", (data) => {
@@ -89,6 +110,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     socketInstance.on("connect_error", (error) => {
       console.error("🔴 Connection error:", error.message);
+      console.debug("🔴 Raw connection error:", error);
     });
 
     setSocket(socketInstance);

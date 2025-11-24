@@ -34,6 +34,7 @@ export function useChat({
     if (!socket || !isConnected || !roomId) return;
 
     setLoading(true);
+    console.log(`📣 useChat emitting join_room (roomId: ${roomId}) socketId: ${socket.id}`);
     socket.emit("join_room", { roomId });
 
     socket.on("joined_room", () => {
@@ -71,6 +72,20 @@ export function useChat({
       socket.off("error");
     };
   }, [socket, isConnected, roomId, onNewMessage, onError]);
+
+  // Re-emit join_room when socket reconnects
+  useEffect(() => {
+    if (!socket) return;
+    const onConnect = () => {
+      if (!roomId) return;
+      console.log(`🔌 useChat socket reconnected - re-emit join_room: ${roomId}`);
+      socket.emit("join_room", { roomId });
+    };
+    socket.on("connect", onConnect);
+    return () => {
+      socket.off("connect", onConnect);
+    };
+  }, [socket, roomId]);
 
   // Auto scroll when messages change
   useEffect(() => {

@@ -195,6 +195,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
     )
       return;
 
+    console.log("📣 HappyPawsChat emitting join_room", { roomId, socketId: socket.id });
     socket.emit("join_room", { roomId });
 
     socket.on("joined_room", () => {
@@ -263,6 +264,17 @@ export function HappyPawsChat({ className }: { className?: string }) {
     currentUserId,
     resetSessionState,
   ]);
+
+  // Re-emit join_room when socket reconnects
+  useEffect(() => {
+    if (!socket || !roomId) return;
+    const onConnect = () => {
+      console.log("🔌 HappyPawsChat socket reconnected - re-emit join_room", { roomId, socketId: socket.id });
+      socket.emit("join_room", { roomId });
+    };
+    socket.on("connect", onConnect);
+    return () => socket.off("connect", onConnect);
+  }, [socket, roomId]);
 
   // Auto scroll for staff chat
   useEffect(() => {

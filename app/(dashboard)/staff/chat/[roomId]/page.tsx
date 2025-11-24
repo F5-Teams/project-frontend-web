@@ -96,6 +96,7 @@ export default function StaffChatPage() {
 
     setLoading(true);
 
+    console.log("📣 Emitting join_room for roomId:", roomId, "socketId:", socket.id);
     socket.emit("join_room", { roomId: Number(roomId) });
 
     socket.on("joined_room", (data) => {
@@ -150,6 +151,28 @@ export default function StaffChatPage() {
       socket.off("error");
     };
   }, [socket, isConnected, roomId, currentUserId, router]);
+
+  // Re-emit join_room when socket reconnects to help debug cases where
+  // join was attempted while socket was not fully connected
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleConnect = () => {
+      if (!roomId) return;
+      console.log("🔌 Socket reconnected - re-emitting join_room", {
+        roomId,
+        socketId: socket.id,
+      });
+
+      socket.emit("join_room", { roomId: Number(roomId) });
+    };
+
+    socket.on("connect", handleConnect);
+
+    return () => {
+      socket.off("connect", handleConnect);
+    };
+  }, [socket, roomId]);
 
   const sendMessage = async () => {
     if (!socket || !inputMessage.trim() || sending) return;
@@ -276,6 +299,8 @@ export default function StaffChatPage() {
                   "Mất kết nối"
                 )}
               </Badge>
+
+              {/* Debug controls removed */}
 
               <Button
                 variant="destructive"
