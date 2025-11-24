@@ -53,6 +53,7 @@ export interface Shipping {
   id: number;
   createdAt: string;
   updatedAt: string;
+  provider?: string;
   ghnOrderCode: string | null;
   ghnStatus: string | null;
   ghnExpectedDelivery: string | null;
