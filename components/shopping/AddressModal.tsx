@@ -7,6 +7,8 @@ import React, { useState, useEffect } from "react";
 import AddressFormModal from "@/components/profile/AddressFormModal";
 import { useDeleteAddress } from "@/services/address/deleteAddress/hooks";
 import { toast } from "sonner";
+import { usePatchAddressDefault } from "@/services/address/addressDefault/hooks";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface DataProps {
   open: boolean;
@@ -20,7 +22,8 @@ const AddressModal = ({ open, isCancel, addressList, onSelect }: DataProps) => {
   const [openForm, setOpenForm] = useState(false);
   const [editAddress, setEditAddress] = useState<Address | null>(null);
   const [deleteItem, setDeleteItem] = useState<Address | null>(null);
-
+  const { mutateAsync: patchDefault } = usePatchAddressDefault();
+  const queryClient = useQueryClient();
   const { mutateAsync: deleteAddress } = useDeleteAddress();
 
   useEffect(() => {
@@ -71,19 +74,47 @@ const AddressModal = ({ open, isCancel, addressList, onSelect }: DataProps) => {
 
             <div className="flex flex-col gap-2 ml-3">
               <button
-                onClick={() => {
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  if (!item.isDefault) {
+                    await patchDefault(item.id);
+                    setAddresses(
+                      addresses.map((a) => ({
+                        ...a,
+                        isDefault: a.id === item.id,
+                      }))
+                    );
+                    toast.success("Đặt địa chỉ mặc định thành công!");
+                    queryClient.invalidateQueries(["getAddress"]);
+                  }
+                }}
+                className={`p-2 rounded-lg ${
+                  item.isDefault
+                    ? "bg-pink-100 text-pink-600"
+                    : "hover:bg-pink-50 text-gray-700"
+                }`}
+              >
+                <MapPin size={14} />
+              </button>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
                   setEditAddress(item);
                   setOpenForm(true);
                 }}
                 className="p-2 hover:bg-pink-100 rounded-lg text-gray-700"
               >
-                <Pencil size={18} />
+                <Pencil size={14} />
               </button>
               <button
-                onClick={() => setDeleteItem(item)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteItem(item);
+                }}
                 className="p-2 hover:bg-red-100 rounded-lg text-red-500"
               >
-                <Trash2 size={18} />
+                <Trash2 size={14} />
               </button>
             </div>
           </div>
@@ -131,6 +162,7 @@ const AddressModal = ({ open, isCancel, addressList, onSelect }: DataProps) => {
                 toast.success("Xoá địa chỉ thành công!");
                 setDeleteItem(null);
               }
+              queryClient.invalidateQueries(["getAddress"]);
             }}
           >
             Xóa
