@@ -28,6 +28,7 @@ import {
   User,
   Phone,
   MessageSquare,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -96,7 +97,12 @@ export default function StaffChatPage() {
 
     setLoading(true);
 
-    console.log("📣 Emitting join_room for roomId:", roomId, "socketId:", socket.id);
+    console.log(
+      "📣 Emitting join_room for roomId:",
+      roomId,
+      "socketId:",
+      socket.id
+    );
     socket.emit("join_room", { roomId: Number(roomId) });
 
     socket.on("joined_room", (data) => {
@@ -232,9 +238,20 @@ export default function StaffChatPage() {
     });
   };
 
+  const isSystemMessage = (msg: Message) => {
+    const first = msg.sender.firstName?.toLowerCase() || "";
+    const username = msg.sender.userName?.toLowerCase() || "";
+    return (
+      username === "system" ||
+      first === "hệ thống" ||
+      first === "he thong" ||
+      first === "he-thong"
+    );
+  };
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -243,22 +260,22 @@ export default function StaffChatPage() {
   const customer = room?.customer || session?.customer;
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex flex-col min-h-[calc(100vh-88px)] h-[calc(100vh-88px)] min-h-0 overflow-hidden bg-gradient-to-br from-pink-50 via-white to-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-green-600 to-green-500 text-white px-4 py-4 shadow-lg">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between">
+      <div className="bg-gradient-to-r from-emerald-600 to-green-500 text-white shadow-lg rounded-b-2xl">
+        <div className="w-full h-20 max-w-7xl mx-auto px-3 sm:px-4">
+          <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4 h-full">
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => router.push("/staff/sessions")}
-                className="text-white hover:bg-white/20"
+                className="text-white hover:bg-white/15 rounded-full"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
 
-              <Avatar className="h-10 w-10 border-2 border-white">
+              <Avatar className="h-12 w-12 border-2 border-white shadow-sm">
                 <AvatarFallback className="bg-white text-green-600 font-semibold">
                   {customer &&
                     getInitials(customer.firstName, customer.lastName)}
@@ -266,18 +283,18 @@ export default function StaffChatPage() {
               </Avatar>
 
               <div>
-                <h1 className="text-lg font-semibold">
+                <h1 className="text-xl font-semibold leading-tight">
                   {customer
                     ? `${customer.firstName} ${customer.lastName}`
                     : "Khách hàng"}
                 </h1>
-                <div className="flex items-center gap-3 text-sm">
+                <div className="flex flex-wrap items-center gap-3 text-sm text-white/90">
                   <span className="flex items-center gap-1">
-                    <User className="h-3 w-3" />@{customer?.userName}
+                    <User className="h-3.5 w-3.5" />@{customer?.userName}
                   </span>
                   {customer?.phoneNumber && (
                     <span className="flex items-center gap-1">
-                      <Phone className="h-3 w-3" />
+                      <Phone className="h-3.5 w-3.5" />
                       {customer.phoneNumber}
                     </span>
                   )}
@@ -288,11 +305,11 @@ export default function StaffChatPage() {
             <div className="flex items-center gap-3">
               <Badge
                 variant="secondary"
-                className="bg-white/20 text-white border-0"
+                className="bg-white/15 text-white border-0 px-3 py-2 rounded-full"
               >
                 {isConnected ? (
                   <>
-                    <CheckCheck className="h-3 w-3 mr-1" />
+                    <CheckCheck className="h-3.5 w-3.5 mr-1" />
                     Đã kết nối
                   </>
                 ) : (
@@ -300,13 +317,12 @@ export default function StaffChatPage() {
                 )}
               </Badge>
 
-              {/* Debug controls removed */}
-
               <Button
-                variant="destructive"
+                variant="secondary"
                 size="sm"
                 onClick={() => setShowEndDialog(true)}
                 disabled={session?.status === "CLOSED"}
+                className="bg-white text-emerald-700 hover:bg-white/90 rounded-full"
               >
                 <X className="h-4 w-4 mr-2" />
                 Kết thúc
@@ -316,23 +332,23 @@ export default function StaffChatPage() {
 
           {/* Session Info */}
           {session && (
-            <div className="mt-3 p-3 bg-white/10 rounded-lg backdrop-blur">
+            <div className="mt-3 p-3 bg-white/15 rounded-lg backdrop-blur">
               <p className="text-sm font-medium">{session.title}</p>
-              <div className="flex items-center gap-2 mt-1">
+              <div className="flex items-center gap-2 mt-1 text-xs text-white/90">
                 <Badge
                   variant="secondary"
                   className={cn(
-                    "text-xs",
+                    "text-[11px] px-2 py-0.5 rounded-full",
                     session.status === "ACTIVE"
                       ? "bg-green-100 text-green-800"
                       : session.status === "CLOSED"
-                        ? "bg-gray-100 text-gray-800"
-                        : "bg-yellow-100 text-yellow-800"
+                      ? "bg-gray-100 text-gray-800"
+                      : "bg-yellow-100 text-yellow-800"
                   )}
                 >
                   {session.status}
                 </Badge>
-                <span className="text-xs opacity-90">
+                <span className="opacity-90">
                   Bắt đầu: {new Date(session.startedAt).toLocaleString("vi-VN")}
                 </span>
               </div>
@@ -342,8 +358,8 @@ export default function StaffChatPage() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4">
-        <div className="max-w-4xl mx-auto space-y-4">
+      <div className="flex-1 min-h-0 px-2 sm:px-4 py-4">
+        <div className="h-full overflow-y-auto w-full max-w-7xl mx-auto space-y-4 bg-transparent">
           {messages.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-50" />
@@ -353,49 +369,90 @@ export default function StaffChatPage() {
           ) : (
             messages.map((msg) => {
               const isOwn = currentUserId === msg.sender.id;
+              const isSystem = isSystemMessage(msg);
+              const initials = getInitials(
+                msg.sender.firstName,
+                msg.sender.lastName
+              );
+
+              if (isSystem) {
+                return (
+                  <div key={msg.id} className="flex justify-center">
+                    <div className="flex flex-col items-center max-w-5xl w-full">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                        <span className="font-semibold text-gray-800">
+                          Hệ Thống
+                        </span>
+                        <span>{formatTime(msg.createdAt)}</span>
+                      </div>
+                      <Card className="w-full bg-amber-50 border-amber-200 text-amber-900 rounded-2xl shadow-sm">
+                        <div className="flex items-start gap-2 p-3">
+                          <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5" />
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                            {msg.content}
+                          </p>
+                        </div>
+                      </Card>
+                    </div>
+                  </div>
+                );
+              }
 
               return (
                 <div
                   key={msg.id}
                   className={cn(
-                    "flex gap-3",
-                    isOwn ? "flex-row-reverse" : "flex-row"
+                    "flex items-start gap-3",
+                    isOwn ? "justify-end" : "justify-start"
                   )}
                 >
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>
-                      {getInitials(msg.sender.firstName, msg.sender.lastName)}
-                    </AvatarFallback>
-                  </Avatar>
+                  {!isOwn && (
+                    <Avatar className="h-9 w-9 shadow-sm">
+                      <AvatarFallback className="bg-slate-200 text-slate-700 font-semibold">
+                        {initials || "KH"}
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
 
                   <div
                     className={cn(
-                      "flex flex-col",
-                      isOwn ? "items-end" : "items-start"
+                      "space-y-1 max-w-5xl",
+                      isOwn ? "items-end text-right" : "items-start"
                     )}
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-medium">
-                        {msg.sender.firstName} {msg.sender.lastName}
+                    <div
+                      className={cn(
+                        "flex items-center gap-2 text-xs text-muted-foreground",
+                        isOwn ? "justify-end" : "justify-start"
+                      )}
+                    >
+                      <span className="font-semibold text-gray-800">
+                        {`${msg.sender.firstName} ${msg.sender.lastName}`}
                       </span>
-                      <span className="text-xs text-muted-foreground">
-                        {formatTime(msg.createdAt)}
-                      </span>
+                      <span>{formatTime(msg.createdAt)}</span>
                     </div>
 
                     <Card
                       className={cn(
-                        "p-3 max-w-md",
+                        "p-3 shadow-sm border rounded-2xl",
                         isOwn
-                          ? "bg-green-500 text-white"
-                          : "bg-white dark:bg-gray-800"
+                          ? "bg-emerald-50 border-emerald-100 text-emerald-900"
+                          : "bg-white border-gray-200 text-gray-900"
                       )}
                     >
-                      <p className="text-sm whitespace-pre-wrap break-words">
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
                         {msg.content}
                       </p>
                     </Card>
                   </div>
+
+                  {isOwn && (
+                    <Avatar className="h-9 w-9 shadow-sm">
+                      <AvatarFallback className="bg-emerald-500 text-white font-semibold">
+                        {initials || "NV"}
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
                 </div>
               );
             })
@@ -405,8 +462,8 @@ export default function StaffChatPage() {
       </div>
 
       {/* Input */}
-      <div className="bg-white dark:bg-gray-800 border-t p-4 shadow-lg">
-        <div className="max-w-4xl mx-auto flex gap-3">
+      <div className="bg-white/80 backdrop-blur border-t p-4 shadow-lg">
+        <div className="w-full max-w-7xl mx-auto flex gap-3">
           <Input
             ref={inputRef}
             type="text"
@@ -419,7 +476,7 @@ export default function StaffChatPage() {
                 : "Nhập tin nhắn tư vấn..."
             }
             disabled={sending || !isConnected || session?.status === "CLOSED"}
-            className="flex-1"
+            className="flex-1 rounded-xl shadow-sm"
           />
           <Button
             onClick={sendMessage}
@@ -430,7 +487,7 @@ export default function StaffChatPage() {
               session?.status === "CLOSED"
             }
             size="icon"
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-emerald-600 hover:bg-emerald-700 rounded-full shadow"
           >
             {sending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
