@@ -85,6 +85,13 @@ export const useCombos = (skipLoad: boolean = false) => {
       loadingPromise = spaApi.getAvailableCombos();
       const result = await loadingPromise;
 
+      // Validate the result to avoid cases where API returns HTML/string
+      // (e.g. login page) which would break callers that expect an array.
+      if (!Array.isArray(result)) {
+        console.error("useCombos: unexpected payload for combos:", result);
+        throw new Error("Invalid combos payload received from spaApi");
+      }
+
       // Cache the result
       combosCache = result;
       setCombos(result);
