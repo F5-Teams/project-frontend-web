@@ -440,6 +440,11 @@ export default function HotelBookingsPage() {
               </div>
 
               <div>
+                <p className="font-semibold text-pink-600">Ghi chú của chủ:</p>
+                <p>{detailBooking.note}</p>
+              </div>
+
+              <div>
                 <p className="font-semibold text-pink-600">Người đón</p>
                 <p>{detailBooking.pickupPersonName || "-"}</p>
               </div>

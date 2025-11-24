@@ -181,7 +181,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       }
     } catch (error) {
       console.error("Order error:", error);
-      toast.error("Đặt hàng thất bại. Vui lòng thử lại!");
+      toast.error(error.response.data.message);
     } finally {
       setLoading(false);
       isCancel();

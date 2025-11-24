@@ -167,11 +167,29 @@ export function BagDrawer({ children }: BagDrawerProps) {
                             <input
                               type="number"
                               min={1}
+                              max={50}
                               value={item.quantity}
                               onChange={(e) => {
-                                const value = Number(e.target.value);
-                                if (!isNaN(value) && value >= 1) {
-                                  updateQuantity(item.productId, value);
+                                let value = Number(e.target.value);
+
+                                if (isNaN(value)) return;
+
+                                if (value < 1) value = 1;
+                                if (value > 50) value = 50;
+
+                                updateQuantity(item.productId, value);
+                              }}
+                              onBlur={(e) => {
+                                let value = Number(e.target.value);
+
+                                if (isNaN(value) || value < 1) value = 1;
+                                if (value > 50) value = 50;
+
+                                updateQuantity(item.productId, value);
+                              }}
+                              onKeyDown={(e) => {
+                                if (["e", "E", "+", "-", "."].includes(e.key)) {
+                                  e.preventDefault();
                                 }
                               }}
                               className="w-10 text-center text-sm border-x border-pink-300 focus:outline-none"
@@ -181,7 +199,7 @@ export function BagDrawer({ children }: BagDrawerProps) {
                               onClick={() =>
                                 updateQuantity(
                                   item.productId,
-                                  item.quantity + 1
+                                  Math.min(50, item.quantity + 1)
                                 )
                               }
                               className="w-8 h-7 flex items-center justify-center text-pink-600 hover:bg-pink-50 transition"
@@ -190,7 +208,6 @@ export function BagDrawer({ children }: BagDrawerProps) {
                             </button>
                           </div>
 
-                          {/* Giá tiền */}
                           <span className="text-sm font-semibold text-gray-600">
                             {item.price.toLocaleString("vi-VN")} đ
                           </span>
