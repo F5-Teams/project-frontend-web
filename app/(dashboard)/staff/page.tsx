@@ -57,7 +57,7 @@ export default function BookingListPage() {
   const fetchBookings = async () => {
     try {
       // Fetch all bookings for filtering
-      const res = await api.get("/bookings/admin-staff", {
+      const res = await api.get("/bookings", {
         params: { page: 1, limit: 1000 },
       });
       const data = res.data?.data || res.data || [];
