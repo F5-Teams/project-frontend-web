@@ -256,7 +256,26 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
               showSearch
               placeholder="Chọn địa chỉ"
               className="mt-1 w-full"
-              optionFilterProp="children"
+              optionLabelProp="name"
+              options={addressList.map((item) => ({
+                value: item.id,
+                name: `${item.name} (${item.phone})`,
+                label: (
+                  <div className="flex flex-col whitespace-normal leading-tight">
+                    <span>
+                      {item.name} ({item.phone})
+                      {item.isDefault && (
+                        <span className="text-xs bg-pink-100 text-pink-600 rounded-full px-2 py-0.5 ml-2">
+                          Mặc định
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-sm text-gray-600">
+                      {item.address}, {item.districtName}, {item.provinceName}
+                    </span>
+                  </div>
+                ),
+              }))}
               popupRender={(menu) => (
                 <div className="min-w-[400px]">
                   {menu}
@@ -270,25 +289,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
                   </div>
                 </div>
               )}
-            >
-              {addressList.map((item: Address) => (
-                <Select.Option key={item.id} value={item.id}>
-                  <div className="whitespace-normal flex flex-col">
-                    <span>
-                      {item.name} ({item.phone})
-                      {item.isDefault && (
-                        <span className="text-xs bg-pink-100 text-pink-600 rounded-full px-2 py-0.5 ml-2">
-                          Mặc định
-                        </span>
-                      )}
-                    </span>
-                    <span className="text-sm text-gray-600">
-                      {item.address}, {item.districtName}, {item.provinceName}
-                    </span>
-                  </div>
-                </Select.Option>
-              ))}
-            </Select>
+            />
           </Form.Item>
         </div>
       </Form>
