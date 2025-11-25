@@ -141,6 +141,8 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
           ? "MOMO"
           : option === "cod"
           ? "CASH"
+          : option === "vnpay"
+          ? "VNPAY"
           : "",
 
       voucherCode: chooseVoucher?.code || "",
@@ -204,7 +206,11 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       }}
       footer={null}
       width={600}
-      title={<span className="font-semibold text-lg">🛒 Order Summary</span>}
+      title={
+        <span className="font-poppins-light font-light text-lg">
+          🛒 Tổng đơn hàng
+        </span>
+      }
     >
       <div className="space-y-3 max-h-[300px] overflow-y-auto">
         {items.map((item) => (
@@ -219,13 +225,15 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
                 className="w-16 h-16 object-cover rounded-md"
               />
               <div className="text-left">
-                <p className="font-medium text-gray-800">{item.name}</p>
+                <p className="font-poppins-light font-light text-gray-800">
+                  {item.name}
+                </p>
                 <p className="text-sm text-gray-500">
                   {item.quantity} × {item.price.toLocaleString("vi-VN")} VNĐ
                 </p>
               </div>
             </div>
-            <div className="font-semibold text-pink-600">
+            <div className="font-poppins-light font-medium text-pink-600">
               {(item.price * item.quantity).toLocaleString("vi-VN")} VNĐ
             </div>
           </div>
@@ -243,31 +251,40 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
         <div className="flex">
           <h1 className="w-[30%]">Chọn địa chỉ:</h1>
 
-          <Form.Item name="address" className="w-[60%]">
+          <Form.Item name="address" className="w-[70%]">
             <Select
               showSearch
               placeholder="Chọn địa chỉ"
               className="mt-1 w-full"
               optionFilterProp="children"
               popupRender={(menu) => (
-                <div>
+                <div className="min-w-[400px]">
                   {menu}
                   <div
                     onClick={() => setIsAddressModalOpen(true)}
-                    className="text-center py-2 cursor-pointer border-t hover:bg-pink-50 text-pink-600 font-medium"
+                    className="text-center py-2 cursor-pointer border-t hover:bg-pink-50 text-pink-600 font-poppins-light font-light"
                   >
-                    Thay đổi địa chỉ
+                    {addressList.length === 0
+                      ? "Tạo địa chỉ mới"
+                      : "Sửa địa chỉ"}
                   </div>
                 </div>
               )}
             >
               {addressList.map((item: Address) => (
                 <Select.Option key={item.id} value={item.id}>
-                  <div className="flex gap-2">
-                    <p className="font-medium">
+                  <div className="whitespace-normal flex flex-col">
+                    <span>
                       {item.name} ({item.phone})
-                    </p>
-                    {item.address} / {item.districtName} / {item.provinceName}
+                      {item.isDefault && (
+                        <span className="text-xs bg-pink-100 text-pink-600 rounded-full px-2 py-0.5 ml-2">
+                          Mặc định
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-sm text-gray-600">
+                      {item.address}, {item.districtName}, {item.provinceName}
+                    </span>
                   </div>
                 </Select.Option>
               ))}
@@ -287,7 +304,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
           allowClear
           placeholder="Chọn voucher"
           onClear={() => setChooseVoucher(undefined)}
-          style={{ width: "60%" }}
+          style={{ width: "70%" }}
           options={voucher.map((item) => ({
             label: `Voucher giảm ${item.percent}%`,
             value: item.code,
@@ -298,7 +315,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       <div className="border-t border-gray-200 my-2" />
 
       <div className="flex justify-between items-center mb-5">
-        <div className="text-sm font-medium mt-1">
+        <div className="text-sm font-poppins-light font-medium mt-1">
           <p>Giá sản phẩm: {total.toLocaleString("vi-VN")} VNĐ</p>
           <p>
             Phí vận chuyển:{" "}
@@ -308,19 +325,21 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       </div>
 
       <div className="gap-2 items-center">
-        <h1 className="font-semibold mb-2">Phương thức thanh toán:</h1>
+        <h1 className="font-poppins-light font-light mb-2">
+          Phương thức thanh toán:
+        </h1>
 
         <Radio.Group
           onChange={(e) => setOption(e.target.value)}
           value={option}
           className="flex gap-4 mt-1"
         >
-          {/* <Radio value="vnpay">
+          <Radio value="vnpay">
             <div className="flex items-center gap-2">
               <img src="/images/vnpay.png" alt="VNPAY" className="w-6 h-6" />
               <span>VNPAY</span>
             </div>
-          </Radio> */}
+          </Radio>
 
           <Radio value="momo">
             <div className="flex items-center gap-2">
@@ -346,8 +365,10 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       </div>
 
       <div className="flex justify-between items-center">
-        <span className="font-semibold text-base">Tổng thanh toán:</span>
-        <span className="text-green-600 font-bold text-lg">
+        <span className="font-poppins-light font-light text-base">
+          Tổng thanh toán:
+        </span>
+        <span className="text-green-600 font-bold font-poppins-light  text-lg">
           {(
             total +
             (fee?.data?.service_fee ?? 0) -
@@ -367,7 +388,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
             form.resetFields();
             isCancel();
           }}
-          className="flex-1! py-2! rounded-xl! border border-pink-500! cursor-pointer! text-pink-600! font-semibold! hover:bg-pink-50 transition"
+          className="flex-1! py-2! rounded-xl! border border-pink-500! cursor-pointer! text-pink-600! font-poppins-light font-light! hover:bg-pink-50 transition"
         >
           Hủy
         </Button>

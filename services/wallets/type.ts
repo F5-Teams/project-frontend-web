@@ -45,6 +45,7 @@ export interface TransactionHistoryItem {
   bookingId?: number | null;
   bookingCode?: string | null;
   balanceAfter: number;
+  orderId?: number | null;
 }
 
 export interface TransactionHistoryParams {

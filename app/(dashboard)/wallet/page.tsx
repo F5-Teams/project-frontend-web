@@ -741,8 +741,8 @@ export default function WalletPage() {
                     </div>
 
                     {/* Details */}
-                    <div className="space-y-3">
-                      <div className="flex justify-between py-2 border-b">
+                    <div className="space-y-2">
+                      <div className="flex justify-between py-1 border-b">
                         <span className="text-sm text-gray-600 font-poppins-light">
                           Mã giao dịch
                         </span>
@@ -752,7 +752,7 @@ export default function WalletPage() {
                       </div>
 
                       {selectedTransaction.bookingCode && (
-                        <div className="flex justify-between py-2 border-b">
+                        <div className="flex justify-between py-1 border-b">
                           <span className="text-sm text-gray-600 font-poppins-light">
                             Mã booking
                           </span>
@@ -763,7 +763,7 @@ export default function WalletPage() {
                       )}
 
                       {selectedTransaction.paymentMethod && (
-                        <div className="flex justify-between py-2 border-b">
+                        <div className="flex justify-between py-1 border-b">
                           <span className="text-sm text-gray-600 font-poppins-light">
                             Phương thức thanh toán
                           </span>

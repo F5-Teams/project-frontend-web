@@ -71,6 +71,28 @@ export default function HomeLayout({
         console.error("❌ Lỗi xử lý user Google login:", err);
       }
     }
+
+    const type = params.get("type");
+    const id = params.get("id");
+    const paymentStatus = params.get("payment_status") || params.get("status");
+
+    if (type === "order" && id && paymentStatus) {
+      const redirectUrl = `/success?type=${encodeURIComponent(
+        type
+      )}&id=${encodeURIComponent(id)}&payment_status=${encodeURIComponent(
+        paymentStatus
+      )}`;
+
+      if (paymentStatus === "success") {
+        window.location.href = redirectUrl;
+      } else {
+        window.location.href = `/failed?type=${encodeURIComponent(
+          type
+        )}&id=${encodeURIComponent(id)}&payment_status=${encodeURIComponent(
+          paymentStatus
+        )}`;
+      }
+    }
   }, []);
 
   return (

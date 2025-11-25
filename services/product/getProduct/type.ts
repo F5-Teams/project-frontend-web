@@ -26,4 +26,8 @@ export interface ProductAdmin {
   orderDetails: Order[];
 }
 
-export type GetAllProductAdminResponse = ProductAdmin[];
+export interface GetAllProductAdminResponse {
+  status: number;
+  message: string;
+  data: ProductAdmin[];
+}

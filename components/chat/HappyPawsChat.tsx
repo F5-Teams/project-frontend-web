@@ -80,6 +80,17 @@ export function HappyPawsChat({ className }: { className?: string }) {
   const [userInfo, setUserInfo] = useState<UserInfo>({});
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  const resetSessionState = useCallback(() => {
+    setHasSession(false);
+    setCurrentSession(null);
+    setStaffMessages([]);
+    setStaffInput("");
+    setConsultationTitle("");
+    setSelectedConsultationType("");
+    setCustomConsultationInput("");
+    setStaffJoined(false);
+  }, []);
+
   const canSend = useMemo(
     () => input.trim().length > 0 && !sending,
     [input, sending]
@@ -184,6 +195,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
     )
       return;
 
+    console.log("📣 HappyPawsChat emitting join_room", { roomId, socketId: socket.id });
     socket.emit("join_room", { roomId });
 
     socket.on("joined_room", () => {
@@ -216,14 +228,53 @@ export function HappyPawsChat({ className }: { className?: string }) {
       toast.info("Phiên tư vấn đã kết thúc");
     });
 
+    type SocketErrorPayload = { message?: string; roomClosed?: boolean };
+    const handleSocketError = (error: SocketErrorPayload | string) => {
+      console.error("Socket error in HappyPawsChat:", error);
+      const payload =
+        typeof error === "object" && error !== null ? error : undefined;
+      const errorMessage =
+        typeof error === "string"
+          ? error
+          : payload?.message || "Không thể kết nối tới phòng chat";
+      toast.error(errorMessage);
+
+      if (payload?.roomClosed) {
+        resetSessionState();
+        toast.info("Phiên tư vấn đã đóng, hãy tạo yêu cầu mới nhé!");
+      }
+    };
+
+    socket.on("error", handleSocketError);
+
     return () => {
       socket.off("joined_room");
       socket.off("room_history");
       socket.off("new_message");
       socket.off("session_joined");
       socket.off("session_ended");
+      socket.off("error", handleSocketError);
     };
-  }, [socket, isConnected, roomId, hasSession, chatMode, currentUserId]);
+  }, [
+    socket,
+    isConnected,
+    roomId,
+    hasSession,
+    chatMode,
+    currentUserId,
+    resetSessionState,
+  ]);
+
+  // Re-emit join_room when socket reconnects
+  useEffect(() => {
+    if (!socket || !roomId) return;
+    const onConnect = () => {
+      console.log("🔌 HappyPawsChat socket reconnected - re-emit join_room", { roomId, socketId: socket.id });
+      socket.emit("join_room", { roomId });
+    };
+    socket.on("connect", onConnect);
+    return () => socket.off("connect", onConnect);
+  }, [socket, roomId]);
 
   // Auto scroll for staff chat
   useEffect(() => {
@@ -475,7 +526,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
             cache = { userId, pets: parsed as Pet[] };
             break;
           }
-        } catch {}
+        } catch { }
       }
 
       const FRESH_MS = 10 * 60 * 1000; // 10 minutes
@@ -499,7 +550,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
               "userPetsCache_v1",
               JSON.stringify({ userId, pets: data ?? [], ts: Date.now() })
             );
-          } catch {}
+          } catch { }
         })
         .catch(() => {
           // ignore errors; UI will keep manual fields
@@ -539,11 +590,14 @@ export function HappyPawsChat({ className }: { className?: string }) {
       return;
     }
 
-    if (!roomId) {
+    let targetRoomId = roomId;
+
+    if (!targetRoomId) {
       try {
         const rooms = await chatApi.getRooms();
         if (rooms && rooms.length > 0) {
-          setRoomId(rooms[0].id);
+          targetRoomId = rooms[0].id;
+          setRoomId(targetRoomId);
         } else {
           toast.error("Không tìm thấy phòng chat của bạn");
           return;
@@ -554,10 +608,15 @@ export function HappyPawsChat({ className }: { className?: string }) {
       }
     }
 
+    if (!targetRoomId) {
+      toast.error("Không thể xác định phòng chat");
+      return;
+    }
+
     setCreatingSession(true);
     try {
       const session = await chatApi.createSession(
-        roomId!,
+        targetRoomId,
         consultationTitle.trim()
       );
       setHasSession(true);
@@ -594,11 +653,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
   };
 
   const handleResetToNewSession = () => {
-    setHasSession(false);
-    setCurrentSession(null);
-    setStaffMessages([]);
-    setConsultationTitle("");
-    setStaffJoined(false);
+    resetSessionState();
     toast.info("Hãy tạo yêu cầu tư vấn mới");
   };
 
@@ -747,8 +802,8 @@ export function HappyPawsChat({ className }: { className?: string }) {
                               loadingPets
                                 ? "Đang tải thú cưng..."
                                 : pets.length
-                                ? "Chọn thú cưng của bạn"
-                                : "Chưa có thú cưng để chọn"
+                                  ? "Chọn thú cưng của bạn"
+                                  : "Chưa có thú cưng để chọn"
                             }
                           />
                         </SelectTrigger>

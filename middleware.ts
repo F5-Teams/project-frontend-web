@@ -25,6 +25,20 @@ const publicPrefixes = [
   "/sound",
   "/favicon.ico",
   "/about-us",
+  // Allow viewing spa & hotel pages without authentication
+  "/spa",
+  "/hotel",
+];
+
+// Paths (or prefixes) that should still require authentication even when their
+// parent pages (like /hotel or /spa) are public. We check these BEFORE the
+// publicPrefixes check so they can't be accidentally bypassed.
+const bookingProtectedPrefixes = [
+  "/bookings",
+  "/checkout",
+  "/orders",
+  // Keep generic booking-related API or UI routes protected
+  "/api/bookings",
 ];
 
 export function middleware(req: NextRequest) {
@@ -32,6 +46,21 @@ export function middleware(req: NextRequest) {
 
   const token = req.cookies.get("accessToken")?.value ?? null;
   const role = req.cookies.get("role")?.value?.toUpperCase() ?? null;
+
+  // If the request targets one of the booking-protected prefixes, require auth.
+  // e.g. /bookings/bulk, /bookings/..., /checkout, /orders/...
+  if (
+    bookingProtectedPrefixes.some(
+      (p) =>
+        pathname === p ||
+        pathname.startsWith(p + "/") ||
+        pathname.includes(p + "/")
+    )
+  ) {
+    if (!token) {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
+  }
 
   if (pathname === "/") {
     if (token && role && ["ADMIN", "STAFF", "GROOMER"].includes(role)) {

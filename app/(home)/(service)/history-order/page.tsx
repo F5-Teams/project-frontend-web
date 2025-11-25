@@ -13,7 +13,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import Logo from "@/public/logo/HappyPaws Logo.svg";
 import BuyModal from "@/components/shopping/BuyModal";
 
-// Store + API hooks
 import { useOrderCustomer } from "@/services/orders/getOrderCustomerId/hooks";
 import { OrderCustomer } from "@/services/orders/getOrderCustomerId/type";
 import { useGetUser } from "@/services/users/hooks";
@@ -21,16 +20,13 @@ import { usePostOrderCancel } from "@/services/orders/postOrderCancel/hooks";
 import { useProductCartStore } from "@/stores/productCart.store";
 import { usePostRegenerateOrder } from "@/services/orders/regenerateOrder/hook";
 
-/* --------------------------------------------------
- 🏷️ Status mapping: label + color  
--------------------------------------------------- */
 const statusLabel = {
   ON_PROGRESSING: "Chờ thanh toán",
   PAID: "Đang chờ duyệt",
-  CANCELLED: "Đã hủy",
   APPROVED: "Đã duyệt",
   SHIPPING: "Đang giao",
   COMPLETED: "Hoàn thành",
+  CANCELLED: "Đã hủy",
   FAILED: "Thất bại",
   REFUND: "Hoàn tiền",
   REFUND_DONE: "Hoàn tiền",
@@ -49,16 +45,10 @@ const statusColor = {
 };
 
 export default function HistoryOrder() {
-  /* --------------------------------------------------
-    Lấy dữ liệu User + Orders
-  -------------------------------------------------- */
   const { data: user } = useGetUser();
   const { data: orders } = useOrderCustomer(user?.id);
 
-  /* --------------------------------------------------
-    React state
-  -------------------------------------------------- */
-  const [status, setStatus] = useState<string>("ALL"); // Tab filter
+  const [status, setStatus] = useState<string>("ALL");
   const [openCancelModal, setOpenCancelModal] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<number>();
 
@@ -72,9 +62,6 @@ export default function HistoryOrder() {
   const cancelMutation = usePostOrderCancel();
   const { mutate: postRegenerateOrder } = usePostRegenerateOrder();
 
-  /* --------------------------------------------------
-    Filter đơn hàng theo trạng thái
-  -------------------------------------------------- */
   const filteredOrders =
     status === "ALL"
       ? orders
@@ -84,18 +71,6 @@ export default function HistoryOrder() {
         )
       : orders?.filter((o) => o.status === status);
 
-  /* --------------------------------------------------
-    Handler: mở modal thanh toán lại
-  -------------------------------------------------- */
-  const handleRePay = (order: OrderCustomer) => {
-    setSelectedOrder(order);
-    setSelectedOrderId(order.id);
-    setOpenBuy(true);
-  };
-
-  /* --------------------------------------------------
-    Handler: mở modal hủy đơn
-  -------------------------------------------------- */
   const handleCancelOrder = (orderId: number) => {
     setSelectedOrderId(orderId);
     setOpenCancelModal(true);
@@ -116,7 +91,6 @@ export default function HistoryOrder() {
     });
   };
 
-  /* Gửi request HỦY đơn hàng*/
   const confirmCancelOrder = () => {
     if (!selectedOrderId || !user?.id) {
       toast.error("Không có đơn hàng để hủy.");
@@ -130,7 +104,6 @@ export default function HistoryOrder() {
           toast.success("Hủy đơn hàng thành công!");
           setOpenCancelModal(false);
 
-          // Refresh lại danh sách đơn
           queryClient.invalidateQueries(["orderCancel"] as any);
           queryClient.invalidateQueries(["orderCustomer"] as any);
         },
@@ -141,8 +114,7 @@ export default function HistoryOrder() {
 
   return (
     <div className="px-20 py-6 space-y-6">
-      {/* Thanh chọn trạng thái (Filter)*/}
-      <div className="flex gap-16 bg-white w-[85%] m-auto px-10 py-3 justify-center rounded-2xl mb-5">
+      <div className="flex gap-16 bg-white w-[97%] m-auto px-10 py-3 justify-center rounded-2xl mb-5">
         {[
           { key: "ALL", label: "Tất cả" },
           { key: "ON_PROGRESSING", label: "Chờ thanh toán" },
@@ -165,7 +137,6 @@ export default function HistoryOrder() {
         ))}
       </div>
 
-      {/* Danh sách đơn hàng*/}
       <div className="space-y-10 px-40">
         {filteredOrders?.length ? (
           filteredOrders.map((order: OrderCustomer) => {
@@ -178,9 +149,7 @@ export default function HistoryOrder() {
                 className="bg-white p-5 rounded-2xl border border-gray-100 hover:shadow-md transition-all"
               >
                 <div className="flex items-center justify-between">
-                  {/* Thông tin sản phẩm */}
                   <div className="flex items-center gap-5">
-                    {/* Ảnh sản phẩm + badge số lượng */}
                     <div className="relative">
                       <Image
                         src={
@@ -200,7 +169,6 @@ export default function HistoryOrder() {
                       )}
                     </div>
 
-                    {/* Thông tin đơn */}
                     <div className="space-y-1">
                       <p className="text-sm text-gray-400">#{order.id}</p>
 
@@ -223,9 +191,7 @@ export default function HistoryOrder() {
                     </div>
                   </div>
 
-                  {/* Nút thao tác */}
                   <div>
-                    {/* Tổng tiền */}
                     <div className="flex items-center gap-3">
                       <p className="text-orange-500 font-semibold">
                         {Number(order?.payment?.amount || 0).toLocaleString(
@@ -236,7 +202,6 @@ export default function HistoryOrder() {
                       <span className="text-gray-400 text-lg">{">"}</span>
                     </div>
 
-                    {/* Xem chi tiết */}
                     <button
                       className="flex gap-2 items-center px-2 mt-2 py-1 text-[13px] text-white rounded-xl w-full bg-blue-400 hover:bg-blue-600 transition"
                       onClick={() => router.push(`/history-order/${order.id}`)}
@@ -245,7 +210,6 @@ export default function HistoryOrder() {
                       Xem chi tiết
                     </button>
 
-                    {/* Hủy đơn  */}
                     {order.status === "PAID" && (
                       <button
                         onClick={() => handleCancelOrder(order.id)}
@@ -254,23 +218,11 @@ export default function HistoryOrder() {
                         Hủy đơn
                       </button>
                     )}
-
-                    {/* Thanh toán lại (ON_PROGRESSING) */}
-                    {order.status === "ON_PROGRESSING" && (
-                      <button
-                        onClick={() => handleRegeneratePayment(order.id)}
-                        className="mt-2 py-1 text-[13px] text-white rounded-xl w-full bg-pink-500 hover:bg-pink-600 transition"
-                      >
-                        Thanh toán lại
-                      </button>
-                    )}
                   </div>
                 </div>
 
-                {/* Divider */}
                 <div className="h-[0.5px] w-full mt-4 bg-gray-300"></div>
 
-                {/* Tổng cộng */}
                 <div className="flex justify-between mt-5 font-medium">
                   <p>Tổng cộng:</p>
                   <p className="text-green-600">
@@ -290,7 +242,6 @@ export default function HistoryOrder() {
         )}
       </div>
 
-      {/*Modal thanh toán lại */}
       <BuyModal
         isOpen={openBuy}
         isCancel={() => setOpenBuy(false)}
@@ -309,7 +260,6 @@ export default function HistoryOrder() {
         clearCart={clearCart}
       />
 
-      {/* Modal xác nhận hủy đơn*/}
       <Modal
         footer={null}
         open={openCancelModal}
@@ -319,7 +269,6 @@ export default function HistoryOrder() {
         className="rounded-xl"
       >
         <div className="space-y-5 text-center py-4">
-          {/* Logo */}
           <div className="flex items-center justify-center gap-2 mb-2">
             <Image alt="Logo" src={Logo} width={48} height={48} />
             <span className="text-pink-600 font-extrabold text-lg">
@@ -329,7 +278,6 @@ export default function HistoryOrder() {
 
           <div className="w-[60%] mx-auto h-[1px] bg-gray-300"></div>
 
-          {/* Icon + Text */}
           <div className="flex flex-col items-center gap-4 mt-2">
             <div className="bg-red-50 p-3 rounded-full border border-red-100">
               <X className="w-8 h-8 text-red-500" />
@@ -349,7 +297,6 @@ export default function HistoryOrder() {
             </div>
           </div>
 
-          {/* Buttons */}
           <div className="flex justify-center gap-4 mt-6">
             <Button
               onClick={() => setOpenCancelModal(false)}
