@@ -1,5 +1,5 @@
 import { DashboardShell } from "@/components/dashboard/shell";
-import { SidebarItem } from "@/components/dashboard/Sidebar";
+import { SidebarItem } from "@/components/dashboard/sidebar";
 
 const staffItems: SidebarItem[] = [
   { href: "/staff", label: "Dashboard", icon: "dashboard", exact: true },
