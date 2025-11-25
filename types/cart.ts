@@ -23,6 +23,13 @@ export interface Pet {
   avatar: string;
   age: number;
   notes?: string;
+  species?: string;
+  breed?: string;
+  gender?: boolean | string;
+  weight?: number;
+  height?: number;
+  images?: Array<{ id?: number; imageUrl: string; type?: string | null }>;
+  isAvailable?: boolean;
 }
 
 export interface Groomer {

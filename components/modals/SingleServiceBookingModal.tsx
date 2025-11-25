@@ -34,17 +34,27 @@ interface SingleServiceBookingModalProps {
   serviceId: string;
   selectedPetIds: string[];
   service?: any; // Optional service data to avoid duplicate API calls
+  initialDate?: Date | null;
 }
 
 export const SingleServiceBookingModal: React.FC<
   SingleServiceBookingModalProps
-> = ({ isOpen, onClose, onConfirm, serviceId, selectedPetIds, service }) => {
+> = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  serviceId,
+  selectedPetIds,
+  service,
+  initialDate,
+}) => {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [errors, setErrors] = useState<string[]>([]);
   const [serviceData, setServiceData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const isDateLocked = Boolean(initialDate);
 
   // Fetch service data from API or use provided service prop
   useEffect(() => {
@@ -113,12 +123,12 @@ export const SingleServiceBookingModal: React.FC<
   // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
-      setSelectedDate(undefined);
+      setSelectedDate(initialDate || undefined);
       setSelectedTime("");
       setNotes("");
       setErrors([]);
     }
-  }, [isOpen]);
+  }, [isOpen, initialDate]);
 
   const handleConfirm = () => {
     const validationErrors: string[] = [];
@@ -292,34 +302,49 @@ export const SingleServiceBookingModal: React.FC<
         <div className="grid grid-cols-2 gap-4">
           {/* Date Selection */}
           <div className="space-y-3">
-            <Label className="text-base font-medium">Chọn ngày</Label>
-            <Popover>
-              <PopoverTrigger asChild>
+            <Label className="text-base font-medium">
+              {isDateLocked ? "Ngày đã chọn" : "Chọn ngày"}
+            </Label>
+            {isDateLocked ? (
+              <div>
                 <Button
                   variant="outline"
-                  className="w-full justify-start text-left font-normal"
+                  className="w-full justify-start text-left font-normal cursor-not-allowed"
+                  disabled
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {selectedDate ? format(selectedDate, "PPP") : "Chọn ngày"}
+                  {selectedDate ? format(selectedDate, "PPP") : "Không có ngày"}
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  disabled={(date) => {
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    const maxDate = new Date();
-                    maxDate.setDate(maxDate.getDate() + 30);
-                    maxDate.setHours(23, 59, 59, 999);
-                    return date < today || date > maxDate;
-                  }}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+              </div>
+            ) : (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {selectedDate ? format(selectedDate, "PPP") : "Chọn ngày"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    disabled={(date) => {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      const maxDate = new Date();
+                      maxDate.setDate(maxDate.getDate() + 30);
+                      maxDate.setHours(23, 59, 59, 999);
+                      return date < today || date > maxDate;
+                    }}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
 
           {/* Time Selection */}

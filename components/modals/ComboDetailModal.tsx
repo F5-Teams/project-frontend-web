@@ -58,6 +58,12 @@ export const ComboDetailModal: React.FC<ComboDetailModalProps> = ({
     (link) => link.service.images || []
   );
 
+  const totalServiceValue = combo.serviceLinks.reduce(
+    (sum, link) => sum + parseInt(link.service.price),
+    0
+  );
+  const savings = totalServiceValue - parseInt(combo.price);
+
   const currentImage =
     allImages.length > 0 ? allImages[selectedImageIndex] : null;
 
@@ -187,7 +193,7 @@ export const ComboDetailModal: React.FC<ComboDetailModalProps> = ({
           </div>
 
           {/* Total Savings */}
-          {combo.serviceLinks.length > 0 && (
+          {combo.serviceLinks.length > 0 && savings > 0 && (
             <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex items-center justify-between">
                 <div>
@@ -200,22 +206,12 @@ export const ComboDetailModal: React.FC<ComboDetailModalProps> = ({
                 </div>
                 <div className="text-right">
                   <p className="text-lg font-poppins-semibold text-gray-800 line-through">
-                    {combo.serviceLinks
-                      .reduce(
-                        (sum, link) => sum + parseInt(link.service.price),
-                        0
-                      )
-                      .toLocaleString("vi-VN")}
+                    {totalServiceValue.toLocaleString("vi-VN")}
                     đ
                   </p>
                   <p className="text-sm font-poppins-medium text-green-600">
                     Giảm{" "}
-                    {(
-                      combo.serviceLinks.reduce(
-                        (sum, link) => sum + parseInt(link.service.price),
-                        0
-                      ) - parseInt(combo.price)
-                    ).toLocaleString("vi-VN")}
+                    {savings.toLocaleString("vi-VN")}
                     đ
                   </p>
                 </div>
