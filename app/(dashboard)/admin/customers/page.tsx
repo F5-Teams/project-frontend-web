@@ -73,7 +73,7 @@ export default function Customers() {
 
       // Backend chỉ hỗ trợ pagination, không hỗ trợ filter
       // Fetch tất cả users và filter ở frontend
-      const res = await api.get("/users/admin", {
+      const res = await api.get("/users", {
         params: {
           page: 1,
           limit: 1000, // Lấy nhiều để có thể filter
