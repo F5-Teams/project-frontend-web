@@ -159,7 +159,7 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `http://localhost:8080/auth/google`;
+    window.location.href = `https://project-backend-api-production.up.railway.app/auth/google`;
   };
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
