@@ -168,13 +168,9 @@ const calculateBookingItemPrice = async (
       const checkInDate = item.startDate ? new Date(item.startDate) : null;
       const checkOutDate = item.endDate ? new Date(item.endDate) : null;
 
-      // Check if either check-in or check-out falls on weekend
-      const isCheckInWeekend =
-        checkInDate &&
-        (checkInDate.getDay() === 0 || checkInDate.getDay() === 6);
-      const isCheckOutWeekend =
-        checkOutDate &&
-        (checkOutDate.getDay() === 0 || checkOutDate.getDay() === 6);
+      // Check if either check-in or check-out falls on Sunday only (not Saturday)
+      const isCheckInWeekend = checkInDate && checkInDate.getDay() === 0;
+      const isCheckOutWeekend = checkOutDate && checkOutDate.getDay() === 0;
       const isWeekend = isCheckInWeekend || isCheckOutWeekend;
 
       console.log(

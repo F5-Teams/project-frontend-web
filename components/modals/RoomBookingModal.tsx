@@ -35,12 +35,12 @@ const calculateRoomPrice = (
   const nights = differenceInDays(checkOutDate, checkInDate);
   let weekendNights = 0;
 
-  // Count weekend nights (Friday and Saturday nights)
+  // Count weekend nights (Saturday and Sunday nights only)
   for (let i = 0; i < nights; i++) {
     const currentDate = addDays(checkInDate, i);
     const dayOfWeek = currentDate.getDay();
-    // Friday (5) or Saturday (6) nights lead to weekend rates
-    if (dayOfWeek === 5 || dayOfWeek === 6) {
+    // Saturday (6) or Sunday (0) nights lead to weekend rates
+    if (dayOfWeek === 6 || dayOfWeek === 0) {
       weekendNights++;
     }
   }
