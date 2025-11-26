@@ -31,9 +31,9 @@ const calculateWeightSurcharge = (
   if (isNaN(weightNum) || weightNum < 5) {
     return 0; // <5kg = 0đ
   } else if (weightNum <= 15) {
-    return 50000; // 5-15kg = +50k
+    return 30000; // 5-15kg = +30k
   } else {
-    return 100000; // >15kg = +100k
+    return 50000; // >15kg = +50k
   }
 };
 
@@ -168,13 +168,9 @@ const calculateBookingItemPrice = async (
       const checkInDate = item.startDate ? new Date(item.startDate) : null;
       const checkOutDate = item.endDate ? new Date(item.endDate) : null;
 
-      // Check if either check-in or check-out falls on weekend
-      const isCheckInWeekend =
-        checkInDate &&
-        (checkInDate.getDay() === 0 || checkInDate.getDay() === 6);
-      const isCheckOutWeekend =
-        checkOutDate &&
-        (checkOutDate.getDay() === 0 || checkOutDate.getDay() === 6);
+      // Check if either check-in or check-out falls on Sunday only (not Saturday)
+      const isCheckInWeekend = checkInDate && checkInDate.getDay() === 0;
+      const isCheckOutWeekend = checkOutDate && checkOutDate.getDay() === 0;
       const isWeekend = isCheckInWeekend || isCheckOutWeekend;
 
       console.log(

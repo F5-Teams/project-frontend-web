@@ -325,25 +325,13 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
   };
 
   const isPetInCartSameSchedule = (petId: string) => {
+    // Chỉ chặn trùng lịch trên modal pet cho SPA; hotel sẽ chặn theo phòng ở modal phòng
+    if (bookingType !== "spa") return false;
     const pid = parseInt(petId, 10);
     return cartItems.some((item) => {
       if (item.petId !== pid) return false;
-      if (bookingType === "spa" && spaDateString) {
+      if (spaDateString) {
         return item.bookingDate === spaDateString;
-      }
-      if (
-        bookingType === "hotel" &&
-        hotelStartString &&
-        hotelEndString &&
-        item.startDate &&
-        item.endDate
-      ) {
-        return isHotelRangeOverlap(
-          hotelStartString,
-          hotelEndString,
-          item.startDate,
-          item.endDate
-        );
       }
       return false;
     });

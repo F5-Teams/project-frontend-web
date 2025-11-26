@@ -5,7 +5,7 @@ export async function getTransactionHistory(
   params?: TransactionHistoryParams
 ): Promise<TransactionHistoryResponse> {
   const { data } = await api.get<TransactionHistoryResponse>(
-    "/transactions/history/my?source=PAYMENTS_ONLY",
+    "/transactions/history/my",
     { params }
   );
   return data;

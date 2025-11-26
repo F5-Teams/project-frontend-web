@@ -25,6 +25,7 @@ import { format, differenceInDays, addDays } from "date-fns";
 import { BookingDraft } from "@/types/cart";
 import { generateTempId } from "@/utils/booking";
 import { HotelRoom } from "@/services/hotel";
+import { useCartStore } from "@/stores/cart.store";
 
 // Helper functions
 const calculateRoomPrice = (
@@ -35,12 +36,12 @@ const calculateRoomPrice = (
   const nights = differenceInDays(checkOutDate, checkInDate);
   let weekendNights = 0;
 
-  // Count weekend nights (Friday and Saturday nights)
+  // Count weekend nights (Saturday and Sunday nights only)
   for (let i = 0; i < nights; i++) {
     const currentDate = addDays(checkInDate, i);
     const dayOfWeek = currentDate.getDay();
-    // Friday (5) or Saturday (6) nights lead to weekend rates
-    if (dayOfWeek === 5 || dayOfWeek === 6) {
+    // Saturday (6) or Sunday (0) nights lead to weekend rates
+    if (dayOfWeek === 6 || dayOfWeek === 0) {
       weekendNights++;
     }
   }
@@ -77,6 +78,7 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
   initialCheckInDate,
   initialCheckOutDate,
 }) => {
+  const { items: cartItems } = useCartStore();
   const [loading, setLoading] = useState(false);
   const [checkInDate, setCheckInDate] = useState<Date>();
   const [checkOutDate, setCheckOutDate] = useState<Date>();
@@ -99,6 +101,24 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
   const totalPrice = priceBreakdown.basePrice + priceBreakdown.weekendPrice;
   const weekendSurcharge =
     priceBreakdown.weekendPrice - priceBreakdown.weekendNights * pricePerNight;
+
+  const isRoomConflictInCart = () => {
+    if (!checkInDate || !checkOutDate) return false;
+    const targetRoomId = parseInt(roomId, 10);
+    const start = format(checkInDate, "yyyy-MM-dd");
+    const end = format(checkOutDate, "yyyy-MM-dd");
+
+    return cartItems.some((item) => {
+      if (item.roomId !== targetRoomId) return false;
+      if (!item.startDate || !item.endDate) return false;
+      const aStart = new Date(start).getTime();
+      const aEnd = new Date(end).getTime();
+      const bStart = new Date(item.startDate).getTime();
+      const bEnd = new Date(item.endDate).getTime();
+      // Treat end date as exclusive so adjacent bookings are allowed
+      return aStart < bEnd && bStart < aEnd;
+    });
+  };
 
   // Reset state and initialize dates when modal opens
   useEffect(() => {
@@ -136,6 +156,12 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({
       // since it came from the available rooms API
       if (room && room.isAvailable === false) {
         validationErrors.push("Phòng này hiện không còn khả dụng!");
+      }
+
+      if (isRoomConflictInCart()) {
+        validationErrors.push(
+          "Phòng này đã có trong giỏ hàng với khoảng thời gian trùng lặp."
+        );
       }
     }
 

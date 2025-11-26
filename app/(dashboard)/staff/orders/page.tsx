@@ -39,36 +39,36 @@ const OrderPage = () => {
 
     const body = {
       status: "APPROVED",
-      note: order.note || "",
-      customerId: order.customerId,
+      // note: order.note || "",
+      // customerId: order.customerId,
 
-      shipping: {
-        toName: order.shipping.toName,
-        toPhone: order.shipping.toPhone,
-        toAddress: order.shipping.toAddress,
-        toWardCode: order.shipping.toWardCode,
-        toDistrictId: order.shipping.toDistrictId,
-        toWardName: order.shipping.toWardName,
-        toDistrictName: order.shipping.toDistrictName,
-        toProvinceName: order.shipping.toProvinceName,
-        serviceTypeId: order.shipping.serviceTypeId,
-        paymentTypeId: order.shipping.paymentTypeId,
-        requiredNote: order.shipping.requiredNote,
-        length: order.shipping.length,
-        width: order.shipping.width,
-        height: order.shipping.height,
-        codAmount: Number(order.shipping.codAmount) || 0,
-        insuranceValue: Number(order.shipping.insuranceValue) || 0,
-        note: order.note || "",
-        status: "PENDING",
-      },
+      // shipping: {
+      //   toName: order.shipping.toName,
+      //   toPhone: order.shipping.toPhone,
+      //   toAddress: order.shipping.toAddress,
+      //   toWardCode: order.shipping.toWardCode,
+      //   toDistrictId: order.shipping.toDistrictId,
+      //   toWardName: order.shipping.toWardName,
+      //   toDistrictName: order.shipping.toDistrictName,
+      //   toProvinceName: order.shipping.toProvinceName,
+      //   serviceTypeId: order.shipping.serviceTypeId,
+      //   paymentTypeId: order.shipping.paymentTypeId,
+      //   requiredNote: order.shipping.requiredNote,
+      //   length: order.shipping.length,
+      //   width: order.shipping.width,
+      //   height: order.shipping.height,
+      //   codAmount: Number(order.shipping.codAmount) || 0,
+      //   insuranceValue: Number(order.shipping.insuranceValue) || 0,
+      //   note: order.note || "",
+      //   status: "PENDING",
+      // },
 
-      paymentMethod: order.payment.paymentMethod,
-      paymentStatus: "TRANSFER",
-      orderDetails: order.orderDetails.map((item) => ({
-        productId: item.product.id,
-        quantity: item.quantity,
-      })),
+      // paymentMethod: Object(order.payment.paymentMethod),
+      // paymentStatus: "TRANSFER",
+      // orderDetails: order.orderDetails.map((item) => ({
+      //   productId: item.product.id,
+      //   quantity: item.quantity,
+      // })),
     };
 
     console.log("PAY", body);
@@ -169,15 +169,15 @@ const OrderPage = () => {
           try {
             const body = {
               status: "REFUND",
-              note: order.note || "",
-              customerId: order.customerId,
-              shipping: { ...order.shipping, status: "PENDING" },
-              paymentMethod: order.payment.paymentMethod,
-              paymentStatus: "TRANSFER",
-              orderDetails: order.orderDetails.map((item) => ({
-                productId: item.product.id,
-                quantity: item.quantity,
-              })),
+              // note: order.note || "",
+              // customerId: order.customerId,
+              // shipping: { ...order.shipping, status: "PENDING" },
+              // paymentMethod: order.payment.paymentMethod,
+              // paymentStatus: "TRANSFER",
+              // orderDetails: order.orderDetails.map((item) => ({
+              //   productId: item.product.id,
+              //   quantity: item.quantity,
+              // })),
             };
 
             await patchOrder({ id: order.id, body });
@@ -208,15 +208,15 @@ const OrderPage = () => {
         try {
           const body = {
             status: "REFUND_DONE",
-            note: order.note || "",
-            customerId: order.customerId,
-            shipping: { ...order.shipping, status: "PENDING" },
-            paymentMethod: order.payment.paymentMethod,
-            paymentStatus: "TRANSFER",
-            orderDetails: order.orderDetails.map((item) => ({
-              productId: item.product.id,
-              quantity: item.quantity,
-            })),
+            // note: order.note || "",
+            // customerId: order.customerId,
+            // shipping: { ...order.shipping, status: "PENDING" },
+            // paymentMethod: order.payment.paymentMethod,
+            // paymentStatus: "TRANSFER",
+            // orderDetails: order.orderDetails.map((item) => ({
+            //   productId: item.product.id,
+            //   quantity: item.quantity,
+            // })),
           };
 
           await patchOrder({ id: order.id, body });
@@ -303,7 +303,7 @@ const OrderPage = () => {
       title: "Tổng tiền",
       width: 120,
       render: (_: any, record: Order) => {
-        const amount = record.payment?.amount ?? 0;
+        const amount = record.payment?.totalAmount ?? 0;
         return (
           <span className="font-semibold text-pink-600">
             {Number(amount).toLocaleString("vi-VN")} đ
@@ -317,8 +317,8 @@ const OrderPage = () => {
       dataIndex: "payment",
       render: (pay: any) => {
         return pay ? (
-          <Tag color={pay.paymentMethod === "CASH" ? "purple" : "green"}>
-            {getPaymentLabel(pay.paymentMethod)}
+          <Tag color={pay.paymentMethod.name === "CASH" ? "purple" : "green"}>
+            {getPaymentLabel(pay.paymentMethod.name)}
           </Tag>
         ) : (
           <Tag>Chưa thanh toán</Tag>
@@ -438,7 +438,7 @@ const OrderPage = () => {
                   handleComplete();
                 }}
               >
-                Hoàn thành
+                Xác nhận
               </Button>
             </>
           )}
