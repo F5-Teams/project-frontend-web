@@ -25,6 +25,13 @@ const statusSteps = [
   { key: "REFUND", label: "Trả hàng/hoàn tiền", icon: RotateCcw },
 ];
 
+const statusMethod = [
+  { key: "TRANSFER", label: "Ví" },
+  { key: "CASH", label: "Tiền mặt" },
+  { key: "MOMO", label: "MOMO" },
+  { key: "VNPAY", label: "VNPAY" },
+];
+
 export default function OrderDetailPage() {
   const params = useParams();
   const id = Number(params.id);
@@ -33,6 +40,7 @@ export default function OrderDetailPage() {
   const { data: orders } = useOrderCustomer(user?.id);
 
   const order = orders?.find((o) => o.id === id);
+  console.log("first", order);
 
   if (!order)
     return (
@@ -45,11 +53,7 @@ export default function OrderDetailPage() {
       : s.key === order.status
   );
 
-  const totalPrice =
-    order.orderDetails.reduce(
-      (acc, d) => acc + Number(d.product.price) * Number(d.quantity),
-      0
-    ) + Number(order?.shipping?.shippingFee || 0);
+  const totalPrice = Number(order.payment.amount);
 
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-6">
@@ -135,6 +139,11 @@ export default function OrderDetailPage() {
             Tiền ship:{" "}
             {Number(order?.shipping?.shippingFee).toLocaleString("vi-VN")} đ
           </p>
+          <p className="text-gray-600 text-sm mt-2">
+            Phương thức thanh toán:{" "}
+            {statusMethod.find((m) => m.key === order.payment.paymentMethod)
+              ?.label || order.payment.paymentMethod}
+          </p>
 
           <div className="h-[0.5px] w-full mt-4 bg-gray-300"></div>
 
@@ -151,7 +160,11 @@ export default function OrderDetailPage() {
           <div className="text-gray-600 space-y-1">
             <p>Người nhận: {order.shipping.toName}</p>
             <p>Số điện thoại: {order.shipping.toPhone}</p>
-            <p>Địa chỉ: {order.shipping.toAddress}</p>
+            <p>
+              Địa chỉ: {order.shipping.toAddress}, {order.shipping.toWardName},{" "}
+              {order.shipping.toDistrictName}, {order.shipping.toProvinceName}
+            </p>
+            <p>Ghi chú: {order.note ? order.note : "Không có"}</p>
           </div>
         </div>
       </div>

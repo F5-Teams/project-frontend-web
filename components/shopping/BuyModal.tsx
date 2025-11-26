@@ -221,9 +221,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   const money =
     total +
     (fee?.data?.service_fee ?? 0) -
-    (chooseVoucher
-      ? ((total + fee?.data?.service_fee) * chooseVoucher.percent) / 100
-      : 0);
+    (chooseVoucher ? total * (chooseVoucher.percent / 100) : 0);
   return (
     <Modal
       open={isOpen}
