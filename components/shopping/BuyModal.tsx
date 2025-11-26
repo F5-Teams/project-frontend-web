@@ -18,8 +18,10 @@ import {
   MapPinHouse,
   ReceiptText,
   Smartphone,
+  Truck,
   WalletCards,
 } from "lucide-react";
+import { usePostOrderInternal } from "@/services/orders/postOrderInternal/hooks";
 interface CartItem {
   productId: number;
   price: number;
@@ -48,10 +50,12 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const { data: fee, mutateAsync: calculateFee } = useCalculateFee();
   const { mutateAsync: createOrder } = usePostOrder();
+  const { mutateAsync: createOrderInternal } = usePostOrderInternal();
   const [chooseVoucher, setChooseVoucher] = useState<Voucher>();
   const { data: addressList = [] } = useGetAddress();
   const { data: voucher = [] } = useGetVoucher();
   const { data: wallets } = useGetWallet();
+  const [methodGHN, setMethodGHN] = useState<string>("fast");
 
   const total = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -183,7 +187,14 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
           return;
         }
       }
-      const response = await createOrder(orderPayloadTransfer);
+
+      let response: any;
+
+      if (methodGHN === "fast") {
+        response = await createOrder(orderPayloadTransfer);
+      } else {
+        response = await createOrderInternal(orderPayloadTransfer);
+      }
 
       if (response?.vnpUrl) {
         window.location.href = response.vnpUrl;
@@ -220,8 +231,9 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
 
   const money =
     total +
-    (fee?.data?.service_fee ?? 0) -
+    (methodGHN === "fast" ? fee?.data?.service_fee ?? 0 : 30000) -
     (chooseVoucher ? total * (chooseVoucher.percent / 100) : 0);
+
   return (
     <Modal
       open={isOpen}
@@ -375,23 +387,6 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
             />
           </div>
 
-          <div className="border-t pt-3 space-y-1 text-sm">
-            <p>
-              Giá sản phẩm: <strong>{total.toLocaleString("vi-VN")} VNĐ</strong>
-            </p>
-
-            <p>
-              Phí vận chuyển:{" "}
-              <strong>
-                {fee?.data?.service_fee?.toLocaleString("vi-VN") || 0} VNĐ
-              </strong>
-            </p>
-
-            {chooseVoucher && (
-              <p className="text-green-600">Giảm: {chooseVoucher.percent}%</p>
-            )}
-          </div>
-
           <div>
             <h2 className="flex gap-2 font-poppins-light font-medium mb-2">
               <CreditCard size={16} /> Phương thức thanh toán
@@ -430,6 +425,53 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
                 </div>
               </Radio>
             </Radio.Group>
+          </div>
+
+          <div>
+            <h2 className="flex gap-2 font-poppins-light font-medium mb-2">
+              Chọn loại giao hàng
+            </h2>
+            <Radio.Group
+              value={methodGHN}
+              onChange={(e) => setMethodGHN(e.target.value)}
+            >
+              <Radio value={"fast"}>
+                <div className="flex gap-2 items-center">
+                  <Truck size={18} />
+                  <p>Giao hàng nhanh</p>
+                </div>
+              </Radio>
+
+              <Radio value={"inland"}>
+                <div className="flex gap-2 items-center">
+                  <Truck size={18} />
+                  <p>Giao nội địa</p>
+                </div>
+              </Radio>
+            </Radio.Group>
+          </div>
+
+          <div className="border-t pt-3 space-y-1 text-sm">
+            <p>
+              Giá sản phẩm: <strong>{total.toLocaleString("vi-VN")} VNĐ</strong>
+            </p>
+
+            <p>
+              Phí vận chuyển:{" "}
+              {methodGHN === "fast" ? (
+                <strong>
+                  {fee?.data?.service_fee?.toLocaleString("vi-VN") || 0} VNĐ
+                </strong>
+              ) : (
+                <>
+                  <strong>30.000 VNĐ</strong>
+                </>
+              )}
+            </p>
+
+            {chooseVoucher && (
+              <p className="text-green-600">Giảm: {chooseVoucher.percent}%</p>
+            )}
           </div>
 
           <div className="flex justify-between items-center pt-3 border-t">
