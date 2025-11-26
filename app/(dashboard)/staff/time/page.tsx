@@ -194,6 +194,16 @@ export default function HotelBookingsPage() {
   };
 
   const handleConfirmCheckout = async () => {
+    // Validate required pickup fields and show toast if missing
+    if (
+      !pickupInfo.pickupPersonName.trim() ||
+      !pickupInfo.pickupPersonPhone.trim() ||
+      !pickupInfo.pickupPersonRelationship.trim()
+    ) {
+      toast("Vui lòng nhập tên, số điện thoại và mối quan hệ của người đón.");
+      return;
+    }
+
     if (!checkoutBookingId) return;
 
     try {
@@ -367,6 +377,8 @@ export default function HotelBookingsPage() {
                 />
               </div>
             </div>
+
+            {/* Validation handled on confirm with toast; do not show inline message */}
 
             <div className="flex justify-end gap-3 mt-8">
               <button

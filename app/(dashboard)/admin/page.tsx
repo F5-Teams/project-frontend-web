@@ -72,6 +72,15 @@ const formatDateTime = (value?: string | null) => {
     minute: "2-digit",
   });
 };
+const formatDate = (value?: string | null) => {
+  if (!value) return "-";
+  const d = new Date(value);
+  return d.toLocaleString("vi-VN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+};
 
 export default function BookingListPage() {
   const [allBookings, setAllBookings] = useState<Booking[]>([]);
@@ -193,10 +202,12 @@ export default function BookingListPage() {
         const customerName = `${item.customer?.firstName ?? ""} ${
           item.customer?.lastName ?? ""
         }`.trim();
+        const bookingCode = item.bookingCode ?? "";
 
         return (
           petName.toLowerCase().includes(text) ||
-          customerName.toLowerCase().includes(text)
+          customerName.toLowerCase().includes(text) ||
+          bookingCode.toLowerCase().includes(text)
         );
       });
     }
@@ -335,7 +346,7 @@ export default function BookingListPage() {
           <Search className="w-4 h-4 text-gray-500" />
           <input
             className="outline-none w-full text-sm"
-            placeholder="Tìm thú cưng hoặc khách hàng..."
+            placeholder="Tìm kiếm ...."
             value={searchText}
             onChange={(e) => {
               setSearchText(e.target.value);
@@ -452,6 +463,14 @@ export default function BookingListPage() {
                     ? "Spa"
                     : "-"}
                 </div>
+                <div className="text-sm mt-1 opacity-90">
+                  Giá:{" "}
+                  {selectedBooking.Room || selectedBooking.roomId
+                    ? formatCurrency(toNumber(selectedBooking.servicePrice))
+                    : selectedBooking.combo || selectedBooking.comboId
+                    ? formatCurrency(toNumber(selectedBooking.comboPrice))
+                    : "-"}
+                </div>
                 <div className="text-xs mt-1 opacity-80">
                   Ngày tạo: {formatDateTime(selectedBooking.createdAt)}
                 </div>
@@ -501,7 +520,7 @@ export default function BookingListPage() {
                     <span className="font-semibold text-gray-600 w-28">
                       Khung giờ:
                     </span>
-                    <span>{selectedBooking.dropDownSlot ?? "-"}</span>
+                    <span>{formatDateTime(selectedBooking.dropDownSlot)}</span>
                   </div>
                 </div>
 

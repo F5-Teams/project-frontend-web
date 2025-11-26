@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React from "react";
@@ -13,6 +14,7 @@ import {
   getBookingTitle,
 } from "@/services/profile/profile-schedule/hooks";
 import { Button } from "@/components/ui/button";
+import RefundModal from "@/components/profile/RefundModal";
 import ServiceTagList from "@/components/profile/calendar/ServiceTagList";
 import FeedbackForm from "@/components/profile/calendar/FeedbackModal";
 import { useGetBookingFeedback } from "@/services/profile/feedback/hooks";
@@ -371,6 +373,29 @@ export default function BookingDetailPage() {
                 )}
               </div>
             </div>
+            {(() => {
+              const canRequestRefund = Boolean(
+                bookingId &&
+                  booking.isPaid &&
+                  booking.status !== "CANCELLED" &&
+                  booking.status !== "PENDING"
+              );
+              let reason = "";
+              if (!bookingId) reason = "Không có booking";
+              else if (!booking.isPaid) reason = "Chưa thanh toán";
+              else if (booking.status === "CANCELLED")
+                reason = "Booking đã hủy";
+              else if (booking.status === "PENDING")
+                reason = "Booking chưa được xác nhận";
+
+              return (
+                <RefundModal
+                  bookingId={bookingId}
+                  canRequestRefund={canRequestRefund}
+                  reasonLabel={reason}
+                />
+              );
+            })()}
 
             {/* Images */}
             {booking.imagesBooking && booking.imagesBooking.length > 0 && (
