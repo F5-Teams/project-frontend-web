@@ -55,7 +55,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   const { data: addressList = [] } = useGetAddress();
   const { data: voucher = [] } = useGetVoucher();
   const { data: wallets } = useGetWallet();
-  const [methodGHN, setMethodGHN] = useState<string>("");
+  const [methodGHN, setMethodGHN] = useState<string>("fast");
 
   const total = items.reduce(
     (sum, item) => sum + item.price * item.quantity,

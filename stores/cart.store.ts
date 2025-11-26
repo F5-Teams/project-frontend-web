@@ -31,9 +31,9 @@ const calculateWeightSurcharge = (
   if (isNaN(weightNum) || weightNum < 5) {
     return 0; // <5kg = 0đ
   } else if (weightNum <= 15) {
-    return 50000; // 5-15kg = +50k
+    return 30000; // 5-15kg = +30k
   } else {
-    return 100000; // >15kg = +100k
+    return 50000; // >15kg = +50k
   }
 };
 
