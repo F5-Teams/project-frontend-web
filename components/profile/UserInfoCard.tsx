@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Edit3, X, Check } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { Edit3, X, Check, Camera } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useInitials } from "@/utils/useInitials";
 import { useUpdateMe } from "@/services/profile/hooks";
+import { uploadFile } from "@/utils/uploadFIle";
 import type {
   GetMeResponse,
   UpdateUserPayload,
@@ -18,11 +19,15 @@ type Props = {
 export function UserInfoCard({ user }: Props) {
   const { mutateAsync: updateMe, isPending: saving } = useUpdateMe();
   const [isEditing, setIsEditing] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [phoneError, setPhoneError] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState<UpdateUserPayload>({
     firstName: "",
     lastName: "",
     phoneNumber: "",
     address: "",
+    avatar: "",
     gender: false,
   });
 
@@ -32,6 +37,7 @@ export function UserInfoCard({ user }: Props) {
       lastName: user?.lastName ?? "",
       phoneNumber: user?.phoneNumber ?? "",
       address: user?.address ?? "",
+      avatar: user?.avatar ?? "",
       gender: Boolean(user?.gender),
     });
   }, [user]);
@@ -42,12 +48,52 @@ export function UserInfoCard({ user }: Props) {
     userName: user?.userName,
   });
 
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      const result = await uploadFile(file);
+      setForm((f) => ({ ...f, avatar: result.url }));
+      toast.success("Tải ảnh lên thành công");
+    } catch {
+      toast.error("Tải ảnh lên thất bại");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function validatePhoneNumber(phone: string): boolean {
+    if (!phone || phone.trim() === "") {
+      setPhoneError("Số điện thoại không được để trống");
+      return false;
+    }
+
+    const trimmed = phone.trim();
+    const phoneRegex = /^0\d{9,10}$/;
+
+    if (!phoneRegex.test(trimmed)) {
+      setPhoneError("Số điện thoại phải bắt đầu bằng 0 và có 10-11 chữ số");
+      return false;
+    }
+
+    setPhoneError("");
+    return true;
+  }
+
   async function handleSave() {
+    if (!validatePhoneNumber(form.phoneNumber ?? "")) {
+      toast.error("Vui lòng nhập số điện thoại hợp lệ");
+      return;
+    }
+
     await updateMe({
       firstName: form.firstName?.trim() || undefined,
       lastName: form.lastName?.trim() || undefined,
       phoneNumber: form.phoneNumber?.trim() || undefined,
       address: form.address?.trim() || undefined,
+      avatar: form.avatar?.trim() || undefined,
       gender: form.gender,
     });
     setIsEditing(false);
@@ -71,6 +117,7 @@ export function UserInfoCard({ user }: Props) {
       lastName: user?.lastName ?? "",
       phoneNumber: user?.phoneNumber ?? "",
       address: user?.address ?? "",
+      avatar: user?.avatar ?? "",
       gender: Boolean(user?.gender),
     });
   }
@@ -113,19 +160,44 @@ export function UserInfoCard({ user }: Props) {
 
       <div className="flex items-center gap-8">
         <div className="flex items-center gap-4">
-          <Avatar className="w-24 h-24 lg:w-32 lg:h-32 border-2 lg:border-4 border-primary/30">
-            <AvatarImage
-              src={
-                user?.avatar && user.avatar.trim() !== ""
-                  ? user.avatar
-                  : undefined
-              }
-              alt="Avatar"
-            />
-            <AvatarFallback className="bg-primary text-primary-foreground text-base lg:text-xl">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
+          <div className="relative">
+            <Avatar className="w-24 h-24 lg:w-32 lg:h-32 border-2 lg:border-4 border-primary/30">
+              <AvatarImage
+                src={
+                  isEditing && form.avatar
+                    ? form.avatar
+                    : user?.avatar && user.avatar.trim() !== ""
+                    ? user.avatar
+                    : undefined
+                }
+                alt="Avatar"
+                className="object-cover"
+              />
+              <AvatarFallback className="bg-primary text-primary-foreground text-base lg:text-xl">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            {isEditing && (
+              <>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading || saving}
+                  className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 hover:opacity-100 transition-opacity disabled:opacity-50"
+                  aria-label="Tải ảnh lên"
+                >
+                  <Camera className="w-8 h-8 text-white" />
+                </button>
+              </>
+            )}
+          </div>
 
           <div className="font-poppins-regular min-w-0">
             {!isEditing ? (
@@ -211,14 +283,27 @@ export function UserInfoCard({ user }: Props) {
                     {user?.phoneNumber || "Chưa cập nhật"}
                   </div>
                 ) : (
-                  <input
-                    className="w-full max-w-xs font-light px-3 py-2 rounded-lg bg-white border border-white/30 placeholder-white/70 text-black outline-none focus:ring-2 focus:ring-white/40"
-                    placeholder="Nhập số điện thoại"
-                    value={form.phoneNumber ?? ""}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, phoneNumber: e.target.value }))
-                    }
-                  />
+                  <div>
+                    <input
+                      className={`w-full max-w-xs font-light px-3 py-2 rounded-lg bg-white border placeholder-white/70 text-black outline-none focus:ring-2 ${
+                        phoneError
+                          ? "border-red-400 focus:ring-red-400/40"
+                          : "border-white/30 focus:ring-white/40"
+                      }`}
+                      placeholder="Nhập số điện thoại"
+                      value={form.phoneNumber ?? ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setForm((f) => ({ ...f, phoneNumber: value }));
+                        validatePhoneNumber(value);
+                      }}
+                    />
+                    {phoneError && (
+                      <p className="text-red-500 text-xs mt-1 font-light">
+                        {phoneError}
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
               <div className="flex-1 min-w-0">
