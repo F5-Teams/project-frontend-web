@@ -3,29 +3,22 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
-  CheckCircle,
+  XCircle,
   Loader,
+  AlertTriangle,
   Home,
   ChevronDown,
   ChevronUp,
   Copy,
   Check,
-  PartyPopper,
 } from "lucide-react";
 import Link from "next/link";
-import { useCartStore } from "@/stores/cart.store";
-import { useQueryClient } from "@tanstack/react-query";
 
-export default function PaymentReturnPage() {
+export default function PaymentFailPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { clearCart } = useCartStore();
-  const queryClient = useQueryClient();
 
-  const [status, setStatus] = useState<"loading" | "success" | "failed">(
-    "loading"
-  );
-
+  const [status, setStatus] = useState<"loading" | "failed">("loading");
   const [message, setMessage] = useState("");
   const [details, setDetails] = useState<Record<string, string>>({});
   const [showAllDetails, setShowAllDetails] = useState(false);
@@ -56,6 +49,7 @@ export default function PaymentReturnPage() {
     { key: "orderId", label: "Mã đơn hàng", priority: "high" },
     { key: "orderBookingId", label: "Mã đặt chỗ", priority: "high" },
     { key: "id", label: "Booking ID", priority: "high" },
+    { key: "resultCode", label: "Mã lỗi", priority: "high" },
     { key: "type", label: "Loại giao dịch", priority: "medium" },
     { key: "transId", label: "Transaction ID", priority: "medium" },
     { key: "requestId", label: "Request ID", priority: "low" },
@@ -68,7 +62,6 @@ export default function PaymentReturnPage() {
   const secondaryFields = visibleFields.filter((f) => f.priority !== "high");
 
   useEffect(() => {
-    // Snapshot all params for display
     const paramsObject: Record<string, string> = {};
     searchParams.forEach((value, key) => {
       paramsObject[key] = value;
@@ -83,44 +76,7 @@ export default function PaymentReturnPage() {
       searchParams.get("orderId") ||
       searchParams.get("orderBookingId");
 
-    if (!paymentStatus && orderId) {
-      setStatus("success");
-      setMessage(
-        searchParams.get("message") ||
-          `Thanh toán MOMO thành công! Mã đơn: ${orderId}`
-      );
-
-      clearCart();
-
-      queryClient.invalidateQueries({
-        predicate: (query) => {
-          const queryKey = query.queryKey as string[];
-          return queryKey[0] === "hotel" || queryKey[0] === "rooms";
-        },
-        refetchType: "active",
-      });
-
-      if (typeof window !== "undefined") {
-        const checkIn = localStorage.getItem("pendingHotelCheckIn");
-        const checkOut = localStorage.getItem("pendingHotelCheckOut");
-        if (checkIn && checkOut) {
-          window.dispatchEvent(
-            new CustomEvent("hotelBookingSuccess", {
-              detail: { checkIn, checkOut },
-            })
-          );
-        }
-      }
-
-      localStorage.removeItem("pendingPayment");
-      localStorage.removeItem("pendingOrderId");
-      localStorage.removeItem("pendingHotelCheckIn");
-      localStorage.removeItem("pendingHotelCheckOut");
-
-      return;
-    }
-
-    if (!paymentStatus || !orderId) {
+    if (!paymentStatus && !orderId) {
       setStatus("failed");
       setMessage(
         searchParams.get("message") || "Không tìm thấy thông tin giao dịch"
@@ -128,59 +84,24 @@ export default function PaymentReturnPage() {
       return;
     }
 
-    const isSuccess =
-      paymentStatus === "success" ||
-      paymentStatus === "ok" ||
-      paymentStatus === "00" ||
-      paymentStatus === "0";
+    setStatus("failed");
+    setMessage(
+      searchParams.get("message") ||
+        searchParams.get("orderInfo") ||
+        "Thanh toán thất bại. Vui lòng thử lại."
+    );
 
-    if (isSuccess) {
-      setStatus("success");
-      setMessage(
-        searchParams.get("message") ||
-          `Thanh toán thành công! Mã đơn: ${orderId}`
-      );
-
-      // Xóa cart sau khi thanh toán thành công
-      clearCart();
-
-      // Invalidate hotel rooms cache to refresh room status
-      queryClient.invalidateQueries({
-        predicate: (query) => {
-          const queryKey = query.queryKey as string[];
-          return queryKey[0] === "hotel" || queryKey[0] === "rooms";
-        },
-        refetchType: "active",
-      });
-
-      // Trigger custom event to notify hotel page to refetch with saved dates
-      if (typeof window !== "undefined") {
-        const checkIn = localStorage.getItem("pendingHotelCheckIn");
-        const checkOut = localStorage.getItem("pendingHotelCheckOut");
-        if (checkIn && checkOut) {
-          window.dispatchEvent(
-            new CustomEvent("hotelBookingSuccess", {
-              detail: { checkIn, checkOut },
-            })
-          );
-        }
-      }
-
-      localStorage.removeItem("depositTxnRef");
-      localStorage.removeItem("pendingBookingId");
-      localStorage.removeItem("pendingPaymentMethod");
-      localStorage.removeItem("pendingHotelCheckIn");
-      localStorage.removeItem("pendingHotelCheckOut");
-    } else {
-      setStatus("failed");
-      setMessage(
-        searchParams.get("message") || "Thanh toán thất bại. Vui lòng thử lại."
-      );
-    }
-  }, [searchParams, router, clearCart, queryClient]);
+    localStorage.removeItem("depositTxnRef");
+    localStorage.removeItem("pendingBookingId");
+    localStorage.removeItem("pendingPaymentMethod");
+    localStorage.removeItem("pendingPayment");
+    localStorage.removeItem("pendingOrderId");
+    localStorage.removeItem("pendingHotelCheckIn");
+    localStorage.removeItem("pendingHotelCheckOut");
+  }, [searchParams]);
 
   useEffect(() => {
-    if (status === "success") {
+    if (status === "failed") {
       const timer = setInterval(() => {
         setCountdown((prev) => {
           if (prev <= 1) {
@@ -203,9 +124,9 @@ export default function PaymentReturnPage() {
           {status === "loading" && (
             <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 p-10 text-center">
               <div className="relative mx-auto w-20 h-20 mb-6">
-                <div className="absolute inset-0 rounded-full bg-green-100 animate-ping opacity-30" />
-                <div className="relative rounded-full bg-green-50 w-full h-full flex items-center justify-center">
-                  <Loader className="w-10 h-10 text-green-500 animate-spin" />
+                <div className="absolute inset-0 rounded-full bg-red-100 animate-ping opacity-30" />
+                <div className="relative rounded-full bg-red-50 w-full h-full flex items-center justify-center">
+                  <Loader className="w-10 h-10 text-red-500 animate-spin" />
                 </div>
               </div>
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -215,24 +136,25 @@ export default function PaymentReturnPage() {
             </div>
           )}
 
-          {status === "success" && (
+          {status === "failed" && (
             <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 overflow-hidden">
-              {/* Hero Success Section */}
-              <div className="bg-gradient-to-br from-green-500 to-green-600 px-8 pt-10 pb-12 text-center text-white relative overflow-hidden">
+              {/* Hero Error Section - Strong Visual Focus */}
+              <div className="bg-gradient-to-br from-red-500 to-red-600 px-8 pt-10 pb-12 text-center text-white relative overflow-hidden">
+                {/* Decorative circles */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
                 <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
 
                 <div className="relative">
                   <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm mb-5 ring-4 ring-white/10">
-                    <CheckCircle
+                    <XCircle
                       className="w-12 h-12 text-white"
                       strokeWidth={1.5}
                     />
                   </div>
                   <h1 className="text-2xl md:text-3xl font-bold mb-2 text-balance">
-                    Thanh toán thành công!
+                    Thanh toán thất bại
                   </h1>
-                  <p className="text-green-100 text-sm md:text-base max-w-xs mx-auto leading-relaxed">
+                  <p className="text-red-100 text-sm md:text-base max-w-xs mx-auto leading-relaxed">
                     {message}
                   </p>
                 </div>
@@ -240,6 +162,7 @@ export default function PaymentReturnPage() {
 
               {/* Content Section */}
               <div className="p-6 md:p-8 space-y-6">
+                {/* Primary Transaction Details - Most Important Info */}
                 {primaryFields.length > 0 && (
                   <div className="space-y-1">
                     <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
@@ -257,7 +180,7 @@ export default function PaymentReturnPage() {
                           <div
                             key={field.key}
                             className={`flex items-center justify-between px-4 py-3.5 group ${
-                              isAmount ? "bg-green-50" : ""
+                              isAmount ? "bg-red-50" : ""
                             }`}
                           >
                             <span className="text-sm text-gray-500">
@@ -267,7 +190,7 @@ export default function PaymentReturnPage() {
                               <span
                                 className={`text-right ${
                                   isAmount
-                                    ? "text-2xl font-bold text-green-600"
+                                    ? "text-2xl font-bold text-red-600"
                                     : "font-medium text-gray-900"
                                 }`}
                               >
@@ -296,6 +219,7 @@ export default function PaymentReturnPage() {
                   </div>
                 )}
 
+                {/* Secondary Details - Expandable */}
                 {secondaryFields.length > 0 && (
                   <div>
                     <button
@@ -354,25 +278,27 @@ export default function PaymentReturnPage() {
                   </div>
                 )}
 
-                <div className="flex gap-3 p-4 bg-green-50 border border-green-100 rounded-xl">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                    <PartyPopper className="w-4 h-4 text-green-600" />
+                {/* Warning Notice - Subtle but Visible */}
+                <div className="flex gap-3 p-4 bg-amber-50 border border-amber-100 rounded-xl">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+                    <AlertTriangle className="w-4 h-4 text-amber-600" />
                   </div>
                   <div className="text-sm">
-                    <p className="font-medium text-green-800 mb-0.5">
-                      Giao dịch thành công
+                    <p className="font-medium text-amber-800 mb-0.5">
+                      Giao dịch không thành công
                     </p>
-                    <p className="text-green-700 leading-relaxed">
-                      Đơn hàng của bạn đã được xác nhận. Bạn có thể xem chi tiết
-                      trong lịch sử đặt hàng.
+                    <p className="text-amber-700 leading-relaxed">
+                      Nếu số tiền đã bị trừ, vui lòng liên hệ bộ phận hỗ trợ
+                      hoặc thử lại sau ít phút.
                     </p>
                   </div>
                 </div>
 
+                {/* Action Button with Countdown */}
                 <div className="pt-2">
                   <Link
                     href="/"
-                    className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-all shadow-lg shadow-green-500/25 hover:shadow-green-500/40 hover:-translate-y-0.5 text-sm"
+                    className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition-all shadow-lg shadow-red-500/25 hover:shadow-red-500/40 hover:-translate-y-0.5 text-sm"
                   >
                     <Home className="w-4 h-4" />
                     <span>Về trang chủ ({countdown}s)</span>

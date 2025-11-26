@@ -5,10 +5,12 @@ import {
   CartSummary,
   ValidationError,
   SlotConflict,
+  PriceBreakdown,
 } from "../types/cart";
 import { validateBookingDraft, generateTempId } from "../utils/booking";
-import { spaApi, Service, SpaCombo } from "../services/spa/api";
-import { hotelApi, HotelRoom } from "../services/hotel/api";
+import { spaApi } from "../services/spa/api";
+import { hotelApi } from "../services/hotel/api";
+import api from "@/config/axios";
 
 // Helper functions to replace mock data functions
 const calculateDeposit = (
@@ -18,31 +20,50 @@ const calculateDeposit = (
   return Math.round(totalPrice * percentage);
 };
 
-const applyWeekendSurcharge = (
-  price: number,
-  isWeekend: boolean = false
+// Calculate weight surcharge for spa services
+const calculateWeightSurcharge = (
+  weight: number | null | undefined
 ): number => {
-  return isWeekend ? Math.round(price * 1.1) : price;
+  if (!weight) return 0;
+
+  const weightNum = typeof weight === "string" ? parseFloat(weight) : weight;
+
+  if (isNaN(weightNum) || weightNum < 5) {
+    return 0; // <5kg = 0đ
+  } else if (weightNum <= 15) {
+    return 50000; // 5-15kg = +50k
+  } else {
+    return 100000; // >15kg = +100k
+  }
 };
 
 // Helper function to calculate booking item price
 const calculateBookingItemPrice = async (
   item: BookingDraft
-): Promise<{ price: number; deposit: number }> => {
+): Promise<{ price: number; deposit: number; breakdown?: PriceBreakdown }> => {
   let totalPrice = 0;
+  let basePrice = 0;
+  let weightSurcharge = 0;
+  let weekendSurcharge = 0;
+  let petWeight: number | undefined = undefined;
+  let isSpaBooking = false;
+  let isHotelBooking = false;
 
   try {
     // For SPA COMBO - ưu tiên kiểm tra comboId trước
     if (item.comboId) {
+      isSpaBooking = true;
       console.log("💰 Calculating price for combo ID:", item.comboId);
       // Đây là booking combo spa - lấy giá của combo
       const combo = await spaApi.getComboById(item.comboId.toString());
       console.log("📦 Combo data received:", combo);
-      totalPrice = parseFloat(combo.price) || 0;
-      console.log("💵 Combo price parsed:", totalPrice);
+      basePrice = parseFloat(combo.price) || 0;
+      totalPrice = basePrice;
+      console.log("💵 Combo base price:", basePrice);
     }
     // For SPA services (custom combo - nhiều dịch vụ riêng lẻ)
     else if (item.serviceIds && item.serviceIds.length > 0) {
+      isSpaBooking = true;
       // Get all spa combos to find matching services
       const combos = await spaApi.getAvailableCombos();
 
@@ -63,7 +84,8 @@ const calculateBookingItemPrice = async (
 
       if (matchingCombo) {
         // Use combo price if exact match found
-        totalPrice = parseFloat(matchingCombo.price) || 0;
+        basePrice = parseFloat(matchingCombo.price) || 0;
+        totalPrice = basePrice;
       } else {
         // Fallback: calculate price for each service in the custom combo
         for (const serviceId of item.serviceIds) {
@@ -74,16 +96,18 @@ const calculateBookingItemPrice = async (
             );
             if (serviceLink) {
               const servicePrice = parseFloat(serviceLink.service.price) || 0;
-              totalPrice += servicePrice;
+              basePrice += servicePrice;
               break; // Found the service, no need to continue searching
             }
           }
         }
+        totalPrice = basePrice;
       }
     }
 
     // For HOTEL bookings
     if (item.roomId && item.startDate && item.endDate) {
+      isHotelBooking = true;
       const room = await hotelApi.getRoomById(item.roomId.toString());
       const roomPricePerNight = parseFloat(room.price) || 0;
 
@@ -94,20 +118,117 @@ const calculateBookingItemPrice = async (
         (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)
       );
 
-      totalPrice = roomPricePerNight * nights;
+      basePrice = roomPricePerNight * nights;
+      totalPrice = basePrice;
     }
 
-    // Apply weekend surcharge if applicable
-    const isWeekend = item.bookingDate
-      ? new Date(item.bookingDate).getDay() === 0 ||
-        new Date(item.bookingDate).getDay() === 6
-      : false;
-    totalPrice = applyWeekendSurcharge(totalPrice, isWeekend);
+    // Apply surcharges based on service type
+    if (isSpaBooking) {
+      // SPA: Apply weight surcharge based on pet weight
+      try {
+        console.log(`🐾 Fetching pet data for petId: ${item.petId}`);
+        const petResponse = await api.get(`/pet/${item.petId}`);
+        console.log(`📦 Pet response:`, petResponse.data);
+
+        // API returns {message: 'OK', pet: {...}} structure
+        const petData = petResponse.data?.pet || petResponse.data;
+        const fetchedWeight = petData?.weight;
+        console.log(
+          `⚖️ Fetched weight:`,
+          fetchedWeight,
+          `type:`,
+          typeof fetchedWeight
+        );
+
+        petWeight =
+          typeof fetchedWeight === "string"
+            ? parseFloat(fetchedWeight)
+            : fetchedWeight;
+
+        console.log(`📊 Parsed petWeight:`, petWeight);
+        weightSurcharge = calculateWeightSurcharge(petWeight);
+        console.log(`💵 Calculated weightSurcharge:`, weightSurcharge);
+
+        if (weightSurcharge > 0) {
+          console.log(
+            `⚖️ Weight surcharge for pet ${item.petId}: ${petWeight}kg = +${weightSurcharge}đ`
+          );
+          totalPrice += weightSurcharge;
+        } else {
+          console.log(
+            `ℹ️ No weight surcharge applied for pet ${item.petId} (weight: ${petWeight}kg)`
+          );
+        }
+      } catch (error) {
+        console.error("❌ Error fetching pet weight:", error);
+        // Continue without weight surcharge if pet data is unavailable
+      }
+    } else if (isHotelBooking) {
+      // HOTEL: Apply weekend surcharge (10%) based on check-in or checkout date
+      const checkInDate = item.startDate ? new Date(item.startDate) : null;
+      const checkOutDate = item.endDate ? new Date(item.endDate) : null;
+
+      // Check if either check-in or check-out falls on weekend
+      const isCheckInWeekend =
+        checkInDate &&
+        (checkInDate.getDay() === 0 || checkInDate.getDay() === 6);
+      const isCheckOutWeekend =
+        checkOutDate &&
+        (checkOutDate.getDay() === 0 || checkOutDate.getDay() === 6);
+      const isWeekend = isCheckInWeekend || isCheckOutWeekend;
+
+      console.log(
+        `📅 Hotel booking - Check-in: ${
+          item.startDate
+        } (${checkInDate?.getDay()}), Check-out: ${
+          item.endDate
+        } (${checkOutDate?.getDay()})`
+      );
+      console.log(
+        `📅 Is weekend? ${isWeekend} (Check-in weekend: ${isCheckInWeekend}, Check-out weekend: ${isCheckOutWeekend})`
+      );
+
+      if (isWeekend) {
+        const surchargeAmount = Math.round(basePrice * 0.1);
+        weekendSurcharge = surchargeAmount;
+        totalPrice = basePrice + surchargeAmount;
+        console.log(
+          "📅 Weekend surcharge applied: +10% =",
+          surchargeAmount,
+          "đ"
+        );
+      } else {
+        console.log("ℹ️ No weekend surcharge for this hotel booking");
+      }
+    }
 
     const deposit = calculateDeposit(totalPrice);
 
-    console.log("💰 Final calculated price:", totalPrice, "deposit:", deposit);
-    return { price: totalPrice, deposit };
+    // Build breakdown object - always include all fields for consistency
+    const breakdown: PriceBreakdown = {
+      basePrice,
+      totalPrice,
+    };
+
+    // Add surcharge info if applicable
+    if (weightSurcharge > 0) {
+      breakdown.weightSurcharge = weightSurcharge;
+      breakdown.petWeight = petWeight;
+    }
+
+    if (weekendSurcharge > 0) {
+      breakdown.weekendSurcharge = weekendSurcharge;
+    }
+
+    console.log(
+      "💰 Final calculated price:",
+      totalPrice,
+      "deposit:",
+      deposit,
+      "breakdown:",
+      JSON.stringify(breakdown, null, 2)
+    );
+    return { price: totalPrice, deposit, breakdown };
   } catch (error) {
     console.error("❌ Error calculating booking item price:", error);
     // Return default values if calculation fails
@@ -117,7 +238,10 @@ const calculateBookingItemPrice = async (
 
 interface CartState {
   items: BookingDraft[];
-  itemPrices: Map<string, { price: number; deposit: number }>; // Cache prices by tempId
+  itemPrices: Map<
+    string,
+    { price: number; deposit: number; breakdown?: PriceBreakdown }
+  >; // Cache prices by tempId with breakdown
   isCartOpen: boolean;
   isLoading: boolean;
   errors: ValidationError[];
@@ -144,7 +268,7 @@ interface CartActions {
   calculateSummary: () => Promise<CartSummary>;
   calculateItemPrice: (
     tempId: string
-  ) => Promise<{ price: number; deposit: number }>;
+  ) => Promise<{ price: number; deposit: number; breakdown?: PriceBreakdown }>;
   setLoading: (loading: boolean) => void;
   clearErrors: () => void;
   recalculateAllPrices: () => Promise<void>;
@@ -527,7 +651,7 @@ export const useCartStore = create<CartStore>()(
           console.log("🔄 Triggering price recalculation after hydration...");
           // Recalculate prices after a short delay to ensure app is ready
           setTimeout(() => {
-            (state as any).recalculateAllPrices?.();
+            state.recalculateAllPrices?.();
           }, 100);
         }
       },

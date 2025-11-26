@@ -113,14 +113,41 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     return petNames[petId] || `Pet ${petId}`;
   };
 
-  // Component to display item price
+  // Component to display item price with breakdown
   const ItemPriceDisplay: React.FC<{ tempId: string }> = ({ tempId }) => {
     const pricing = useCartItemPrice(tempId);
+    const hasBreakdown =
+      pricing.breakdown &&
+      (pricing.breakdown.weightSurcharge || pricing.breakdown.weekendSurcharge);
+
     return (
       <div className="text-right">
-        <div className="font-poppins-regular text-[16px] text-green-600">
-          {formatCurrency(pricing.price)}
-        </div>
+        {hasBreakdown ? (
+          <div className="space-y-1">
+            <div className="text-sm text-gray-600">
+              Giá gốc: {formatCurrency(pricing.breakdown!.basePrice)}
+            </div>
+            {pricing.breakdown!.weightSurcharge && (
+              <div className="text-xs text-amber-600">
+                + Phụ thu cân nặng ({pricing.breakdown!.petWeight}kg):{" "}
+                {formatCurrency(pricing.breakdown!.weightSurcharge)}
+              </div>
+            )}
+            {pricing.breakdown!.weekendSurcharge && (
+              <div className="text-xs text-amber-600">
+                + Phụ thu cuối tuần:{" "}
+                {formatCurrency(pricing.breakdown!.weekendSurcharge)}
+              </div>
+            )}
+            <div className="font-poppins-semibold text-[16px] text-green-600 border-t border-gray-200 pt-1">
+              {formatCurrency(pricing.price)}
+            </div>
+          </div>
+        ) : (
+          <div className="font-poppins-regular text-[16px] text-green-600">
+            {formatCurrency(pricing.price)}
+          </div>
+        )}
       </div>
     );
   };

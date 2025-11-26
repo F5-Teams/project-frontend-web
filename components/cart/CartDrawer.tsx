@@ -200,7 +200,7 @@ const resolveRoomImage = async (roomId: number | string | undefined) => {
   return null;
 };
 
-// Component to display item price
+// Component to display item price with breakdown
 const ItemPriceDisplay: React.FC<{ tempId: string }> = ({ tempId }) => {
   const pricing = useCartItemPrice(tempId);
 
@@ -212,7 +212,37 @@ const ItemPriceDisplay: React.FC<{ tempId: string }> = ({ tempId }) => {
       </span>
     );
   }
-  // Chỉ hiển thị tổng giá, bỏ deposit
+
+  const hasBreakdown =
+    pricing.breakdown &&
+    (pricing.breakdown.weightSurcharge || pricing.breakdown.weekendSurcharge);
+
+  // If there are surcharges, show breakdown
+  if (hasBreakdown) {
+    return (
+      <div className="text-right space-y-0.5">
+        <div className="text-xs text-gray-500">
+          {formatCurrency(pricing.breakdown!.basePrice)}
+        </div>
+        {pricing.breakdown!.weightSurcharge && (
+          <div className="text-[10px] text-amber-600">
+            +{formatCurrency(pricing.breakdown!.weightSurcharge)} (
+            {pricing.breakdown!.petWeight}kg)
+          </div>
+        )}
+        {pricing.breakdown!.weekendSurcharge && (
+          <div className="text-[10px] text-amber-600">
+            +{formatCurrency(pricing.breakdown!.weekendSurcharge)} (Cuối tuần)
+          </div>
+        )}
+        <div className="font-bold text-sm sm:text-base text-pink-500 pt-0.5 border-t border-gray-200">
+          {formatCurrency(pricing.price)}
+        </div>
+      </div>
+    );
+  }
+
+  // No surcharges, just show total
   return (
     <span className="font-bold text-sm sm:text-base text-pink-500">
       {formatCurrency(pricing.price)}
