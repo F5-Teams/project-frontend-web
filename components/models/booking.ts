@@ -6,7 +6,7 @@ export type BookingStatus =
   | "PENDING"
   | "CONFIRMED"
   | "ON_SERVICE"
-  | "CANCELED"
+  | "CANCELLED"
   | "COMPLETED";
 
 export type DropDownSlot = "MORNING" | "AFTERNOON" | "EVENING";
@@ -93,6 +93,7 @@ export interface Payment {
 
 export interface Booking {
   id: ID;
+  bookingCode: string;
   bookingDate: string;
   dropDownSlot: DropDownSlot;
   checkInDate: string | null;

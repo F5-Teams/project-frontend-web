@@ -179,7 +179,7 @@ export default function BookingListPage() {
           <option value="CONFIRMED">CONFIRMED</option>
           <option value="ON_SERVICE">ON_SERVICE</option>
           <option value="COMPLETED">COMPLETED</option>
-          <option value="CANCELLED">CANCELED</option>
+          <option value="CANCELLED">CANCELLED</option>
         </select>
       </div>
 
