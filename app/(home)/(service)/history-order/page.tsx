@@ -62,6 +62,8 @@ export default function HistoryOrder() {
   const cancelMutation = usePostOrderCancel();
   const { mutate: postRegenerateOrder } = usePostRegenerateOrder();
 
+  console.log("HAHAHA", orders);
+
   const filteredOrders =
     status === "ALL"
       ? orders
@@ -194,9 +196,9 @@ export default function HistoryOrder() {
                   <div>
                     <div className="flex items-center gap-3">
                       <p className="text-orange-500 font-semibold">
-                        {Number(order?.payment?.amount || 0).toLocaleString(
-                          "vi-VN"
-                        )}{" "}
+                        {Number(
+                          order?.payment?.totalAmount || 0
+                        ).toLocaleString("vi-VN")}{" "}
                         đ
                       </p>
                       <span className="text-gray-400 text-lg">{">"}</span>
@@ -226,7 +228,7 @@ export default function HistoryOrder() {
                 <div className="flex justify-between mt-5 font-medium">
                   <p>Tổng cộng:</p>
                   <p className="text-green-600">
-                    {Number(order?.payment?.amount || 0).toLocaleString(
+                    {Number(order?.payment?.totalAmount || 0).toLocaleString(
                       "vi-VN"
                     )}{" "}
                     đ

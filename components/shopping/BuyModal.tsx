@@ -162,7 +162,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       addressId: address,
       paymentMethod:
         option === "wallet"
-          ? "TRANSFER"
+          ? "WALLET"
           : option === "momo"
           ? "MOMO"
           : option === "cod"
@@ -175,7 +175,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
     };
 
     try {
-      if (orderPayloadTransfer.paymentMethod === "TRANSFER") {
+      if (orderPayloadTransfer.paymentMethod === "WALLET") {
         const money =
           total +
           (fee?.data?.service_fee ?? 0) -
@@ -210,7 +210,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
 
       if (
         orderPayloadTransfer.paymentMethod === "CASH" ||
-        orderPayloadTransfer.paymentMethod === "TRANSFER"
+        orderPayloadTransfer.paymentMethod === "WALLET"
       ) {
         toast.success("Đặt hàng thành công!");
       }
@@ -445,7 +445,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
               <Radio value={"inland"}>
                 <div className="flex gap-2 items-center">
                   <Truck size={18} />
-                  <p>Giao nội địa</p>
+                  <p>Giao nội bộ</p>
                 </div>
               </Radio>
             </Radio.Group>
