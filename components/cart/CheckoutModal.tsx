@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +26,7 @@ import { BookingDraft } from "@/types/cart";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { GET_USER_QUERY_KEY } from "@/services/users/hooks";
+import api from "@/config/axios";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -48,6 +49,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
+  const [petNames, setPetNames] = useState<Record<number, string>>({});
 
   // Helper functions to display item details like in cart
   const getItemIcon = (item: BookingDraft) => {
@@ -78,8 +80,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const getItemDetails = (item: BookingDraft) => {
     const details = [];
 
-    // For SPA services
-    if (item.serviceIds && item.serviceIds.length > 0) {
+    // For SPA services or combos
+    if ((item.serviceIds && item.serviceIds.length > 0) || item.comboId) {
       if (item.bookingDate) {
         details.push(
           `Date: ${format(new Date(item.bookingDate), "MMM dd, yyyy")}`
@@ -108,7 +110,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   };
 
   const getPetName = (petId: number) => {
-    return `Pet ${petId}`;
+    return petNames[petId] || `Pet ${petId}`;
   };
 
   // Component to display item price
@@ -133,6 +135,29 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       setCartOpen(false);
     }
   }, [isOpen, setCartOpen]);
+
+  // Fetch pet names for display in summary
+  useEffect(() => {
+    const fetchPetNames = async () => {
+      if (!isOpen) return;
+      try {
+        const user = JSON.parse(localStorage.getItem("user") || "null");
+        if (!user?.id) return;
+
+        const response = await api.get(`/pet/user/${user.id}`);
+        const petList = response.data || [];
+        const map: Record<number, string> = {};
+        petList.forEach((pet: { id: number; name?: string }) => {
+          map[pet.id] = pet.name || `Pet ${pet.id}`;
+        });
+        setPetNames(map);
+      } catch (err) {
+        console.error("Không thể tải tên thú cưng:", err);
+      }
+    };
+
+    fetchPetNames();
+  }, [isOpen]);
 
   const handleCheckout = async () => {
     if (!selectedPaymentMethod) {
@@ -427,7 +452,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                           <span className="font-poppins-regular">
                             Thú cưng:
                           </span>{" "}
-                          {getPetName(item.petId)}
+                          “{getPetName(item.petId)}”
                         </div>
 
                         {getItemDetails(item).length > 0 && (
@@ -463,19 +488,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
                 <Separator className="my-3" />
 
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-[14px]">
-                    <span>Tạm tính:</span>
-                    <span className="font-poppins-light">
-                      {formatCurrency(totalPrice)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between border-t pt-1.5 text-base">
-                    <span className="font-poppins-regular">Tổng cộng:</span>
-                    <span className="text-green-600 font-poppins-regular">
-                      {formatCurrency(totalPrice)}
-                    </span>
-                  </div>
+                <div className="flex justify-between border-t pt-1.5 text-base">
+                  <span className="font-poppins-regular">Tổng cộng:</span>
+                  <span className="text-green-600 font-poppins-regular">
+                    {formatCurrency(totalPrice)}
+                  </span>
                 </div>
               </CardContent>
             </Card>

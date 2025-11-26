@@ -98,6 +98,13 @@ const PetHotelPage = () => {
       return;
     }
 
+    if (!checkInDate || !checkOutDate) {
+      toast.error("Vui lòng chọn ngày nhận và trả phòng trước khi đặt", {
+        description: "Chúng tôi cần khung ngày để kiểm tra thú cưng khả dụng",
+      });
+      return;
+    }
+
     setSelectedRoomId(roomId);
     setIsSelectPetsOpen(true);
   };
@@ -499,6 +506,9 @@ const PetHotelPage = () => {
         onConfirm={handlePetsSelected}
         serviceId={selectedRoomId}
         maxPets={1}
+        bookingType="hotel"
+        hotelStartDate={checkInDate}
+        hotelEndDate={checkOutDate}
         title="Chọn thú cưng"
         description="Chọn thú cưng để đặt phòng khách sạn (chỉ chọn 1 thú cưng)"
         roomSize={selectedRoom?.size as "S" | "M" | "L" | undefined}

@@ -10,8 +10,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Pet } from "@/types/cart";
 import { AlertCircle, CheckCircle, Loader2, Plus } from "lucide-react";
 import api from "@/config/axios";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import Image from "next/image";
+import { useCartStore } from "@/stores/cart.store";
 
 interface SelectPetsModalProps {
   isOpen: boolean;
@@ -22,6 +24,10 @@ interface SelectPetsModalProps {
   title?: string;
   description?: string;
   roomSize?: "S" | "M" | "L"; // Add room size prop for hotel bookings
+  bookingType?: "spa" | "hotel";
+  spaDate?: Date | null;
+  hotelStartDate?: Date | null;
+  hotelEndDate?: Date | null;
 }
 
 export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
@@ -32,12 +38,17 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
   title = "Chọn thú cưng",
   description = "Chọn thú cưng sẽ nhận dịch vụ này",
   roomSize, // Add roomSize prop
+  bookingType,
+  spaDate,
+  hotelStartDate,
+  hotelEndDate,
 }) => {
   const router = useRouter();
   const [selectedPetIds, setSelectedPetIds] = useState<string[]>([]);
   const [pets, setPets] = useState<Pet[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const { items: cartItems } = useCartStore();
 
   // Calculate pet size based on weight
   // Pet size S: < 5kg, M: 5kg - 15kg, L: > 15kg
@@ -93,17 +104,38 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
     const fetchPets = async () => {
       if (!isOpen) return;
 
+      setErrors([]);
+
+      // Basic auth check
+      const user = JSON.parse(localStorage.getItem("user") || "null");
+      if (!user?.id) {
+        setErrors(["Vui lòng đăng nhập để xem thú cưng của bạn"]);
+        setPets([]);
+        setLoading(false);
+        return;
+      }
+
+      // Validate required dates for availability endpoints
+      if (bookingType === "spa" && !spaDate) {
+        setErrors([
+          "Vui lòng chọn ngày Spa trước khi tìm thú cưng khả dụng.",
+        ]);
+        setPets([]);
+        setLoading(false);
+        return;
+      }
+
+      if (bookingType === "hotel" && (!hotelStartDate || !hotelEndDate)) {
+        setErrors([
+          "Vui lòng chọn ngày nhận/trả phòng để kiểm tra thú cưng khả dụng.",
+        ]);
+        setPets([]);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       try {
-        // Get user from localStorage
-        const user = JSON.parse(localStorage.getItem("user") || "null");
-        if (!user?.id) {
-          setErrors(["Vui lòng đăng nhập để xem thú cưng của bạn"]);
-          setLoading(false);
-          return;
-        }
-
-        const response = await api.get(`/pet/user/${user.id}`);
         interface ApiPet {
           id: number | string;
           name?: string;
@@ -112,12 +144,40 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
           note?: string;
           images?: Array<{ imageUrl: string }>;
           breed?: string;
-          gender?: string;
-          weight?: number;
-          height?: number;
+          gender?: string | boolean;
+          weight?: number | string;
+          height?: number | string;
+          notes?: string;
+          isAvailable?: boolean;
         }
 
-        const petsData = (response.data || []) as ApiPet[];
+        let petsData: ApiPet[] = [];
+
+        if (bookingType === "spa") {
+          const response = await api.get(`/pet/available/spa`, {
+            params: {
+              date: spaDate ? format(spaDate, "yyyy-MM-dd") : undefined,
+            },
+          });
+          petsData = (response.data?.pets || []) as ApiPet[];
+        } else if (bookingType === "hotel") {
+          const response = await api.get(`/pet/available/hotel`, {
+            params: {
+              startDate: hotelStartDate?.toISOString(),
+              endDate: hotelEndDate?.toISOString(),
+            },
+          });
+          petsData = (response.data?.pets || []) as ApiPet[];
+        } else {
+          const response = await api.get(`/pet/user/${user.id}`);
+          petsData = (response.data || []) as ApiPet[];
+        }
+
+        const parseNumberValue = (value?: number | string) => {
+          if (value === null || value === undefined) return undefined;
+          const num = Number(value);
+          return Number.isFinite(num) ? num : undefined;
+        };
 
         // Transform API data to match component expectations
         const validPets: Pet[] = petsData.map((pet: ApiPet) => ({
@@ -127,14 +187,15 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
           type: normalizePetType(pet.species),
           avatar: pet.images?.[0]?.imageUrl || "", // Use first image as avatar
           age: pet.age || 0,
-          notes: pet.note || "", // Map note to notes
+          notes: pet.note || pet.notes || "", // Map note to notes
           // Keep additional API fields for reference
           species: pet.species,
           breed: pet.breed,
           gender: pet.gender,
-          weight: pet.weight,
-          height: pet.height,
+          weight: parseNumberValue(pet.weight),
+          height: parseNumberValue(pet.height),
           images: pet.images || [],
+          isAvailable: pet.isAvailable,
         }));
 
         setPets(validPets);
@@ -147,7 +208,7 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
     };
 
     fetchPets();
-  }, [isOpen]);
+  }, [isOpen, bookingType, spaDate, hotelStartDate, hotelEndDate]);
 
   // Reset state when modal opens/closes
   useEffect(() => {
@@ -241,6 +302,53 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
     return icons[t];
   };
 
+  const spaDateString = spaDate ? format(spaDate, "yyyy-MM-dd") : undefined;
+  const hotelStartString = hotelStartDate
+    ? format(hotelStartDate, "yyyy-MM-dd")
+    : undefined;
+  const hotelEndString = hotelEndDate
+    ? format(hotelEndDate, "yyyy-MM-dd")
+    : undefined;
+
+  const isHotelRangeOverlap = (
+    startA?: string,
+    endA?: string,
+    startB?: string,
+    endB?: string
+  ) => {
+    if (!startA || !endA || !startB || !endB) return false;
+    const aStart = new Date(startA).getTime();
+    const aEnd = new Date(endA).getTime();
+    const bStart = new Date(startB).getTime();
+    const bEnd = new Date(endB).getTime();
+    return aStart <= bEnd && bStart <= aEnd;
+  };
+
+  const isPetInCartSameSchedule = (petId: string) => {
+    const pid = parseInt(petId, 10);
+    return cartItems.some((item) => {
+      if (item.petId !== pid) return false;
+      if (bookingType === "spa" && spaDateString) {
+        return item.bookingDate === spaDateString;
+      }
+      if (
+        bookingType === "hotel" &&
+        hotelStartString &&
+        hotelEndString &&
+        item.startDate &&
+        item.endDate
+      ) {
+        return isHotelRangeOverlap(
+          hotelStartString,
+          hotelEndString,
+          item.startDate,
+          item.endDate
+        );
+      }
+      return false;
+    });
+  };
+
   return (
     <CustomModal
       open={isOpen}
@@ -254,6 +362,27 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
           <p className="text-sm font-poppins-light text-gray-600">
             {description}
           </p>
+        )}
+
+        {bookingType === "spa" && spaDate && (
+          <Alert className="bg-amber-50 border-amber-200">
+            <AlertCircle className="h-4 w-4 text-amber-700" />
+            <AlertDescription className="text-amber-800">
+              Hiển thị thú cưng khả dụng cho ngày{" "}
+              {format(spaDate, "dd/MM/yyyy")}.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {bookingType === "hotel" && hotelStartDate && hotelEndDate && (
+          <Alert className="bg-indigo-50 border-indigo-200">
+            <AlertCircle className="h-4 w-4 text-indigo-700" />
+            <AlertDescription className="text-indigo-800">
+              Hiển thị thú cưng khả dụng cho kỳ nghỉ từ{" "}
+              {format(hotelStartDate, "dd/MM/yyyy")} đến{" "}
+              {format(hotelEndDate, "dd/MM/yyyy")}.
+            </AlertDescription>
+          </Alert>
         )}
 
         {/* Room size info */}
@@ -299,11 +428,15 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
             {pets.map((pet) => {
               const isSelected = selectedPetIds.includes(pet.id);
               const canFitInRoom = canPetFitInRoom(pet.weight);
+              const isUnavailable = pet.isAvailable === false;
+              const isCartConflict = isPetInCartSameSchedule(pet.id);
               const isDisabled =
                 (!!maxPets &&
                   selectedPetIds.length >= maxPets &&
                   !isSelected) ||
-                (roomSize && !canFitInRoom);
+                (roomSize && !canFitInRoom) ||
+                isCartConflict ||
+                isUnavailable;
 
               return (
                 <div className="p-2" key={pet.id}>
@@ -312,7 +445,9 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
                       isSelected
                         ? "ring-2 ring-blue-500 bg-blue-50"
                         : isDisabled
-                        ? "opacity-50 cursor-not-allowed bg-gray-100"
+                        ? isUnavailable
+                          ? "opacity-60 cursor-not-allowed bg-red-50"
+                          : "opacity-50 cursor-not-allowed bg-gray-100"
                         : "hover:shadow-md hover:ring-1 hover:ring-gray-300"
                     }`}
                     onClick={() => !isDisabled && handlePetToggle(pet.id)}
@@ -354,9 +489,27 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
                                 {pet.name}
                               </h3>
                             </div>
-                            <Badge className={getPetTypeColor(pet.type)}>
-                              {getPetTypeLabel(pet.type)}
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <Badge className={getPetTypeColor(pet.type)}>
+                                {getPetTypeLabel(pet.type)}
+                              </Badge>
+                              {isUnavailable && (
+                                <Badge
+                                  variant="destructive"
+                                  className="bg-red-100 text-red-700 border-red-200"
+                                >
+                                  Trùng lịch
+                                </Badge>
+                              )}
+                              {isCartConflict && (
+                                <Badge
+                                  variant="outline"
+                                  className="border-orange-300 text-orange-700 bg-orange-50"
+                                >
+                                  Đã có trong giỏ hàng
+                                </Badge>
+                              )}
+                            </div>
                           </div>
 
                           <div className="space-y-1 text-sm text-gray-600">
@@ -382,6 +535,17 @@ export const SelectPetsModal: React.FC<SelectPetsModalProps> = ({
                             {pet.notes && (
                               <p className="text-xs text-gray-500 truncate">
                                 Ghi chú: {pet.notes}
+                              </p>
+                            )}
+                            {isCartConflict && (
+                              <p className="text-xs text-orange-700">
+                                Thú cưng này đã có lịch trong giỏ hàng cho ngày
+                                chọn.
+                              </p>
+                            )}
+                            {isUnavailable && (
+                              <p className="text-xs text-red-600">
+                                Thú cưng này đã có lịch trùng.
                               </p>
                             )}
                           </div>

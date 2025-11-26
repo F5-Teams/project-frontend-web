@@ -19,8 +19,23 @@ export default function PaymentReturnPage() {
   );
 
   const [message, setMessage] = useState("");
+  const [details, setDetails] = useState<Record<string, string>>({});
+
+  const formatCurrency = (value?: string | null) => {
+    if (!value) return "";
+    const num = Number(value);
+    if (!Number.isFinite(num)) return value;
+    return num.toLocaleString("vi-VN") + "đ";
+  };
 
   useEffect(() => {
+    // Snapshot all params for display
+    const paramsObject: Record<string, string> = {};
+    searchParams.forEach((value, key) => {
+      paramsObject[key] = value;
+    });
+    setDetails(paramsObject);
+
     const paymentStatus =
       searchParams.get("payment_status") || searchParams.get("status");
 
@@ -33,7 +48,10 @@ export default function PaymentReturnPage() {
 
     if (!paymentStatus && orderId) {
       setStatus("success");
-      setMessage(`Thanh toán MOMO thành công! Mã đơn: ${orderId}`);
+      setMessage(
+        searchParams.get("message") ||
+          `Thanh toán MOMO thành công! Mã đơn: ${orderId}`
+      );
 
       clearCart();
 
@@ -64,20 +82,31 @@ export default function PaymentReturnPage() {
 
       setTimeout(() => {
         router.push("/");
-      }, 3000);
+      }, 5000);
 
       return;
     }
 
     if (!paymentStatus || !orderId) {
       setStatus("failed");
-      setMessage("Không tìm thấy thông tin giao dịch");
+      setMessage(
+        searchParams.get("message") || "Không tìm thấy thông tin giao dịch"
+      );
       return;
     }
 
-    if (paymentStatus === "success") {
+    const isSuccess =
+      paymentStatus === "success" ||
+      paymentStatus === "ok" ||
+      paymentStatus === "00" ||
+      paymentStatus === "0";
+
+    if (isSuccess) {
       setStatus("success");
-      setMessage(`Thanh toán thành công! Mã đơn: ${orderId}`);
+      setMessage(
+        searchParams.get("message") ||
+          `Thanh toán thành công! Mã đơn: ${orderId}`
+      );
 
       // Xóa cart sau khi thanh toán thành công
       clearCart();
@@ -112,10 +141,13 @@ export default function PaymentReturnPage() {
 
       setTimeout(() => {
         router.push("/");
-      }, 3000);
+      }, 5000);
     } else {
       setStatus("failed");
-      setMessage("Thanh toán thất bại. Vui lòng thử lại.");
+      setMessage(
+        searchParams.get("message") ||
+          "Thanh toán thất bại. Vui lòng thử lại."
+      );
     }
   }, [searchParams, router]);
 
@@ -143,8 +175,40 @@ export default function PaymentReturnPage() {
                 Thanh toán thành công!
               </h1>
               <p className="text-gray-600 mb-6">{message}</p>
+              <div className="text-left bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 space-y-2">
+                {[
+                  { key: "type", label: "Loại giao dịch" },
+                  { key: "id", label: "Booking ID" },
+                  { key: "orderId", label: "Mã đơn" },
+                  { key: "orderBookingId", label: "Mã đơn" },
+                  { key: "requestId", label: "Request ID" },
+                  { key: "transId", label: "Transaction ID" },
+                  {
+                    key: "amount",
+                    label: "Số tiền",
+                    render: (v: string) => formatCurrency(v),
+                  },
+                  { key: "orderInfo", label: "Nội dung" },
+                  { key: "message", label: "Thông báo" },
+                  { key: "status", label: "Trạng thái" },
+                ].map((field) => {
+                  const value = details[field.key];
+                  if (!value) return null;
+                  return (
+                    <div
+                      key={field.key}
+                      className="flex items-start justify-between text-sm text-gray-700"
+                    >
+                      <span className="font-medium">{field.label}</span>
+                      <span className="text-gray-600 text-right">
+                        {field.render ? field.render(value) : value}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
               <p className="text-sm text-gray-500">
-                Tự động quay lại trang chủ trong 3 giây...
+                Tự động quay lại trang chủ trong 5 giây...
               </p>
               <Link
                 href="/"

@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
-import { Check, Loader2, AlertCircle } from "lucide-react";
+import { Check, Loader2, AlertCircle, Calendar } from "lucide-react";
 import Image from "next/image";
 import dog from "@/public/images/dog.jpg";
 import cat from "@/public/images/cat.jpg";
@@ -14,6 +14,14 @@ import { useCombos } from "@/hooks/useCombos";
 import { useGetUser } from "@/services/users/hooks";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { addDays, format, startOfDay } from "date-fns";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 
 const PetCarePage = () => {
   const { addItems } = useCartStore();
@@ -27,6 +35,9 @@ const PetCarePage = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedServiceId, setSelectedServiceId] = useState<string>("");
   const [selectedPetIds, setSelectedPetIds] = useState<string[]>([]);
+  const today = startOfDay(new Date());
+  const maxSpaDate = addDays(today, 30);
+  const [spaDate, setSpaDate] = useState<Date | null>(today);
 
   const handleShowDetail = (serviceId: string) => {
     setSelectedServiceId(serviceId);
@@ -42,6 +53,13 @@ const PetCarePage = () => {
           label: "Đăng nhập",
           onClick: () => router.push("/login"),
         },
+      });
+      return;
+    }
+
+    if (!spaDate) {
+      toast.error("Vui lòng chọn ngày spa trước khi đặt lịch", {
+        description: "Chúng tôi cần ngày đặt để kiểm tra thú cưng khả dụng",
       });
       return;
     }
@@ -135,14 +153,64 @@ const PetCarePage = () => {
         <section className=" bg-[#fbedf6] py-6">
           <div className="flex gap-1.5 sm:gap-2 justify-center px-4">
             <h1 className="text-2xl sm:text-3xl md:text-4xl mb-6 sm:mb-8 md:mb-10 font-poppins-medium">
-              Lựa chọn
+              Lựa chọn dịch vụ Spa
             </h1>
             <h1 className="text-2xl sm:text-3xl md:text-4xl mb-6 sm:mb-8 md:mb-10 font-poppins-medium text-pink-600">
-              Của Bạn
+              Cho pet của Bạn
             </h1>
           </div>
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            <div className="max-w-2xl mx-auto mb-6">
+              <div className="bg-white rounded-2xl shadow-lg p-5 sm:p-6 border border-slate-100">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mb-1">
+                  <div>
+                    <p className="text-base sm:text-lg font-poppins-semibold text-slate-800">
+                      Chọn ngày sử dụng dịch vụ spa
+                    </p>
+                  </div>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        className={cn(
+                          "w-full sm:w-auto px-4 py-3 border rounded-lg flex items-center gap-3 justify-between font-poppins-regular transition-all",
+                          spaDate
+                            ? "border-pink-500 bg-pink-50 text-slate-800"
+                            : "border-gray-300 bg-white text-slate-500 hover:border-pink-300"
+                        )}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-5 h-5 text-pink-500" />
+                          <span>
+                            {spaDate
+                              ? format(spaDate, "dd/MM/yyyy")
+                              : "Chọn ngày spa"}
+                          </span>
+                        </div>
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                      <CalendarComponent
+                        mode="single"
+                        selected={spaDate || undefined}
+                        onSelect={(date) => {
+                          if (!date) return;
+                          const selected = startOfDay(date);
+                          if (selected < today || selected > maxSpaDate) return;
+                          setSpaDate(selected);
+                        }}
+                        disabled={(date) => {
+                          const normalized = startOfDay(date);
+                          return normalized < today || normalized > maxSpaDate;
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+            </div>
+
             {loading ? (
               <div className="flex justify-center items-center py-20">
                 <div className="flex flex-col items-center gap-4">
@@ -477,6 +545,8 @@ const PetCarePage = () => {
         onClose={() => setIsSelectPetsOpen(false)}
         onConfirm={handlePetsSelected}
         serviceId={selectedServiceId}
+        bookingType="spa"
+        spaDate={spaDate}
         title="Chọn thú cưng"
         description="Chọn thú cưng để đặt dịch vụ spa"
       />
@@ -488,6 +558,7 @@ const PetCarePage = () => {
         serviceId={selectedServiceId}
         selectedPetIds={selectedPetIds}
         service={selectedService}
+        initialDate={spaDate || undefined}
       />
     </main>
   );
