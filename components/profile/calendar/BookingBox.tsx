@@ -3,9 +3,8 @@ import React from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-
 import { getStatusDotClass } from "./StatusBadge";
-import { formatDMY } from "@/utils/dateRange";
+import { formatDateTime24 } from "@/utils/date";
 import { Booking } from "@/services/profile/profile-schedule/types";
 
 type Props = {
@@ -36,13 +35,11 @@ export function BookingBox({
 
   const dotClass = getStatusDotClass(data.status);
 
-  // For HOTEL bookings with slot, show date range
-  // For SPA bookings, show single bookingDate
   const title =
     data.combo?.name || data.room?.name || `Booking #${data.bookingCode}`;
-  const rangeStart = data.slot?.startDate ?? data.bookingDate;
-  const rangeEnd = data.slot?.endDate ?? data.bookingDate;
-  const hasRange = Boolean(data.slot?.startDate && data.slot?.endDate);
+  // const rangeStart = data.slot?.startDate ?? data.bookingDate;
+  // const rangeEnd = data.slot?.endDate ?? data.bookingDate;
+  // const hasRange = Boolean(data.slot?.startDate && data.slot?.endDate);
 
   return (
     <div
@@ -73,23 +70,12 @@ export function BookingBox({
             {title}
           </div>
           <div ref={bodyRef} className="pt-1 text-xs text-gray-700 space-y-1.5">
-            {!hasRange && rangeStart && (
-              <div className="flex flex-col items-start">
-                <span className="text-gray-500 text-xs">Ngày:</span>
-                <span className="font-poppins-light text-gray-700 mt-0.5">
-                  {formatDMY(new Date(rangeStart))}
-                </span>
-              </div>
-            )}
-            {hasRange && rangeStart && rangeEnd && (
-              <div className="flex justify-between">
-                <span className="text-gray-500">Ngày:</span>
-                <span className="font-poppins-light ml-1">
-                  {formatDMY(new Date(rangeStart))}–
-                  {formatDMY(new Date(rangeEnd))}
-                </span>
-              </div>
-            )}
+            <div className="flex flex-col items-start">
+              <span className="text-gray-500 text-xs">Ngày đặt:</span>
+              <span className="font-poppins-light text-gray-800 mt-0.5">
+                {formatDateTime24(data.createdAt)}
+              </span>
+            </div>
           </div>
         </div>
       </button>

@@ -134,7 +134,10 @@ export function UserInfoCard({ user }: Props) {
                   {user?.firstName} {user?.lastName}
                 </h2>
                 <p className="text-gray-500 text-sm italic font-light mb-4">
-                  @{user?.userName}
+                  @{user?.userName} - Email:{" "}
+                  <span className="text-black font-poppins-regular">
+                    {user?.email}
+                  </span>
                 </p>
               </>
             ) : (
@@ -158,7 +161,7 @@ export function UserInfoCard({ user }: Props) {
                   />
                 </div>
                 <div className="text-gray-500 text-sm italic font-light mb-4">
-                  @{user?.userName}
+                  @{user?.userName} {user?.userName}
                 </div>
               </div>
             )}
