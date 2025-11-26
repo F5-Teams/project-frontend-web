@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
 import api from "@/config/axios";
 import { RefundItem } from "@/components/models/refund";
 import Image from "next/image";
+import { toast } from "sonner";
 
 export default function AdminRefundPage() {
   const [refunds, setRefunds] = useState<RefundItem[]>([]);
@@ -90,8 +92,17 @@ export default function AdminRefundPage() {
       // Refresh lại danh sách
       await fetchRefunds();
       closeDetails();
+
+      // Thông báo thành công
+      if (status === "APPROVED") {
+        toast.success("Duyệt khiếu nại thành công.");
+      } else {
+        toast.success("Từ chối khiếu nại thành công.");
+      }
     } catch (err: any) {
-      setError(err?.response?.data?.message || err.message);
+      const msg = err?.response?.data?.message || err.message;
+      setError(msg);
+      toast.error(msg);
     } finally {
       setProcessing(false);
     }
@@ -163,7 +174,13 @@ export default function AdminRefundPage() {
                 </td>
                 <td className="px-4 py-3 text-sm">{badge(r.status)}</td>
                 <td className="px-4 py-3 text-sm">
-                  {new Date(r.createdAt).toLocaleString()}
+                  {new Date(r.createdAt).toLocaleString("vi-VN", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </td>
                 <td className="px-4 py-3 text-sm">
                   <button
@@ -211,7 +228,13 @@ export default function AdminRefundPage() {
                   </h3>
                   <p className="text-sm text-gray-500 mt-1">
                     ID #{selected.id} ·{" "}
-                    {new Date(selected.createdAt).toLocaleString()}
+                    {new Date(selected.createdAt).toLocaleString("vi-VN", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </p>
                 </div>
                 <div className="ml-4 flex items-center gap-2">
@@ -321,21 +344,25 @@ export default function AdminRefundPage() {
 
               {/* Footer */}
               <footer className="p-6 border-t flex gap-3">
-                <button
-                  onClick={() => review("APPROVED")}
-                  disabled={processing}
-                  className="flex-1 px-4 py-2 rounded-lg bg-pink-600 text-white hover:bg-pink-700 disabled:opacity-60"
-                >
-                  {processing ? "Đang xử lý..." : "Chấp nhận"}
-                </button>
+                {selected?.status === "PENDING" && (
+                  <>
+                    <button
+                      onClick={() => review("APPROVED")}
+                      disabled={processing}
+                      className="flex-1 px-4 py-2 rounded-lg bg-pink-600 text-white hover:bg-pink-700 disabled:opacity-60"
+                    >
+                      {processing ? "Đang xử lý..." : "Chấp nhận"}
+                    </button>
 
-                <button
-                  onClick={() => review("REJECTED")}
-                  disabled={processing}
-                  className="flex-1 px-4 py-2 rounded-lg bg-white text-pink-600 border border-pink-200 hover:bg-pink-50 disabled:opacity-60"
-                >
-                  {processing ? "Đang xử lý..." : "Từ chối"}
-                </button>
+                    <button
+                      onClick={() => review("REJECTED")}
+                      disabled={processing}
+                      className="flex-1 px-4 py-2 rounded-lg bg-white text-pink-600 border border-pink-200 hover:bg-pink-50 disabled:opacity-60"
+                    >
+                      {processing ? "Đang xử lý..." : "Từ chối"}
+                    </button>
+                  </>
+                )}
 
                 <button
                   onClick={closeDetails}

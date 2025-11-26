@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+
 import { Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { useCreateBookingFeedback } from "@/services/profile/feedback/hooks";
@@ -18,7 +17,6 @@ type Props = {
 };
 
 export default function FeedbackForm({ bookingId, onSubmitted }: Props) {
-  const router = useRouter();
   const [rating, setRating] = React.useState<number>(0);
   const [hover, setHover] = React.useState<number>(0);
   const [comment, setComment] = React.useState<string>("");
@@ -99,18 +97,6 @@ export default function FeedbackForm({ bookingId, onSubmitted }: Props) {
         </div>
 
         <div className="flex items-center justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() =>
-              bookingId && router.push(`/profile/refund/${bookingId}`)
-            }
-            className="flex items-center gap-2 mb-2 bg-pink-500 hover:text-white hover:bg-pink-600 text-white border-pink-500 hover:border-pink-600"
-            disabled={!bookingId}
-          >
-            Khiếu nại
-          </Button>
-
           <button
             type="submit"
             disabled={!bookingId || rating < 1 || mutation.status === "pending"}
