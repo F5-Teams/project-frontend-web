@@ -34,7 +34,7 @@ const mainNav: NavItem[] = [
   // { href: "/profile/bookings", icon: ClipboardList, label: "Bookings" },
   { href: "/profile/calendar", icon: CalendarIcon, label: "Calendar" },
   // { href: "/profile/log-feed", icon: Utensils, label: "Log Feed" },
-  // { href: "/profile/address", icon: ClipboardList, label: "Address" },
+  { href: "/profile/address", icon: ClipboardList, label: "Address" },
 
   // {
   //   href: "/profile/notifications",
@@ -47,7 +47,7 @@ const mainNav: NavItem[] = [
 const bottomNav: NavItem[] = [
   // { href: "/profile/settings", icon: Settings, label: "Settings" },
   // { href: "/profile/about", icon: Info, label: "About" },
-  // { href: "/profile/address", icon: ClipboardList, label: "Address" },
+  { href: "/profile/address", icon: ClipboardList, label: "Address" },
 ];
 
 export default function Sidebar({ open, onToggle }: SidebarProps) {
