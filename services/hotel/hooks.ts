@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { hotelApi, HotelRoom } from "./api";
+import { hotelApi } from "./api";
+import type { HotelRoom } from "./types";
 
 export const useHotelRooms = (
   checkInDate?: Date | null,
