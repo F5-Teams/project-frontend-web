@@ -2,7 +2,7 @@
 export type BookingStatus =
   | "PENDING"
   | "CONFIRMED"
-  | "CANCELED"
+  | "CANCELLED"
   | "ON_SERVICE"
   | "COMPLETED"
   | string;

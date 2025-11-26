@@ -109,7 +109,7 @@ export default function BookingPendingPage() {
   async function handleCancelBooking(id: number) {
     try {
       setCancelingId(id);
-      await api.put(`/bookings/${id}/status`, { status: "CANCELED" });
+      await api.put(`/bookings/${id}/status`, { status: "CANCELLED" });
 
       setBookings((prev) => prev.filter((b) => b.id !== id));
       if (expandedId === id) setExpandedId(null);

@@ -24,6 +24,7 @@ import {
   UserRoundCheck,
   Clock,
   HandPlatter,
+  HandCoins,
 } from "lucide-react";
 
 export type IconKey =
@@ -50,6 +51,7 @@ export type IconKey =
   | "clock"
   | "groomer"
   | "chat"
+  | "refund"
   | "meal";
 
 export const ICONS: Record<IconKey, LucideIcon> = {
@@ -77,4 +79,5 @@ export const ICONS: Record<IconKey, LucideIcon> = {
   clock: Clock,
   chat: MessageSquare,
   meal: HandPlatter,
+  refund: HandCoins,
 };
