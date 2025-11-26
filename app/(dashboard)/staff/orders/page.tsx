@@ -438,7 +438,7 @@ const OrderPage = () => {
                   handleComplete();
                 }}
               >
-                Hoàn thành
+                Xác nhận
               </Button>
             </>
           )}

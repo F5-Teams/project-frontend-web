@@ -200,7 +200,7 @@ const ModalComplete: React.FC<ModalCompleteProps> = ({
                   className="bg-pink-500! hover:bg-pink-600! "
                   loading={loading}
                 >
-                  Xác nhận hoàn thành
+                  Xác nhận
                 </Button>
               </Form.Item>
             </div>
@@ -233,7 +233,7 @@ const ModalComplete: React.FC<ModalCompleteProps> = ({
                     className="bg-pink-500! hover:bg-pink-600! "
                     loading={loading}
                   >
-                    Xác nhận hoàn thành
+                    Xác nhận
                   </Button>
                 </Form.Item>
               </div>
