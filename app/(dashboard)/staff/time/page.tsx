@@ -71,8 +71,7 @@ function CustomerAvatar({
   );
 }
 
-/* ---------------------- Kiểm tra điều kiện hành động ---------------------- */
-/* ❗ CHECK-IN: Không cho phép trước ngày bắt đầu */
+/*  CHECK-IN: Không cho phép trước ngày bắt đầu */
 const canCheckIn = (b: Booking) => {
   if (b.status === "PENDING" || b.checkInDate) return false;
   const today = dayjs().startOf("day");
@@ -82,8 +81,6 @@ const canCheckIn = (b: Booking) => {
 
 /* CHECK-OUT: Chỉ khi đã check-in */
 const canCheckOut = (b: Booking) => !!b.checkInDate && !b.checkOutDate;
-
-/* ---------------------- MAIN COMPONENT ---------------------- */
 
 export default function HotelBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -112,8 +109,10 @@ export default function HotelBookingsPage() {
 
   const fetchBookings = async () => {
     try {
-      const res = await api.get("/bookings/staff/hotel-service");
-      const filtered = res.data.filter((b: Booking) => b.status !== "CANCELED");
+      const res = await api.get("/bookings/staff/confirmed");
+      const filtered = res.data.filter(
+        (b: Booking) => b.status !== "CANCELLED"
+      );
       setBookings(filtered);
     } catch (error) {
       console.error("Error fetching bookings:", error);

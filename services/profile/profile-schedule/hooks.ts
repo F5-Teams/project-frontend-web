@@ -50,7 +50,7 @@ export function getBookingStatusText(status: string): string {
   const statusMap: Record<string, string> = {
     PENDING: "Đang chờ",
     CONFIRMED: "Đã xác nhận",
-    CANCELED: "Đã hủy",
+    CANCELLED: "Đã hủy",
     ON_SERVICE: "Đang phục vụ",
     COMPLETED: "Đã hoàn thành",
   };
@@ -62,7 +62,7 @@ export function getBookingStatusColor(status: string): string {
   const colorMap: Record<string, string> = {
     PENDING: "text-yellow-600",
     CONFIRMED: "text-green-600",
-    CANCELED: "text-red-600",
+    CANCELLED: "text-red-600",
     ON_SERVICE: "text-blue-600",
     COMPLETED: "text-emerald-600",
   };

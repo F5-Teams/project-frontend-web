@@ -59,6 +59,20 @@ const formatCurrency = (value: number) =>
     currency: "VND",
   }).format(value);
 
+// Format date + time (vi-VN), fallback to '-'
+const formatDateTime = (value?: string | null) => {
+  if (!value) return "-";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return "-";
+  return d.toLocaleString("vi-VN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 export default function BookingListPage() {
   const [allBookings, setAllBookings] = useState<Booking[]>([]);
 
@@ -287,28 +301,6 @@ export default function BookingListPage() {
 
       {/* CHART OVERALL ORDERS */}
       <div className="bg-white rounded-2xl border shadow-sm p-6 mb-8">
-        {/* <div className="flex items-center justify-between mb-4">
-          <div>
-            <p className="text-lg font-semibold">
-              Tổng đơn hàng:{" "}
-              <span className="text-pink-600">{totalOrders}</span>
-            </p>
-          </div>
-
-          Nhóm nút Daily / Weekly / Monthly (hiện chỉ UI)
-          <div className="flex items-center text-xs rounded-full bg-gray-100 p-1">
-            <button className="px-3 py-1 rounded-full text-gray-400">
-              Daily
-            </button>
-            <button className="px-3 py-1 rounded-full text-gray-400">
-              Weekly
-            </button>
-            <button className="px-3 py-1 rounded-full bg-white shadow text-gray-800">
-              Monthly
-            </button>
-          </div>
-        </div> */}
-
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={monthlyChartData} barCategoryGap={20}>
@@ -381,6 +373,7 @@ export default function BookingListPage() {
               </th>
               <th className="p-3 text-left">Thú cưng</th>
               <th className="p-3 text-left">Khách hàng</th>
+              <th className="p-3 text-left">Mã booking</th>
               <th className="p-3 text-left">Ngày đặt</th>
               <th className="p-3 text-left">Trạng thái</th>
               <th className="p-3 text-left">Hành động</th>
@@ -397,9 +390,8 @@ export default function BookingListPage() {
                     item.customer?.lastName ?? ""
                   }`.trim() || "-"}
                 </td>
-                <td className="p-3">
-                  {new Date(item.bookingDate).toLocaleDateString("vi-VN")}
-                </td>
+                <td className="p-3">{item.bookingCode ?? "-"}</td>
+                <td className="p-3">{formatDateTime(item.bookingDate)}</td>
                 <td className="p-3">
                   <StatusBadge status={item.status} />
                 </td>
@@ -446,11 +438,29 @@ export default function BookingListPage() {
           {/* Modal */}
           <div className="bg-white w-[600px] rounded-2xl shadow-2xl overflow-hidden animate-scaleIn relative">
             {/* HEADER */}
-            <div className="bg-gradient-to-r from-pink-500 to-pink-600 text-white px-6 py-4 flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Chi tiết Booking</h2>
+            <div className="bg-gradient-to-r from-pink-500 to-pink-600 text-white px-6 py-4 flex justify-between items-start gap-4">
+              <div>
+                <h2 className="text-lg font-semibold">Chi tiết Booking</h2>
+                <div className="text-sm mt-1 opacity-90">
+                  Mã: {selectedBooking.bookingCode}
+                </div>
+                <div className="text-sm mt-1 opacity-90">
+                  Dịch vụ:{" "}
+                  {selectedBooking.Room || selectedBooking.roomId
+                    ? "Hotel"
+                    : selectedBooking.combo || selectedBooking.comboId
+                    ? "Spa"
+                    : "-"}
+                </div>
+                <div className="text-xs mt-1 opacity-80">
+                  Ngày tạo: {formatDateTime(selectedBooking.createdAt)}
+                </div>
+              </div>
+
               <button
                 onClick={() => setSelectedBooking(null)}
-                className="hover:bg-white/20 p-1 rounded-full transition"
+                className="hover:bg-white/20 p-1 rounded-full transition ml-auto"
+                aria-label="Đóng"
               >
                 <X className="w-6 h-6 text-white" />
               </button>
@@ -459,57 +469,53 @@ export default function BookingListPage() {
             {/* CONTENT */}
             <div className="p-6 space-y-4">
               {/* GRID 2 CỘT */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-6">
                 {/* Cột trái */}
                 <div className="space-y-3">
-                  <div className="flex gap-2">
-                    <span className="font-semibold text-gray-600">
+                  <div className="flex gap-2 items-center">
+                    <span className="font-semibold text-gray-600 w-28">
                       Thú cưng:
                     </span>
                     <span>{selectedBooking.pet?.name ?? "-"}</span>
                   </div>
 
-                  <div className="flex gap-2">
-                    <span className="font-semibold text-gray-600">
+                  <div className="flex gap-2 items-center">
+                    <span className="font-semibold text-gray-600 w-28">
                       Khách hàng:
                     </span>
                     <span>
                       {`${selectedBooking.customer?.firstName ?? ""} ${
                         selectedBooking.customer?.lastName ?? ""
-                      }`}
+                      }`.trim() || "-"}
                     </span>
                   </div>
 
-                  <div className="flex gap-2">
-                    <span className="font-semibold text-gray-600">
-                      Ngày đặt:
+                  <div className="flex gap-2 items-center">
+                    <span className="font-semibold text-gray-600 w-28">
+                      Số điện thoại:
                     </span>
-                    <span>
-                      {new Date(selectedBooking.bookingDate).toLocaleDateString(
-                        "vi-VN"
-                      )}
-                    </span>
+                    <span>{selectedBooking.customer.phoneNumber}</span>
                   </div>
 
-                  <div className="flex gap-2">
-                    <span className="font-semibold text-gray-600">
+                  <div className="flex gap-2 items-center">
+                    <span className="font-semibold text-gray-600 w-28">
                       Khung giờ:
                     </span>
-                    <span>{selectedBooking.dropDownSlot}</span>
+                    <span>{selectedBooking.dropDownSlot ?? "-"}</span>
                   </div>
                 </div>
 
                 {/* Cột phải */}
                 <div className="space-y-3">
-                  <div className="flex gap-2">
-                    <span className="font-semibold text-gray-600">
+                  <div className="flex gap-2 items-center">
+                    <span className="font-semibold text-gray-600 w-28">
                       Trạng thái:
                     </span>
                     <StatusBadge status={selectedBooking.status} />
                   </div>
 
-                  <div className="flex gap-2">
-                    <span className="font-semibold text-gray-600">
+                  <div className="flex gap-2 items-center">
+                    <span className="font-semibold text-gray-600 w-28">
                       Nhân viên:
                     </span>
                     <span>
@@ -519,12 +525,27 @@ export default function BookingListPage() {
                     </span>
                   </div>
 
-                  <div className="flex gap-2">
-                    <span className="font-semibold text-gray-600">
-                      Ghi chú:
+                  <div className="flex gap-2 items-center">
+                    <span className="font-semibold text-gray-600 w-28">
+                      Check-in:
                     </span>
-                    <span>{selectedBooking.note || "Không có"}</span>
+                    <span>{formatDateTime(selectedBooking.checkInDate)}</span>
                   </div>
+
+                  <div className="flex gap-2 items-center">
+                    <span className="font-semibold text-gray-600 w-28">
+                      Check-out:
+                    </span>
+                    <span>{formatDateTime(selectedBooking.checkOutDate)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Ghi chú full-width */}
+              <div>
+                <div className="font-semibold text-gray-600">Ghi chú:</div>
+                <div className="mt-1 text-sm text-gray-700">
+                  {selectedBooking.note || "Không có"}
                 </div>
               </div>
             </div>
