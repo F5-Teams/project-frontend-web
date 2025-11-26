@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { spaApi } from "@/services/spa/api";
 import type { SpaCombo } from "@/services/spa/api";
-import { hotelApi } from "@/services/hotel/api";
-import type { HotelRoom } from "@/services/hotel/api";
+import { hotelApi } from "@/services/hotel";
+import type { HotelRoom } from "@/services/hotel";
 import { getAllProduct } from "@/services/product/getProductPublic/api";
 import type { Product } from "@/services/product/getProductPublic/type";
 
