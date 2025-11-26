@@ -136,7 +136,7 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
         </div>
 
         <div className="text-right text-lg font-semibold text-pink-600">
-          Tổng thanh toán: {total.toLocaleString("vi-VN")}. đ
+          Tổng thanh toán: {total.toLocaleString("vi-VN")} đ
         </div>
 
         {order.shipping.failureReason && (

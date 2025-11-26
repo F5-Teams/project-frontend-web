@@ -21,8 +21,6 @@ export interface Wallet {
 }
 
 export type TransactionType =
-  | "WALLET_DEPOSIT"
-  | "WALLET_WITHDRAW"
   | "WALLET_PAYMENT"
   | "WALLET_REFUND"
   | "BOOKING_PAYMENT"
@@ -34,20 +32,20 @@ export type PaymentMethod =
   | "BANK_TRANSFER"
   | "WALLET"
   | "MOMO"
-  | "VNPAY"
-  | "PAYOS";
+  | "VNPAY";
 
 export interface TransactionHistoryItem {
   id: number;
   type: TransactionType;
   paymentMethod: PaymentMethod;
   amount: number;
-  status: "PENDING" | "SUCCEED" | "FAILED" | "REFUNDED" | "PAID";
+  status: "PENDING" | "PAID" | "FAILED" | "REFUNDED";
   description: string;
   createdAt: string;
   bookingId?: number | null;
   bookingCode?: string | null;
   balanceAfter: number;
+  orderId?: number | null;
 }
 
 export interface TransactionHistoryParams {

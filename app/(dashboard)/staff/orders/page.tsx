@@ -472,7 +472,7 @@ const OrderPage = () => {
                 size="small"
                 onClick={() => handleVoucher(record)}
               >
-                Ghi nhận
+                Tặng voucher
               </Button>
             </>
           )}

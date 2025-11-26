@@ -12,6 +12,14 @@ import { Voucher } from "@/services/vouchers/type";
 import { POST_ORDER_QUERY_KEY } from "@/services/orders/postOrder/hooks";
 import { toast } from "sonner";
 import { useGetWallet } from "@/services/wallets/hooks";
+import {
+  Banknote,
+  CreditCard,
+  MapPinHouse,
+  ReceiptText,
+  Smartphone,
+  WalletCards,
+} from "lucide-react";
 interface CartItem {
   productId: number;
   price: number;
@@ -45,8 +53,6 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   const { data: voucher = [] } = useGetVoucher();
   const { data: wallets } = useGetWallet();
 
-  console.log("first", wallets);
-
   const total = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
@@ -57,6 +63,22 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   );
 
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (address) {
+      form.setFieldsValue({ address });
+    }
+  }, [address]);
+
+  useEffect(() => {
+    if (addressList.length > 0 && !address) {
+      const defaultAddress = addressList.find((a) => a.isDefault);
+      if (defaultAddress) {
+        setAddress(defaultAddress.id);
+        form.setFieldsValue({ address: defaultAddress.id });
+      }
+    }
+  }, [addressList]);
 
   useEffect(() => {
     if (!address) return;
@@ -190,6 +212,12 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
     }
   };
 
+  const formattedAddress = (id: number) => {
+    const i = addressList.find((a) => a.id === id);
+    if (!i) return "";
+    return `${i.name} (${i.phone}), ${i.address}, ${i.districtName}, ${i.provinceName}`;
+  };
+
   const money =
     total +
     (fee?.data?.service_fee ?? 0) -
@@ -205,215 +233,248 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
         isCancel();
       }}
       footer={null}
-      width={600}
-      title={
-        <span className="font-poppins-light font-light text-lg">
-          🛒 Tổng đơn hàng
-        </span>
-      }
+      width={1100}
+      styles={{
+        body: {
+          maxHeight: "80vh",
+          overflowY: "auto",
+          padding: "24px",
+        },
+      }}
+      centered
+      title={<span className="font-medium text-lg">🛒 Xác nhận đơn hàng</span>}
     >
-      <div className="space-y-3 max-h-[300px] overflow-y-auto">
-        {items.map((item) => (
-          <div
-            key={item.productId}
-            className="flex items-center justify-between border rounded-lg p-2 shadow-sm"
-          >
-            <div className="flex items-center gap-3">
-              <img
-                src={item.imageUrl}
-                alt={item.name}
-                className="w-16 h-16 object-cover rounded-md"
-              />
-              <div className="text-left">
-                <p className="font-poppins-light font-light text-gray-800">
-                  {item.name}
-                </p>
-                <p className="text-sm text-gray-500">
-                  {item.quantity} × {item.price.toLocaleString("vi-VN")} VNĐ
-                </p>
-              </div>
-            </div>
-            <div className="font-poppins-light font-medium text-pink-600">
-              {(item.price * item.quantity).toLocaleString("vi-VN")} VNĐ
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="border-t border-gray-200 my-2" />
-
-      <Form
-        form={form}
-        onValuesChange={(changedValues) => {
-          if (changedValues.address) setAddress(changedValues.address);
-        }}
-      >
-        <div className="flex">
-          <h1 className="w-[30%]">Chọn địa chỉ:</h1>
-
-          <Form.Item name="address" className="w-[70%]">
-            <Select
-              showSearch
-              placeholder="Chọn địa chỉ"
-              className="mt-1 w-full"
-              optionLabelProp="shortLabel" // ✅ Chỉ hiển thị gọn trong input
-              options={addressList.map((item) => {
-                const shortLabel = `${item.name} (${item.phone}), ${item.address}, ${item.districtName}, ${item.provinceName}`;
-
-                return {
-                  value: item.id,
-                  shortLabel, // 👈 Gọn – dùng trong input
-                  // 👈 Full – dùng trong dropdown
-                  label: (
-                    <div className="flex flex-col whitespace-normal leading-tight">
-                      <span>
-                        {item.name} ({item.phone})
-                        {item.isDefault && (
-                          <span className="text-xs bg-pink-100 text-pink-600 rounded-full px-2 py-0.5 ml-2">
-                            Mặc định
-                          </span>
-                        )}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        {item.address}, {item.districtName}, {item.provinceName}
-                      </span>
-                    </div>
-                  ),
-                };
-              })}
-              popupRender={(menu) => (
-                <div className="min-w-[400px]">
-                  {menu}
-                  <div
-                    onClick={() => setIsAddressModalOpen(true)}
-                    className="text-center py-2 cursor-pointer border-t hover:bg-pink-50 text-pink-600 font-poppins-light font-light"
-                  >
-                    {addressList.length === 0
-                      ? "Tạo địa chỉ mới"
-                      : "Sửa địa chỉ"}
+      <div className="flex gap-6">
+        <div className="w-1/2 border-r pr-4">
+          <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+            {items.map((item) => (
+              <div
+                key={item.productId}
+                className="flex items-center justify-between border rounded-lg p-2 shadow-sm"
+              >
+                <div className="flex items-center gap-3">
+                  <img
+                    src={item.imageUrl}
+                    alt={item.name}
+                    className="w-16 h-16 object-cover rounded-md"
+                  />
+                  <div className="text-left">
+                    <p className="font-poppins-light font-light text-gray-800">
+                      {item.name}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {item.quantity} × {item.price.toLocaleString("vi-VN")} VNĐ
+                    </p>
                   </div>
                 </div>
-              )}
+
+                <div className="font-semibold text-pink-600">
+                  {(item.price * item.quantity).toLocaleString("vi-VN")} VNĐ
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="w-1/2 space-y-4">
+          <Form
+            form={form}
+            onValuesChange={(changedValues) => {
+              if (changedValues.address) setAddress(changedValues.address);
+            }}
+          >
+            <h2 className="flex gap-2 font-poppins-light font-medium mb-2">
+              <MapPinHouse size={16} /> Địa chỉ giao hàng
+            </h2>
+
+            {/* <Form.Item name="address">
+              <Select
+                showSearch
+                placeholder="Chọn địa chỉ"
+                className="mt-1 w-full"
+                optionLabelProp="shortLabel"
+                options={addressList.map((item) => {
+                  const shortLabel = `${item.name} (${item.phone}), ${item.address}, ${item.districtName}, ${item.provinceName}`;
+
+                  return {
+                    value: item.id,
+                    shortLabel,
+                    label: (
+                      <div className="flex flex-col whitespace-normal leading-tight">
+                        <span>
+                          {item.name} ({item.phone})
+                          {item.isDefault && (
+                            <span className="text-xs bg-pink-100 text-pink-600 rounded-full px-2 py-0.5 ml-2">
+                              Mặc định
+                            </span>
+                          )}
+                        </span>
+                        <span className="text-sm text-gray-600">
+                          {item.address}, {item.districtName},{" "}
+                          {item.provinceName}
+                        </span>
+                      </div>
+                    ),
+                  };
+                })}
+                popupRender={(menu) => (
+                  <div className="min-w-[400px]">
+                    {menu}
+                    <div
+                      onClick={() => setIsAddressModalOpen(true)}
+                      className="text-center py-2 cursor-pointer border-t hover:bg-pink-50 text-pink-600 font-poppins-light font-light"
+                    >
+                      {addressList.length === 0
+                        ? "Tạo địa chỉ mới"
+                        : "Sửa địa chỉ"}
+                    </div>
+                  </div>
+                )}
+              />
+            </Form.Item> */}
+            <Form.Item name="address">
+              <Select
+                open={false}
+                className="w-full cursor-pointer"
+                placeholder="Chọn địa chỉ giao hàng"
+                onClick={() => setIsAddressModalOpen(true)}
+                value={
+                  address && addressList.length > 0 ? address : "Chọn địa chỉ"
+                }
+                options={
+                  address
+                    ? [
+                        {
+                          value: address,
+                          label: formattedAddress(address),
+                        },
+                      ]
+                    : []
+                }
+              />
+            </Form.Item>
+          </Form>
+
+          <div>
+            <h2 className="flex gap-2 font-poppins-light font-medium mb-2">
+              <ReceiptText size={16} /> Chọn voucher
+            </h2>
+
+            <Select
+              value={chooseVoucher?.code}
+              onChange={(code) => {
+                const selected = voucher.find((v) => v.code === code);
+                setChooseVoucher(selected);
+              }}
+              allowClear
+              placeholder="Chọn voucher"
+              onClear={() => setChooseVoucher(undefined)}
+              className="w-full"
+              options={voucher.map((item) => ({
+                label: `Voucher giảm ${item.percent}%`,
+                value: item.code,
+              }))}
             />
-          </Form.Item>
+          </div>
+
+          <div className="border-t pt-3 space-y-1 text-sm">
+            <p>
+              Giá sản phẩm: <strong>{total.toLocaleString("vi-VN")} VNĐ</strong>
+            </p>
+
+            <p>
+              Phí vận chuyển:{" "}
+              <strong>
+                {fee?.data?.service_fee?.toLocaleString("vi-VN") || 0} VNĐ
+              </strong>
+            </p>
+
+            {chooseVoucher && (
+              <p className="text-green-600">Giảm: {chooseVoucher.percent}%</p>
+            )}
+          </div>
+
+          <div>
+            <h2 className="flex gap-2 font-poppins-light font-medium mb-2">
+              <CreditCard size={16} /> Phương thức thanh toán
+            </h2>
+
+            <Radio.Group
+              onChange={(e) => setOption(e.target.value)}
+              value={option}
+              className="flex flex-wrap gap-4"
+            >
+              <Radio value="vnpay">
+                <div className="flex items-center gap-2">
+                  <CreditCard size={16} />
+                  <span>VNPAY</span>
+                </div>
+              </Radio>
+
+              <Radio value="momo">
+                <div className="flex items-center gap-2">
+                  <Smartphone size={16} />
+                  <span>MOMO</span>
+                </div>
+              </Radio>
+
+              <Radio value="cod">
+                <div className="flex items-center gap-2">
+                  <Banknote size={20} />
+                  <span>COD</span>
+                </div>
+              </Radio>
+
+              <Radio value="wallet">
+                <div className="flex items-center gap-2">
+                  <WalletCards size={16} />
+                  <span>Ví</span>
+                </div>
+              </Radio>
+            </Radio.Group>
+          </div>
+
+          <div className="flex justify-between items-center pt-3 border-t">
+            <span className="text-base">Tổng thanh toán:</span>
+            <span className="text-green-600 font-bold text-lg">
+              {money.toLocaleString("vi-VN")} VNĐ
+            </span>
+          </div>
+
+          <div className="flex gap-3 pt-3">
+            <Button
+              onClick={() => {
+                setLoading(false);
+                setNote("");
+                form.resetFields();
+                isCancel();
+              }}
+              className="flex-1! py-2! rounded-xl! border border-pink-500! text-pink-600!"
+            >
+              Hủy
+            </Button>
+
+            <Button
+              type="primary"
+              onClick={handleSubmit}
+              loading={loading}
+              className="flex-1! py-2! rounded-xl! bg-pink-500! hover:bg-pink-600!"
+            >
+              Đặt hàng
+            </Button>
+          </div>
         </div>
-      </Form>
-
-      <div className="flex">
-        <h1 className="w-[30%] mb-2">Chọn voucher</h1>
-        <Select
-          value={chooseVoucher?.code}
-          onChange={(code) => {
-            const selected = voucher.find((v) => v.code === code);
-            setChooseVoucher(selected);
-          }}
-          allowClear
-          placeholder="Chọn voucher"
-          onClear={() => setChooseVoucher(undefined)}
-          style={{ width: "70%" }}
-          options={voucher.map((item) => ({
-            label: `Voucher giảm ${item.percent}%`,
-            value: item.code,
-          }))}
-        />
-      </div>
-
-      <div className="border-t border-gray-200 my-2" />
-
-      <div className="flex justify-between items-center mb-5">
-        <div className="text-sm font-poppins-light font-medium mt-1">
-          <p>Giá sản phẩm: {total.toLocaleString("vi-VN")} VNĐ</p>
-          <p>
-            Phí vận chuyển:{" "}
-            {fee?.data?.service_fee?.toLocaleString("vi-VN") || 0} VNĐ
-          </p>
-        </div>
-      </div>
-
-      <div className="gap-2 items-center">
-        <h1 className="font-poppins-light font-light mb-2">
-          Phương thức thanh toán:
-        </h1>
-
-        <Radio.Group
-          onChange={(e) => setOption(e.target.value)}
-          value={option}
-          className="flex gap-4 mt-1"
-        >
-          <Radio value="vnpay">
-            <div className="flex items-center gap-2">
-              <img src="/images/vnpay.png" alt="VNPAY" className="w-6 h-6" />
-              <span>VNPAY</span>
-            </div>
-          </Radio>
-
-          <Radio value="momo">
-            <div className="flex items-center gap-2">
-              <img src="/images/momo.png" alt="MOMO" className="w-6 h-6" />
-              <span>MOMO</span>
-            </div>
-          </Radio>
-
-          <Radio value="cod">
-            <div className="flex items-center gap-2">
-              <img src="/images/cash.png" alt="COD" className="w-6 h-6" />
-              <span>COD</span>
-            </div>
-          </Radio>
-
-          <Radio value="wallet">
-            <div className="flex items-center gap-2">
-              <img src="/images/wallet.jpg" alt="WALLET" className="w-12 h-6" />
-              <span>Ví</span>
-            </div>
-          </Radio>
-        </Radio.Group>
-      </div>
-
-      <div className="flex justify-between items-center">
-        <span className="font-poppins-light font-light text-base">
-          Tổng thanh toán:
-        </span>
-        <span className="text-green-600 font-bold font-poppins-light  text-lg">
-          {(
-            total +
-            (fee?.data?.service_fee ?? 0) -
-            (chooseVoucher
-              ? ((total + fee?.data?.service_fee) * chooseVoucher.percent) / 100
-              : 0)
-          ).toLocaleString("vi-VN")}{" "}
-          VNĐ
-        </span>
-      </div>
-
-      <div className="flex gap-3 mt-6">
-        <Button
-          onClick={() => {
-            setLoading(false);
-            setNote("");
-            form.resetFields();
-            isCancel();
-          }}
-          className="flex-1! py-2! rounded-xl! border border-pink-500! cursor-pointer! text-pink-600! font-poppins-light font-light! hover:bg-pink-50 transition"
-        >
-          Hủy
-        </Button>
-
-        <Button
-          type="primary"
-          onClick={handleSubmit}
-          loading={loading}
-          className="flex-1! py-2! rounded-xl! text-white! bg-pink-500! hover:bg-pink-600!"
-        >
-          Đặt hàng
-        </Button>
       </div>
 
       <AddressModal
         open={isAddressModalOpen}
         isCancel={() => setIsAddressModalOpen(false)}
         addressList={addressList}
-        onSelect={(id) => setAddress(id)}
+        onSelect={(id) => {
+          setAddress(id);
+          form.setFieldsValue({ address: id });
+          setIsAddressModalOpen(false);
+        }}
       />
     </Modal>
   );

@@ -167,7 +167,7 @@ export function BagDrawer({ children }: BagDrawerProps) {
                             <input
                               type="number"
                               min={1}
-                              max={10}
+                              max={50}
                               value={item.quantity}
                               onChange={(e) => {
                                 let value = Number(e.target.value);
@@ -175,7 +175,7 @@ export function BagDrawer({ children }: BagDrawerProps) {
                                 if (isNaN(value)) return;
 
                                 if (value < 1) value = 1;
-                                if (value > 10) value = 10;
+                                if (value > 50) value = 50;
 
                                 updateQuantity(item.productId, value);
                               }}
@@ -183,7 +183,7 @@ export function BagDrawer({ children }: BagDrawerProps) {
                                 let value = Number(e.target.value);
 
                                 if (isNaN(value) || value < 1) value = 1;
-                                if (value > 10) value = 10;
+                                if (value > 50) value = 50;
 
                                 updateQuantity(item.productId, value);
                               }}
@@ -199,7 +199,7 @@ export function BagDrawer({ children }: BagDrawerProps) {
                               onClick={() =>
                                 updateQuantity(
                                   item.productId,
-                                  Math.min(10, item.quantity + 1)
+                                  Math.min(50, item.quantity + 1)
                                 )
                               }
                               className="w-8 h-7 flex items-center justify-center text-pink-600 hover:bg-pink-50 transition"

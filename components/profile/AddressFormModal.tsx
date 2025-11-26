@@ -34,7 +34,7 @@ export default function AddressFormModal({
   const [ward, setWard] = useState<Ward | undefined>();
   const [phone, setPhone] = useState<string>();
   const [address, setAddress] = useState<string>();
-  console.log("CITY", city);
+  const [name, setName] = useState<string>();
   const { data: districtList } = useGetDistrict(city?.ProvinceID);
   const { data: wardList } = useGetWard(district?.DistrictID);
   const { data: user } = useGetUser();
@@ -42,8 +42,6 @@ export default function AddressFormModal({
   const { mutateAsync: createAddress } = useCreateAddress();
   const { mutateAsync: patchAddress } = usePatchAddress();
   const queryClient = useQueryClient();
-
-  console.log("HIHI", inistitalState);
 
   useEffect(() => {
     if (!inistitalState) return;
@@ -62,14 +60,14 @@ export default function AddressFormModal({
       (w) => w.WardCode === inistitalState.wardCode
     );
     setWard(selectedWard);
-
+    setName(inistitalState.name);
     setAddress(inistitalState.address);
     setPhone(inistitalState.phone);
   }, [inistitalState, province, districtList, wardList]);
 
   const handleSave = async () => {
     const payload = {
-      name: `${user?.firstName ?? ""} ${user?.lastName ?? ""}`,
+      name: name ?? "",
       phone: phone ?? "",
       address: address ?? "",
       wardCode: ward?.WardCode ?? "",
@@ -148,8 +146,8 @@ export default function AddressFormModal({
               onChange={(value) => {
                 const selected = province.find((p) => p.ProvinceID === value);
                 setCity(selected);
-                setDistrict(undefined); // reset
-                setWard(undefined); // reset
+                setDistrict(undefined);
+                setWard(undefined);
               }}
               className="mt-1 w-full"
               size="large"
@@ -208,7 +206,17 @@ export default function AddressFormModal({
               ))}
             </Select>
           </div>
-
+          <div>
+            <label className="text-sm text-gray-600">Tên người nhận</label>
+            <Input
+              type="text"
+              placeholder="Nhập tên..."
+              className="mt-1"
+              size="large"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
           <div>
             <label className="text-sm text-gray-600">Địa chỉ chi tiết</label>
             <Input

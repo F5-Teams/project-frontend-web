@@ -18,6 +18,7 @@ export interface Booking {
   bookingCode: string;
   status: BookingStatus;
   bookingDate: string;
+  createdAt: string;
   checkInDate: string | null;
   checkOutDate: string | null;
   dropDownSlot: TimeSlot;
