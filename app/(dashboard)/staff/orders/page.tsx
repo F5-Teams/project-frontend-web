@@ -303,7 +303,7 @@ const OrderPage = () => {
       title: "Tổng tiền",
       width: 120,
       render: (_: any, record: Order) => {
-        const amount = record.payment?.amount ?? 0;
+        const amount = record.payment?.totalAmount ?? 0;
         return (
           <span className="font-semibold text-pink-600">
             {Number(amount).toLocaleString("vi-VN")} đ
@@ -317,8 +317,8 @@ const OrderPage = () => {
       dataIndex: "payment",
       render: (pay: any) => {
         return pay ? (
-          <Tag color={pay.paymentMethod === "CASH" ? "purple" : "green"}>
-            {getPaymentLabel(pay.paymentMethod)}
+          <Tag color={pay.paymentMethod.name === "CASH" ? "purple" : "green"}>
+            {getPaymentLabel(pay.paymentMethod.name)}
           </Tag>
         ) : (
           <Tag>Chưa thanh toán</Tag>
