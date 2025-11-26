@@ -231,7 +231,7 @@ export default function WalletPage() {
                       Trạng thái:
                     </span>
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-poppins-medium ${
+                      className={`px-3 py-1 rounded-full text-xs font-poppins-light ${
                         wallet.status === "ACTIVE"
                           ? "bg-green-100 text-green-700"
                           : "bg-gray-100 text-gray-700"
@@ -481,7 +481,9 @@ export default function WalletPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[150px]">Mã booking</TableHead>
+                        <TableHead className="w-[150px]">
+                          Mã giao dịch
+                        </TableHead>
                         <TableHead className="w-[180px]">Thời gian</TableHead>
                         <TableHead className="text-right w-[150px]">
                           Số tiền
@@ -580,7 +582,7 @@ export default function WalletPage() {
                           return (
                             <TableRow key={transaction.id}>
                               <TableCell className="font-poppins-light text-sm">
-                                {transaction.bookingCode || "-"}
+                                # {transaction.id || "-"}
                               </TableCell>
                               <TableCell className="font-poppins-light text-sm text-gray-500">
                                 {new Date(transaction.createdAt).toLocaleString(
@@ -747,11 +749,11 @@ export default function WalletPage() {
                           Mã giao dịch
                         </span>
                         <span className="text-md font-poppins-regular">
-                          Mã số {selectedTransaction.id}
+                          # {selectedTransaction.id}
                         </span>
                       </div>
 
-                      {selectedTransaction.bookingCode && (
+                      {/* {selectedTransaction.bookingCode && (
                         <div className="flex justify-between py-1 border-b">
                           <span className="text-sm text-gray-600 font-poppins-light">
                             Mã booking
@@ -760,7 +762,7 @@ export default function WalletPage() {
                             {selectedTransaction.bookingCode}
                           </span>
                         </div>
-                      )}
+                      )} */}
 
                       {selectedTransaction.paymentMethod && (
                         <div className="flex justify-between py-1 border-b">

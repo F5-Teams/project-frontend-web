@@ -147,7 +147,7 @@ export default function BookingDetailPage() {
                           Ngày đặt
                         </div>
                         <div className="font-poppins-regular text-gray-900">
-                          {formatDateTime24(booking.bookingDate)}
+                          {formatDateTime24(booking.createdAt)}
                         </div>
                       </div>
                     </div>
@@ -346,15 +346,23 @@ export default function BookingDetailPage() {
                         <span className="text-gray-600 font-poppins-light">
                           Phương thức
                         </span>
-                        <span className="font-poppins-medium text-gray-900">
-                          {booking.paymentSummary.method}
+                        <span className="font-poppins-regular text-gray-900">
+                          {booking.paymentSummary.method === "CASH"
+                            ? "Tiền mặt"
+                            : booking.paymentSummary.method === "WALLET"
+                            ? "Ví nội bộ"
+                            : booking.paymentSummary.method === "MOMO"
+                            ? "MoMo"
+                            : booking.paymentSummary.method === "VNPAY"
+                            ? "VNPay"
+                            : booking.paymentSummary.method}
                         </span>
                       </div>
                       <div className="flex justify-between text-sm ">
                         <span className="text-gray-600 font-poppins-light">
                           Ngày thanh toán
                         </span>
-                        <span className="font-poppins-medium text-gray-900">
+                        <span className="font-poppins-regular text-gray-900">
                           {formatDateTime24(booking.paymentSummary.date)}
                         </span>
                       </div>

@@ -2,7 +2,7 @@ import api from "@/config/axios";
 import { Booking } from "./types";
 
 export async function getBookings(): Promise<Booking[]> {
-  const { data } = await api.get<Booking[]>("/bookings");
+  const { data } = await api.get<Booking[]>("/bookings/me");
   return data;
 }
 

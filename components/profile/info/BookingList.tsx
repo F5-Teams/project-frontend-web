@@ -126,7 +126,7 @@ export const BookingList: React.FC<BookingListProps> = ({
                         <div>
                           <span className="font-poppins-medium">Ngày đặt:</span>{" "}
                           <span className="font-poppins-light">
-                            {formatDateTime24(booking.bookingDate)}
+                            {formatDateTime24(booking.createdAt)}
                           </span>
                         </div>
                       )}
