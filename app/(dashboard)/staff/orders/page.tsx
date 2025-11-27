@@ -38,6 +38,7 @@ const OrderPage = () => {
 
     const body = {
       status: "APPROVED" as const,
+      paymentStatus: "PAID" as const,
     };
 
     console.log("PAY", body);
