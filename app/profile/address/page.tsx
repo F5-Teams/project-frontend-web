@@ -58,9 +58,18 @@ export default function AddressPage() {
 
   return (
     <div className="mx-auto w-full sm:max-w-5xl lg:max-w-7xl p-4 space-y-6">
-      <h1 className="font-poppins-regular text-xl lg:text-2xl text-gray-900 mt-2">
-        Địa chỉ người dùng
-      </h1>
+      <div className="flex flex-wrap items-center justify-between gap-3 mt-2">
+        <h1 className="font-poppins-regular text-xl lg:text-2xl text-gray-900">
+          Địa chỉ người dùng
+        </h1>
+        <button
+          onClick={handleAdd}
+          className="bg-primary text-white px-4 py-2 rounded-full shadow-sm flex items-center gap-2 hover:bg-primary/90 transition"
+        >
+          <Plus size={18} />
+          Thêm địa chỉ
+        </button>
+      </div>
 
       <div className="space-y-4">
         {addresses.map((item) => (
@@ -100,14 +109,6 @@ export default function AddressPage() {
           </div>
         ))}
       </div>
-
-      <button
-        onClick={handleAdd}
-        className="fixed bottom-6 right-6 bg-primary text-white px-5 py-3 rounded-full shadow-lg flex items-center gap-2 hover:bg-primary/90 transition"
-      >
-        <Plus size={20} />
-        Thêm địa chỉ
-      </button>
 
       {openModal && (
         <AddressFormModal
