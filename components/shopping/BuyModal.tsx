@@ -47,6 +47,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   const [option, setOption] = useState<string>("");
   const [note, setNote] = useState<string>("");
   const [address, setAddress] = useState<number | undefined>();
+  const [savedAddress, setSavedAddress] = useState<number | undefined>();
   const { data: user } = useGetUser();
   const [loading, setLoading] = useState(false);
   const [addressFee, setAddressFee] = useState<Address>();
@@ -70,6 +71,21 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
   );
 
   const queryClient = useQueryClient();
+
+  // Lưu địa chỉ khi modal đóng
+  useEffect(() => {
+    if (!isOpen && address) {
+      setSavedAddress(address);
+    }
+  }, [isOpen, address]);
+
+  // Khôi phục địa chỉ khi modal mở
+  useEffect(() => {
+    if (isOpen && savedAddress) {
+      setAddress(savedAddress);
+      form.setFieldsValue({ address: savedAddress });
+    }
+  }, [isOpen, savedAddress, form]);
 
   useEffect(() => {
     if (address) {
@@ -321,9 +337,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
                 className="w-full cursor-pointer"
                 placeholder="Chọn địa chỉ giao hàng"
                 onClick={() => setIsAddressModalOpen(true)}
-                value={
-                  address && addressList.length > 0 ? address : "Chọn địa chỉ"
-                }
+                value={address || "Chọn địa chỉ"}
                 options={
                   address
                     ? [

@@ -41,8 +41,8 @@ export interface Product {
   id: number;
   name: string;
   price: string;
-  weight: string; // ✅ bổ sung đúng như data trả về
-  images: ProductImage[]; // ✅ thêm danh sách hình ảnh
+  weight: string;
+  images: ProductImage[];
 }
 
 export interface ProductImage {
@@ -84,10 +84,15 @@ export interface Shipping {
 
 export interface Payment {
   id: number;
-  paymentMethod: string; // CASH / VNPAY / MOMO ...
+  paymentMethod: PaymentMethod; // CASH / VNPAY / MOMO ...
   amount: string;
   totalAmount: string;
   status: string; // PENDING / PAID / FAILED ...
   createdAt: string;
   orderId: number;
+}
+
+export interface PaymentMethod {
+  id: number;
+  name: string;
 }

@@ -141,13 +141,18 @@ export default function OrderDetailPage() {
           </p>
           <p className="text-gray-600 text-sm mt-2">
             Phương thức thanh toán:{" "}
-            {statusMethod.find((m) => m.key === order.payment?.paymentMethod)
-              ?.label || order.payment?.paymentMethod}
+            {statusMethod.find(
+              (m) => m.key === order.payment?.paymentMethod.name
+            )?.label || order.payment?.paymentMethod.name}
           </p>
-          <p className="flex gap-2 text-gray-600 text-sm mt-2">
-            Voucher:{" "}
-            <p className="text-green-500">Giảm {order?.voucherPercent}%</p>
-          </p>
+          {order.voucherPercent ? (
+            <p className="flex gap-2 text-gray-600 text-sm mt-2">
+              Voucher:
+              <p className="text-green-500">Giảm {order?.voucherPercent}%</p>
+            </p>
+          ) : (
+            <></>
+          )}
 
           <div className="h-[0.5px] w-full mt-4 bg-gray-300"></div>
 

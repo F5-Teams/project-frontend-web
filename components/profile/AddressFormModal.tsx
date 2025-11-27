@@ -79,42 +79,47 @@ export default function AddressFormModal({
     };
 
     console.log(payload);
-    if (inistitalState) {
-      const addressId = inistitalState.id;
+    try {
+      if (inistitalState) {
+        const addressId = inistitalState.id;
 
-      if (typeof addressId !== "number") {
-        toast.error("Không xác định được địa chỉ để cập nhật.");
-        return;
+        if (typeof addressId !== "number") {
+          toast.error("Không xác định được địa chỉ để cập nhật.");
+          return;
+        }
+
+        await patchAddress({ id: addressId, body: payload });
+        queryClient.invalidateQueries({ queryKey: ["getAddress"] });
+
+        toast.promise<{ name: string }>(
+          () =>
+            new Promise((resolve) =>
+              setTimeout(() => resolve({ name: "Cập nhật địa chỉ" }), 2000)
+            ),
+          {
+            loading: "Loading...",
+            success: (data) => `${data.name} thành công`,
+            error: "Error",
+          }
+        );
+      } else {
+        await createAddress(payload);
+        queryClient.invalidateQueries({ queryKey: ["getAddress"] });
+
+        toast.promise<{ name: string }>(
+          () =>
+            new Promise((resolve) =>
+              setTimeout(() => resolve({ name: "Địa chỉ" }), 2000)
+            ),
+          {
+            loading: "Loading...",
+            success: (data) => `${data.name} đã được thêm`,
+            error: "Error",
+          }
+        );
       }
-
-      await patchAddress({ id: addressId, body: payload });
-      queryClient.invalidateQueries({ queryKey: ["patchAddress"] });
-
-      toast.promise<{ name: string }>(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(() => resolve({ name: "Cập nhật địa chỉ" }), 2000)
-          ),
-        {
-          loading: "Loading...",
-          success: (data) => `${data.name} thành công`,
-          error: "Error",
-        }
-      );
-    } else {
-      await createAddress(payload);
-      queryClient.invalidateQueries({ queryKey: ["createAddress"] });
-      toast.promise<{ name: string }>(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(() => resolve({ name: "Địa chỉ" }), 2000)
-          ),
-        {
-          loading: "Loading...",
-          success: (data) => `${data.name} đã được thêm`,
-          error: "Error",
-        }
-      );
+    } catch (error) {
+      toast.error(error?.message);
     }
     onClose();
   };
