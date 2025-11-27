@@ -85,6 +85,10 @@ export default function RefundModal({
       {/* --- Button mở modal / thông báo không được phép --- */}
       {!submitted ? (
         <>
+          {/*
+            Nếu đã hoàn tiền, đổi nhãn nút để người dùng thấy rõ trạng thái.
+            Các trường hợp không đủ điều kiện khác vẫn giữ nhãn mặc định.
+          */}
           <Button
             type="button"
             onClick={() => setOpen(true)}
@@ -95,7 +99,9 @@ export default function RefundModal({
             }`}
             disabled={!canRequestRefund}
           >
-            Yêu cầu hoàn tiền
+            {!canRequestRefund && reasonLabel === "Đã hoàn tiền"
+              ? "Đã hoàn tiền"
+              : "Yêu cầu hoàn tiền"}
           </Button>
           {!canRequestRefund && (
             <div className="text-xs text-gray-500 mt-1">

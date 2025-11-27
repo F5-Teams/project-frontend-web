@@ -376,10 +376,15 @@ export default function BookingDetailPage() {
             </div>
             {booking.status === "COMPLETED" &&
               (() => {
-                const canRequestRefund = Boolean(bookingId && booking.isPaid);
+                const isRefunded =
+                  booking.paymentSummary?.status === "REFUNDED";
+                const canRequestRefund = Boolean(
+                  bookingId && booking.isPaid && !isRefunded
+                );
                 let reason = "";
                 if (!bookingId) reason = "Không có booking";
                 else if (!booking.isPaid) reason = "Chưa thanh toán";
+                else if (isRefunded) reason = "Đã hoàn tiền";
 
                 return (
                   <RefundModal
