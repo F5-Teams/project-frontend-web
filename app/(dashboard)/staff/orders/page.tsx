@@ -2,7 +2,7 @@
 "use client";
 
 import { useGetAllOrder } from "@/services/orders/getAllOrder/hooks";
-import { Button, Table, Tag } from "antd";
+import { Button, Table, Tag, Select } from "antd";
 import dayjs from "dayjs";
 import React, { useState } from "react";
 import { Eye, Trash2 } from "lucide-react";
@@ -10,7 +10,6 @@ import { patchOrder } from "@/services/orders/patchOrder/api";
 import { Order } from "@/services/orders/getAllOrder/type";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePostOrderGhn } from "@/services/orders/postOrderGhn/hooks";
-import { usePostOrderGhnCancel } from "@/services/orders/postOrderGhnCancel/hooks";
 import ModalViewOrder from "@/components/orders/ModalViewOrder";
 import ModalDeleteOrder from "@/components/orders/ModalDeleteOrder";
 import { useDeleteOrder } from "@/services/orders/deleteOrder/hooks";
@@ -24,12 +23,31 @@ const OrderPage = () => {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [openComplete, setOpenComplete] = useState(false);
   const [loadingDelete, setLoadingDelete] = useState(false);
-  const { data: orderResponse } = useGetAllOrder();
-  const allOrder = orderResponse?.data || [];
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [statusFilter, setStatusFilter] = useState<string | undefined>(
+    undefined
+  );
+
+  const { data: orderResponse } = useGetAllOrder({
+    page: currentPage,
+    limit: pageSize,
+  });
+
+  let allOrder = orderResponse?.data || [];
+
+  // Lọc client-side dựa vào statusFilter
+  if (statusFilter === "PENDING_PAID") {
+    allOrder = allOrder.filter(
+      (order) => order.status === "PENDING" || order.status === "PAID"
+    );
+  } else if (statusFilter) {
+    allOrder = allOrder.filter((order) => order.status === statusFilter);
+  }
+
   const [selectedOrder, setSelectedOrder] = useState<Order>();
   const queryClient = useQueryClient();
   const { mutate: postOrderGhn } = usePostOrderGhn();
-  const { mutate: postOrderGhnCancel } = usePostOrderGhnCancel();
   const { mutate: deleteOrder } = useDeleteOrder();
   const { mutate: postOrderCancel } = usePostOrderCancel();
   const { mutate: postProductErr } = usePostProductErr();
@@ -87,26 +105,6 @@ const OrderPage = () => {
       toast.error("Cập nhật thất bại!");
       console.log(error);
     }
-  };
-
-  const handleCancelGHN = (order: Order) => {
-    postOrderGhnCancel(order.id, {
-      onSuccess: async () => {
-        try {
-          toast.success(
-            "Hủy vận đơn thành công! Đơn chuyển về trạng thái ĐÃ DUYỆT."
-          );
-          queryClient.invalidateQueries({ queryKey: ["getAllOrder"] });
-        } catch (err) {
-          toast.error(
-            "Hủy vận đơn thành công nhưng cập nhật trạng thái thất bại!"
-          );
-        }
-      },
-      onError: () => {
-        toast.error("Hủy vận đơn GHN thất bại!");
-      },
-    });
   };
 
   const handleConfirmDelete = () => {
@@ -436,15 +434,55 @@ const OrderPage = () => {
 
   return (
     <div className="p-5">
-      <h1 className="text-xl font-bold mb-4 text-gray-800">
-        Danh sách đơn hàng
-      </h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">Danh sách đơn hàng</h1>
+        <div className="flex items-center gap-3">
+          <span className="text-gray-700 font-medium">
+            Lọc theo trạng thái:
+          </span>
+          <Select
+            placeholder="Chọn trạng thái"
+            style={{ width: 220 }}
+            value={statusFilter === undefined ? "ALL" : statusFilter}
+            onChange={(value) => {
+              setStatusFilter(value === "ALL" ? undefined : value);
+              setCurrentPage(1);
+            }}
+            options={[
+              { label: "Tất cả", value: "ALL" },
+              { label: "Chờ duyệt", value: "PENDING_PAID" },
+              { label: "Đã duyệt", value: "APPROVED" },
+              { label: "Đang giao hàng", value: "SHIPPING" },
+              { label: "Hoàn thành", value: "COMPLETED" },
+              { label: "Hoàn tiền", value: "REFUND" },
+              { label: "Trả hàng/Hoàn tiền", value: "REFUND_DONE" },
+              { label: "Thất bại", value: "FAILED" },
+              { label: "Đã hủy", value: "CANCELLED" },
+            ]}
+            className="border border-gray-300 rounded-lg"
+          />
+        </div>
+      </div>
 
       <Table
         rowKey="id"
         columns={columns}
         dataSource={allOrder}
-        pagination={{ pageSize: 8 }}
+        pagination={{
+          pageSize: pageSize,
+          current: currentPage,
+          total: allOrder.length,
+          onChange: (page, size) => {
+            setCurrentPage(page);
+            setPageSize(size);
+          },
+          onShowSizeChange: (current, size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          },
+          showSizeChanger: true,
+          pageSizeOptions: [10, 20, 50, 100],
+        }}
       />
 
       <ModalViewOrder

@@ -86,6 +86,7 @@ export default function HotelBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<number | null>(null);
+  const [searchCustomer, setSearchCustomer] = useState("");
 
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [checkoutBookingId, setCheckoutBookingId] = useState<number | null>(
@@ -229,10 +230,29 @@ export default function HotelBookingsPage() {
     setShowDetailModal(true);
   };
 
+  /* ---------------------- FILTER BOOKINGS BY CUSTOMER NAME ---------------------- */
+  const filteredBookings = bookings.filter((b) => {
+    const customerName = `${b.customer?.firstName || ""} ${
+      b.customer?.lastName || ""
+    }`.toLowerCase();
+    return customerName.includes(searchCustomer.toLowerCase());
+  });
+
   /* ---------------------- RENDER UI ---------------------- */
   return (
-    <div className="p-8 min-h-screen bg-gradient-to-b from-pink-50 to-white">
+    <div className="p-8 min-h-screen bg-linear-to-b from-pink-50 to-white">
       <h1 className="text-3xl font-medium mb-8">Check in / Check out</h1>
+
+      {/* SEARCH BAR */}
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Tìm kiếm theo tên khách hàng..."
+          value={searchCustomer}
+          onChange={(e) => setSearchCustomer(e.target.value)}
+          className="w-80 px-4 py-2 border-2 border-pink-300 rounded-xl bg-white focus:ring-2 focus:ring-pink-400 focus:border-pink-500 outline-none transition text-sm"
+        />
+      </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-10 text-gray-500">
@@ -255,7 +275,7 @@ export default function HotelBookingsPage() {
             </thead>
 
             <tbody>
-              {bookings.map((b, idx) => (
+              {filteredBookings.map((b, idx) => (
                 <tr
                   key={b.id}
                   className={`border-t ${
@@ -319,6 +339,17 @@ export default function HotelBookingsPage() {
                     className="text-center py-6 text-gray-500 italic"
                   >
                     Không có dữ liệu đặt phòng nào
+                  </td>
+                </tr>
+              )}
+
+              {filteredBookings.length === 0 && bookings.length > 0 && (
+                <tr>
+                  <td
+                    colSpan={8}
+                    className="text-center py-6 text-gray-500 italic"
+                  >
+                    Không tìm thấy khách hàng nào
                   </td>
                 </tr>
               )}
