@@ -10,6 +10,7 @@ import {
   ArrowUpDown,
   X,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // Badge màu theo trạng thái
 const StatusBadge = ({ status }: { status: string }) => {
@@ -39,8 +40,9 @@ export default function BookingListPage() {
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
-  // Sort ID
+  // Sort
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [sortBy, setSortBy] = useState<"id" | "bookingDate">("id");
 
   // Pagination
   const [page, setPage] = useState(1);
@@ -58,7 +60,7 @@ export default function BookingListPage() {
     try {
       // Fetch all bookings for filtering
       const res = await api.get("/bookings", {
-        params: { page: 1, limit: 1000 },
+        params: { page: 1, limit: 10 },
       });
       const data = res.data?.data || res.data || [];
       setAllBookings(data);
@@ -90,7 +92,14 @@ export default function BookingListPage() {
       data = data.filter((item) => item.status === statusFilter);
     }
 
-    data.sort((a, b) => (sortOrder === "asc" ? a.id - b.id : b.id - a.id));
+    data.sort((a, b) => {
+      if (sortBy === "bookingDate") {
+        const aDate = new Date(a.bookingDate ?? "").getTime() || 0;
+        const bDate = new Date(b.bookingDate ?? "").getTime() || 0;
+        return sortOrder === "asc" ? aDate - bDate : bDate - aDate;
+      }
+      return sortOrder === "asc" ? a.id - b.id : b.id - a.id;
+    });
 
     return data;
   }, [allBookings, searchText, statusFilter, sortOrder]);
@@ -112,8 +121,13 @@ export default function BookingListPage() {
     page * pageSize
   );
 
-  const toggleSort = () => {
-    setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+  const handleSort = (field: "id" | "bookingDate") => {
+    if (sortBy === field) {
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(field);
+      setSortOrder("asc");
+    }
   };
 
   const formatDateTime = (value?: string | null) => {
@@ -190,7 +204,7 @@ export default function BookingListPage() {
       </div>
 
       {/* Search + Filter */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-2 border rounded-xl px-3 py-2 bg-white w-72">
           <Search className="w-4 h-4 text-gray-500" />
           <input
@@ -204,21 +218,38 @@ export default function BookingListPage() {
           />
         </div>
 
-        <select
-          className="border rounded-xl bg-white px-4 py-2 text-sm"
-          value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value);
-            setPage(1);
-          }}
-        >
-          <option value="">Tất cả trạng thái</option>
-          <option value="PENDING">PENDING</option>
-          <option value="CONFIRMED">CONFIRMED</option>
-          <option value="ON_SERVICE">ON_SERVICE</option>
-          <option value="COMPLETED">COMPLETED</option>
-          <option value="CANCELLED">CANCELLED</option>
-        </select>
+        <div className="flex items-center gap-2">
+          <select
+            className="border rounded-xl bg-white px-4 py-2 text-sm"
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="">Tất cả trạng thái</option>
+            <option value="PENDING">PENDING</option>
+            <option value="CONFIRMED">CONFIRMED</option>
+            <option value="ON_SERVICE">ON_SERVICE</option>
+            <option value="COMPLETED">COMPLETED</option>
+            <option value="CANCELLED">CANCELLED</option>
+          </select>
+
+          <button
+            onClick={() => handleSort("bookingDate")}
+            className="flex items-center gap-1 rounded-xl border bg-white px-4 py-2 text-sm hover:bg-pink-50 transition"
+          >
+            <ArrowUpDown className="w-4 h-4" />
+            <span className="whitespace-nowrap">
+              Ngày đặt{" "}
+              {sortBy === "bookingDate"
+                ? sortOrder === "asc"
+                  ? "↑"
+                  : "↓"
+                : ""}
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* TABLE */}
@@ -226,15 +257,35 @@ export default function BookingListPage() {
         <table className="min-w-full text-sm">
           <thead>
             <tr className="bg-pink-50 text-pink-700">
-              <th className="p-3 text-left cursor-pointer" onClick={toggleSort}>
+              <th
+                className={cn(
+                  "p-3 text-left cursor-pointer select-none",
+                  sortBy === "id" ? "text-pink-700" : ""
+                )}
+                onClick={() => handleSort("id")}
+              >
                 <div className="flex items-center gap-1">
-                  ID <ArrowUpDown className="w-4 h-4" />
+                  ID
+                  {sortBy === "id" && <ArrowUpDown className="w-4 h-4" />}
                 </div>
               </th>
               <th className="p-3 text-left">Thú cưng</th>
               <th className="p-3 text-left">Dịch vụ</th>
               <th className="p-3 text-left">Khách hàng</th>
-              <th className="p-3 text-left">Ngày đặt</th>
+              <th
+                className={cn(
+                  "p-3 text-left cursor-pointer select-none",
+                  sortBy === "bookingDate" ? "text-pink-700" : ""
+                )}
+                onClick={() => handleSort("bookingDate")}
+              >
+                <div className="flex items-center gap-1">
+                  Ngày đặt{" "}
+                  {sortBy === "bookingDate" && (
+                    <ArrowUpDown className="w-4 h-4" />
+                  )}
+                </div>
+              </th>
               <th className="p-3 text-left">Trạng thái</th>
               <th className="p-3 text-left">Hành động</th>
             </tr>
