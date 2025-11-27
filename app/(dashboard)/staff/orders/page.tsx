@@ -36,7 +36,6 @@ const OrderPage = () => {
 
   let allOrder = orderResponse?.data || [];
 
-  // Lọc client-side dựa vào statusFilter
   if (statusFilter === "PENDING_PAID") {
     allOrder = allOrder.filter(
       (order) => order.status === "PENDING" || order.status === "PAID"
