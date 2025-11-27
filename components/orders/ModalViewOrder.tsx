@@ -21,7 +21,7 @@ const ModalViewOrder: React.FC<ModalViewOrderProps> = ({
   onClose,
 }) => {
   if (!order) return null;
-  const total = Number(order.payment.amount);
+  const total = Number(order.payment.totalAmount);
 
   const getStatusLabel = (status: string) => {
     switch (status) {
