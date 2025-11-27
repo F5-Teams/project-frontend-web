@@ -43,6 +43,39 @@ export default function AddressFormModal({
   const { mutateAsync: patchAddress } = usePatchAddress();
   const queryClient = useQueryClient();
 
+  // Validate function
+  const validateForm = () => {
+    if (!city) {
+      toast.error("Vui lòng chọn thành phố");
+      return false;
+    }
+    if (!district) {
+      toast.error("Vui lòng chọn quận / huyện");
+      return false;
+    }
+    if (!ward) {
+      toast.error("Vui lòng chọn phường / xã");
+      return false;
+    }
+    if (!name || name.trim() === "") {
+      toast.error("Vui lòng nhập tên người nhận");
+      return false;
+    }
+    if (!address || address.trim() === "") {
+      toast.error("Vui lòng nhập địa chỉ chi tiết");
+      return false;
+    }
+    if (!phone || phone.trim() === "") {
+      toast.error("Vui lòng nhập số điện thoại");
+      return false;
+    }
+    if (phone.length !== 10) {
+      toast.error("Số điện thoại phải có 10 chữ số");
+      return false;
+    }
+    return true;
+  };
+
   useEffect(() => {
     if (!inistitalState) return;
 
@@ -66,6 +99,11 @@ export default function AddressFormModal({
   }, [inistitalState, province, districtList, wardList]);
 
   const handleSave = async () => {
+    // Validate form
+    if (!validateForm()) {
+      return;
+    }
+
     const payload = {
       name: name ?? "",
       phone: phone ?? "",
@@ -79,48 +117,45 @@ export default function AddressFormModal({
     };
 
     console.log(payload);
-    try {
-      if (inistitalState) {
-        const addressId = inistitalState.id;
+    if (inistitalState) {
+      const addressId = inistitalState.id;
 
-        if (typeof addressId !== "number") {
-          toast.error("Không xác định được địa chỉ để cập nhật.");
-          return;
-        }
-
-        await patchAddress({ id: addressId, body: payload });
-        queryClient.invalidateQueries({ queryKey: ["getAddress"] });
-
-        toast.promise<{ name: string }>(
-          () =>
-            new Promise((resolve) =>
-              setTimeout(() => resolve({ name: "Cập nhật địa chỉ" }), 2000)
-            ),
-          {
-            loading: "Loading...",
-            success: (data) => `${data.name} thành công`,
-            error: "Error",
-          }
-        );
-      } else {
-        await createAddress(payload);
-        queryClient.invalidateQueries({ queryKey: ["getAddress"] });
-
-        toast.promise<{ name: string }>(
-          () =>
-            new Promise((resolve) =>
-              setTimeout(() => resolve({ name: "Địa chỉ" }), 2000)
-            ),
-          {
-            loading: "Loading...",
-            success: (data) => `${data.name} đã được thêm`,
-            error: "Error",
-          }
-        );
+      if (typeof addressId !== "number") {
+        toast.error("Không xác định được địa chỉ để cập nhật.");
+        return;
       }
-    } catch (error) {
-      toast.error(error?.message);
+
+      await patchAddress({ id: addressId, body: payload });
+      queryClient.invalidateQueries({ queryKey: ["getAddress"] });
+
+      toast.promise<{ name: string }>(
+        () =>
+          new Promise((resolve) =>
+            setTimeout(() => resolve({ name: "Cập nhật địa chỉ" }), 2000)
+          ),
+        {
+          loading: "Loading...",
+          success: (data) => `${data.name} thành công`,
+          error: "Error",
+        }
+      );
+    } else {
+      await createAddress(payload);
+      queryClient.invalidateQueries({ queryKey: ["getAddress"] });
+
+      toast.promise<{ name: string }>(
+        () =>
+          new Promise((resolve) =>
+            setTimeout(() => resolve({ name: "Địa chỉ" }), 2000)
+          ),
+        {
+          loading: "Loading...",
+          success: (data) => `${data.name} đã được thêm`,
+          error: "Error",
+        }
+      );
     }
+
     onClose();
   };
 
@@ -268,7 +303,16 @@ export default function AddressFormModal({
             Hủy
           </button>
           <button
-            className="px-4 py-2 rounded-xl bg-primary text-white hover:bg-primary/90 disabled:opacity-50 transition"
+            disabled={
+              !city ||
+              !district ||
+              !ward ||
+              !name?.trim() ||
+              !address?.trim() ||
+              !phone?.trim() ||
+              phone?.length !== 10
+            }
+            className="px-4 py-2 rounded-xl bg-primary text-white hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition"
             onClick={handleSave}
           >
             Lưu địa chỉ
