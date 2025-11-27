@@ -11,6 +11,7 @@ import { usePutGhnDelivered } from "@/services/orders/putGhnDelivered/hooks";
 import { toast } from "sonner";
 import { usePutGhnStatus } from "@/services/orders/putGhnStatus/hooks";
 import { usePatchOrder } from "@/services/orders/patchOrder/hooks";
+import { patchOrder } from "@/services/orders/patchOrder/api";
 
 interface ModalCompleteProps {
   open: boolean;
@@ -55,6 +56,11 @@ const ModalComplete: React.FC<ModalCompleteProps> = ({
     setLoading(true);
 
     if (option === "success") {
+      const body = {
+        paymentStatus: "PAID" as const,
+      };
+
+      await patchOrder({ id: order.id, body });
       const file = values.images?.[0]?.originFileObj;
       if (!file) {
         message.error("Vui lòng chọn ảnh mới để xác nhận giao hàng!");

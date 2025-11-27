@@ -48,21 +48,39 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!authToken) {
-      if (socket) {
-        console.log("🔌 Disconnecting socket because user is logged out");
-        socket.disconnect();
-        setSocket(null);
+    const resolveSocketBaseUrl = () => {
+      const explicitUrl =
+        process.env.NEXT_PUBLIC_SOCKET_URL ||
+        process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "");
+
+      if (explicitUrl) {
+        return explicitUrl;
       }
+
+      if (typeof window !== "undefined") {
+        return window.location.origin.replace(/\/$/, "");
+      }
+
+      return "https://project-backend-api-production.up.railway.app/";
+    };
+
+    if (!authToken) {
+      setSocket((prevSocket) => {
+        if (prevSocket) {
+          console.log("🔌 Disconnecting socket because user is logged out");
+          prevSocket.disconnect();
+        }
+        return null;
+      });
       setIsConnected(false);
       return;
     }
 
-    const socketUrl =
-      process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3000";
+    const socketBaseUrl = resolveSocketBaseUrl();
+    const namespaceUrl = `${socketBaseUrl}/chat`;
 
     // Debug: log where we are connecting and ensure the access token is available
-    console.log(`🔌 Attempting WebSocket connection to: ${socketUrl}/chat`);
+    console.log(`🔌 Attempting WebSocket connection to: ${namespaceUrl}`);
     console.log(
       `🔐 Has token: ${!!authToken} | token (truncated): ${authToken?.slice(
         0,
@@ -70,7 +88,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       )}...`
     );
 
-    const socketInstance = io(`${socketUrl}/chat`, {
+    const socketInstance = io(namespaceUrl, {
       auth: { token: authToken },
       transports: ["websocket", "polling"],
       reconnection: true,

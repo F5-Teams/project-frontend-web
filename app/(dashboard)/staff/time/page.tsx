@@ -109,7 +109,7 @@ export default function HotelBookingsPage() {
 
   const fetchBookings = async () => {
     try {
-      const res = await api.get("/bookings/staff/confirmed");
+      const res = await api.get("/bookings/staff/hotel-service");
       const filtered = res.data.filter(
         (b: Booking) => b.status !== "CANCELLED"
       );
