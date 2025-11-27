@@ -299,7 +299,10 @@ export default function Header() {
         {user && <NotificationBell />}
         {/* Cart Icon */}
         <CartDrawer>
-          <button className="relative cursor-pointer p-2 rounded-full hover:bg-gray-100 transition-colors group">
+          <button
+            data-cart-target
+            className="relative cursor-pointer p-2 rounded-full hover:bg-gray-100 transition-colors group"
+          >
             <ShoppingCart className="h-6 w-6 text-gray-600 group-hover:text-primary transition-colors" />
             {cartSummary.totalItems > 0 && (
               <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">

@@ -76,7 +76,7 @@ export default function Customers() {
       const res = await api.get("/users", {
         params: {
           page: 1,
-          limit: 1000, // Lấy nhiều để có thể filter
+          limit: 10, // Lấy nhiều để có thể filter
         },
       });
 

@@ -198,7 +198,7 @@ const OrderPage = () => {
       case "PAID":
         return "Chờ duyệt";
       case "ON_PROGRESSING":
-        return "Đơn sắp hủy";
+        return "Chờ thanh toán";
       case "APPROVED":
         return "Đã duyệt";
       case "SHIPPING":
@@ -450,6 +450,7 @@ const OrderPage = () => {
             options={[
               { label: "Tất cả", value: "ALL" },
               { label: "Chờ duyệt", value: "PENDING_PAID" },
+              { label: "Chờ thanh toán", value: "ON_PROGRESSING" },
               { label: "Đã duyệt", value: "APPROVED" },
               { label: "Đang giao hàng", value: "SHIPPING" },
               { label: "Hoàn thành", value: "COMPLETED" },
@@ -470,7 +471,7 @@ const OrderPage = () => {
         pagination={{
           pageSize: pageSize,
           current: currentPage,
-          total: allOrder.length,
+          total: orderResponse?.pagination?.total || 0,
           onChange: (page, size) => {
             setCurrentPage(page);
             setPageSize(size);
