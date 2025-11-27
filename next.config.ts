@@ -6,6 +6,7 @@ const nextConfig = {
       "i.pinimg.com",
       "res.cloudinary.com",
       "lh3.googleusercontent.com",
+      "images.ctfassets.net",
     ],
     remotePatterns: [
       { protocol: "https", hostname: "cdn-icons-png.flaticon.com" },
@@ -14,10 +15,19 @@ const nextConfig = {
       { protocol: "https", hostname: "res.cloudinary.com" },
       { protocol: "https", hostname: "cdn.me" },
       { protocol: "https", hostname: "sunshinepethospital.com" },
+      { protocol: "https", hostname: "images.ctfassets.net" },
     ],
   },
   eslint: {
     ignoreDuringBuilds: true,
+  },
+  webpack: (config: any) => {
+    // Handle GLTF and other 3D model files
+    config.module.rules.push({
+      test: /\.(glb|gltf)$/,
+      type: "asset/resource",
+    });
+    return config;
   },
 };
 

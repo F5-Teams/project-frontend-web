@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { cardVariants } from "@/constants";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SelectPetsModal } from "@/components/modals/SelectPetsModal";
 import { RoomBookingModal } from "@/components/modals/RoomBookingModal";
 import { HotelRoomDetailModal } from "@/components/modals/HotelRoomDetailModal";
@@ -18,9 +18,14 @@ import { DateSelector } from "@/components/hotel/DateSelector";
 import { useCartStore } from "@/stores/cart.store";
 import { BookingDraft } from "@/types/cart";
 import { useHotelRooms } from "@/services/hotel";
+import { useGetUser } from "@/services/users/hooks";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const PetHotelPage = () => {
   const { addItems } = useCartStore();
+  const { data: user } = useGetUser();
+  const router = useRouter();
 
   // Date selection state
   const [checkInDate, setCheckInDate] = useState<Date | null>(null);
@@ -39,6 +44,37 @@ const PetHotelPage = () => {
   const [selectedRoomId, setSelectedRoomId] = useState<string>("");
   const [selectedPetIds, setSelectedPetIds] = useState<string[]>([]);
 
+  // Listen for hotel booking success event to refetch with saved dates
+  useEffect(() => {
+    const handleBookingSuccess = (event: CustomEvent) => {
+      const { checkIn, checkOut } = event.detail;
+      if (checkIn && checkOut) {
+        // Set the dates from the successful booking
+        const checkInDateObj = new Date(checkIn);
+        const checkOutDateObj = new Date(checkOut);
+        setCheckInDate(checkInDateObj);
+        setCheckOutDate(checkOutDateObj);
+
+        // The useHotelRooms hook will automatically refetch when dates change
+        toast.success("Đã cập nhật trạng thái phòng!", {
+          description: "Danh sách phòng đã được làm mới",
+        });
+      }
+    };
+
+    window.addEventListener(
+      "hotelBookingSuccess",
+      handleBookingSuccess as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        "hotelBookingSuccess",
+        handleBookingSuccess as EventListener
+      );
+    };
+  }, []);
+
   const handleDateChange = (checkIn: Date | null, checkOut: Date | null) => {
     setCheckInDate(checkIn);
     setCheckOutDate(checkOut);
@@ -50,6 +86,25 @@ const PetHotelPage = () => {
   };
 
   const handleBookRoom = (roomId: string) => {
+    // Kiểm tra đăng nhập
+    if (!user) {
+      toast.error("Vui lòng đăng nhập để đặt lịch", {
+        description: "Bạn cần đăng nhập để sử dụng dịch vụ booking",
+        action: {
+          label: "Đăng nhập",
+          onClick: () => router.push("/login"),
+        },
+      });
+      return;
+    }
+
+    if (!checkInDate || !checkOutDate) {
+      toast.error("Vui lòng chọn ngày nhận và trả phòng trước khi đặt", {
+        description: "Chúng tôi cần khung ngày để kiểm tra thú cưng khả dụng",
+      });
+      return;
+    }
+
     setSelectedRoomId(roomId);
     setIsSelectPetsOpen(true);
   };
@@ -221,9 +276,11 @@ const PetHotelPage = () => {
                         fill
                         className="object-cover"
                       />
-                      <div className="absolute top-4 left-4 w-12 h-12 flex items-center justify-center rounded-full bg-linear-to-tr from-pink-400 to-blue-500 text-white shadow-lg">
-                        <LucideHome className="w-6 h-6" />
-                      </div>
+                      {room.size && (
+                        <div className="absolute top-4 left-4 bg-blue-500 text-white px-3 py-1.5 rounded-full text-sm font-poppins-semibold shadow-md">
+                          Size {room.size}
+                        </div>
+                      )}
                       {isAvailable ? (
                         <div className="absolute top-4 right-4 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-poppins-regular">
                           Có sẵn
@@ -449,8 +506,12 @@ const PetHotelPage = () => {
         onConfirm={handlePetsSelected}
         serviceId={selectedRoomId}
         maxPets={1}
+        bookingType="hotel"
+        hotelStartDate={checkInDate}
+        hotelEndDate={checkOutDate}
         title="Chọn thú cưng"
         description="Chọn thú cưng để đặt phòng khách sạn (chỉ chọn 1 thú cưng)"
+        roomSize={selectedRoom?.size as "S" | "M" | "L" | undefined}
       />
 
       <RoomBookingModal

@@ -1,107 +1,38 @@
-export type BookingStatus = "PENDING" | "CONFIRMED" | "CANCELLED" | string;
+// trạng thái booking
+export type BookingStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "CANCELLED"
+  | "ON_SERVICE"
+  | "COMPLETED"
+  | string;
 
-export interface ApiService {
-  id: number;
-  name: string;
-  price: string;
-  duration: number; // minutes
-  description: string;
-  isActive: boolean;
-}
+// loại booking
+export type BookingType = "SPA" | "HOTEL" | string;
 
-export interface ApiServiceLink {
-  id: number;
-  comboId: number;
-  serviceId: number;
-  service: ApiService;
-}
+// khung giờ
+export type TimeSlot = "MORNING" | "AFTERNOON" | "EVENING";
 
-export interface ApiCombo {
+export interface Booking {
   id: number;
-  name: string;
-  price: string;
-  duration: number; // minutes
-  description: string;
-  isActive: boolean;
-  serviceLinks: ApiServiceLink[];
-}
-
-export interface ApiSlot {
-  id: number;
-  startDate: string; // ISO
-  endDate: string; // ISO
-  totalPrice: string;
-  roomId: number;
-}
-
-export interface ApiRoom {
-  id: number;
-  name: string;
-  class: string;
-  price: string;
-  status: string;
-  // mô tả và ảnh có thể có hoặc null từ API
-  description?: string | null;
-  imageUrl?: string | null;
-}
-
-export interface ApiPet {
-  id: number;
-  name: string;
-  age: number;
-  species: string;
-  breed: string;
-  gender: boolean;
-  height: string;
-  weight: string;
-  note: string;
-  userId: number;
-  recordId: number | null;
-  // ảnh pet nếu có
-  imageUrl?: string | null;
-  avatar?: string | null;
-}
-
-export interface ApiBooking {
-  id: number;
-  bookingDate: string;
-  dropDownSlot: "MORNING" | "AFTERNOON" | "EVENING" | string;
-  checkInDate: string | null;
-  checkOutDate: string | null;
+  bookingCode: string;
   status: BookingStatus;
-  note: string | null;
-  servicePrice: string | null;
-  comboPrice: string | null;
+  bookingDate: string;
   createdAt: string;
-  comboId: number | null;
-  customerId: number;
-  staffId: number | null;
-  groomerId: number | null;
-  petId: number;
-  slotId: number | null;
-  roomId: number | null;
-  pet: ApiPet;
-  combo: ApiCombo | null;
-  Room: ApiRoom | null;
-  room?: ApiRoom | null;
-  slot: ApiSlot | null;
-}
-
-// API Searched
-export interface ApiFilteredBooking {
-  id: number;
-  status: BookingStatus;
-  bookingDate: string;
   checkInDate: string | null;
   checkOutDate: string | null;
-  dropDownSlot: "MORNING" | "AFTERNOON" | "EVENING" | string;
-  type?: "SPA" | "HOTEL" | string;
+  dropDownSlot: TimeSlot;
+  type: BookingType;
   totalPrice: number;
+  isPaid: boolean;
+  note: string;
+
   pet: {
     id: number;
     name: string;
     imageUrl?: string | null;
   };
+
   combo?: {
     id: number;
     name: string;
@@ -111,16 +42,54 @@ export interface ApiFilteredBooking {
       imageUrl?: string | null;
     }[];
   } | null;
+
   room?: {
     id: number;
     name: string;
     imageUrl?: string | null;
   } | null;
+
   slot?: {
     startDate: string;
     endDate: string;
     totalPrice: number;
   } | null;
+
+  imagesBooking?: Array<{
+    id: number;
+    imageUrl: string;
+    type: "BEFORE" | "AFTER";
+  }>;
+
+  paymentSummary?: {
+    id: number;
+    status: string;
+    totalAmount: number;
+    method: string;
+    date: string;
+  };
+
+  groomer?: {
+    id: number;
+    name: string;
+  };
   canLeaveFeedback?: boolean;
   hasFeedback?: boolean;
 }
+
+export interface CalendarEvent {
+  id: number;
+  title: string;
+  startDate: Date;
+  endDate: Date;
+  color: string;
+  type: BookingType;
+  status: BookingStatus;
+  booking: Booking;
+}
+
+export const TIME_SLOTS = {
+  MORNING: { hour: 7, minute: 0, duration: 270 }, // 7:00 - 11:30 (4.5 hours)
+  AFTERNOON: { hour: 12, minute: 30, duration: 240 }, // 12:30 - 16:30 (4 hours)
+  EVENING: { hour: 17, minute: 0, duration: 120 }, // 17:00 - 19:00 (2 hours)
+} as const;

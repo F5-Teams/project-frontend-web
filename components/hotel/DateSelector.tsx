@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -15,17 +15,49 @@ interface DateSelectorProps {
   onDateChange: (checkInDate: Date | null, checkOutDate: Date | null) => void;
 }
 
+const STORAGE_KEY_CHECKIN = "hotel_checkInDate";
+const STORAGE_KEY_CHECKOUT = "hotel_checkOutDate";
+
 export const DateSelector = ({ onDateChange }: DateSelectorProps) => {
   const [checkInDate, setCheckInDate] = useState<Date | null>(null);
   const [checkOutDate, setCheckOutDate] = useState<Date | null>(null);
+
+  // Load saved dates from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedCheckIn = localStorage.getItem(STORAGE_KEY_CHECKIN);
+      const savedCheckOut = localStorage.getItem(STORAGE_KEY_CHECKOUT);
+
+      if (savedCheckIn) {
+        const checkInDateObj = new Date(savedCheckIn);
+        setCheckInDate(checkInDateObj);
+
+        if (savedCheckOut) {
+          const checkOutDateObj = new Date(savedCheckOut);
+          setCheckOutDate(checkOutDateObj);
+          onDateChange(checkInDateObj, checkOutDateObj);
+        } else {
+          onDateChange(checkInDateObj, null);
+        }
+      }
+    }
+  }, []);
 
   const handleCheckInChange = (date: Date | undefined) => {
     const newCheckIn = date || null;
     setCheckInDate(newCheckIn);
 
+    // Save to localStorage
+    if (newCheckIn) {
+      localStorage.setItem(STORAGE_KEY_CHECKIN, newCheckIn.toISOString());
+    } else {
+      localStorage.removeItem(STORAGE_KEY_CHECKIN);
+    }
+
     // If checkout is before new checkin, reset checkout
     if (newCheckIn && checkOutDate && checkOutDate <= newCheckIn) {
       setCheckOutDate(null);
+      localStorage.removeItem(STORAGE_KEY_CHECKOUT);
       onDateChange(newCheckIn, null);
     } else {
       onDateChange(newCheckIn, checkOutDate);
@@ -35,12 +67,22 @@ export const DateSelector = ({ onDateChange }: DateSelectorProps) => {
   const handleCheckOutChange = (date: Date | undefined) => {
     const newCheckOut = date || null;
     setCheckOutDate(newCheckOut);
+
+    // Save to localStorage
+    if (newCheckOut) {
+      localStorage.setItem(STORAGE_KEY_CHECKOUT, newCheckOut.toISOString());
+    } else {
+      localStorage.removeItem(STORAGE_KEY_CHECKOUT);
+    }
+
     onDateChange(checkInDate, newCheckOut);
   };
 
   const handleClearDates = () => {
     setCheckInDate(null);
     setCheckOutDate(null);
+    localStorage.removeItem(STORAGE_KEY_CHECKIN);
+    localStorage.removeItem(STORAGE_KEY_CHECKOUT);
     onDateChange(null, null);
   };
 
@@ -85,9 +127,14 @@ export const DateSelector = ({ onDateChange }: DateSelectorProps) => {
                   mode="single"
                   selected={checkInDate || undefined}
                   onSelect={handleCheckInChange}
-                  disabled={(date) =>
-                    date < new Date(new Date().setHours(0, 0, 0, 0))
-                  }
+                  disabled={(date) => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const maxDate = new Date();
+                    maxDate.setDate(maxDate.getDate() + 30);
+                    maxDate.setHours(23, 59, 59, 999);
+                    return date < today || date > maxDate;
+                  }}
                   initialFocus
                   locale={vi}
                 />
@@ -129,7 +176,10 @@ export const DateSelector = ({ onDateChange }: DateSelectorProps) => {
                     if (!checkInDate) return true;
                     const minCheckOut = new Date(checkInDate);
                     minCheckOut.setDate(minCheckOut.getDate() + 1);
-                    return date <= checkInDate;
+                    const maxDate = new Date();
+                    maxDate.setDate(maxDate.getDate() + 30);
+                    maxDate.setHours(23, 59, 59, 999);
+                    return date <= checkInDate || date > maxDate;
                   }}
                   initialFocus
                   locale={vi}

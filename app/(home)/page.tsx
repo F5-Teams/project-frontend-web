@@ -5,11 +5,15 @@ import {
   OurHappyClientsSection,
   OurServicesSection,
 } from "@/components/home";
+import { Background3D } from "@/components/home/Background3D";
 
 export default function LandingPage() {
   return (
-    <div className="w-full max-w-none mx-auto">
-      <div className="flex flex-col w-full">
+    <div className="w-full max-w-none mx-auto relative">
+      {/* 3D Background */}
+      <Background3D />
+
+      <div className="flex flex-col w-full relative z-10">
         <HeroSection />
         <InformationSection />
         <OurServicesSection />

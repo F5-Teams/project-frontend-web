@@ -1,19 +1,88 @@
 "use client";
 
-import { useGetWallet } from "@/services/wallets/hooks";
-import { Wallet as WalletIcon, Download, RefreshCw } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { useGetWallet, useTransactionHistory } from "@/services/wallets/hooks";
+import {
+  Wallet as WalletIcon,
+  RefreshCw,
+  CreditCard,
+  TrendingUp,
+  TrendingDown,
+  ArrowLeft,
+  CalendarIcon,
+  Eye,
+  Filter,
+} from "lucide-react";
+import { formatDistanceToNow, format } from "date-fns";
 import { vi } from "date-fns/locale";
 import Link from "next/link";
-import Header from "@/components/shared/Header";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import {
+  TransactionType,
+  PaymentMethod,
+  TransactionHistoryItem,
+} from "@/services/wallets/type";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function WalletPage() {
-  const { data: wallet, isLoading, refetch } = useGetWallet();
+  const router = useRouter();
+  const { data: wallet, isLoading } = useGetWallet();
+  const [page, setPage] = useState(1);
+  const [filterType, setFilterType] = useState<TransactionType | undefined>(
+    undefined
+  );
+  const [filterPaymentMethod, setFilterPaymentMethod] = useState<
+    PaymentMethod | undefined
+  >(undefined);
+  const [filterStartDate, setFilterStartDate] = useState<Date | undefined>(
+    undefined
+  );
+  const [filterEndDate, setFilterEndDate] = useState<Date | undefined>(
+    undefined
+  );
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<TransactionHistoryItem | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>("");
+
+  const {
+    data: transactionHistory,
+    isLoading: isLoadingTransactions,
+    refetch,
+  } = useTransactionHistory({
+    page,
+    limit: 10,
+    type: filterType,
+    paymentMethod: filterPaymentMethod,
+    startDate: filterStartDate
+      ? format(filterStartDate, "yyyy-MM-dd")
+      : undefined,
+    endDate: filterEndDate ? format(filterEndDate, "yyyy-MM-dd") : undefined,
+  });
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center">
-        <Header />
+      <div className="min-h-screen bg-linear-to-br from-primary/5 to-primary/10 flex items-center justify-center">
         <div className="animate-spin">
           <RefreshCw className="w-8 h-8 text-primary" />
         </div>
@@ -23,8 +92,7 @@ export default function WalletPage() {
 
   if (!wallet) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center">
-        <Header />
+      <div className="min-h-screen bg-linear-to-br from-primary/5 to-primary/10 flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-600 mb-4">Không tìm thấy ví của bạn</p>
           <Link href="/" className="btn-primary">
@@ -35,18 +103,44 @@ export default function WalletPage() {
     );
   }
 
-  const formatCurrency = (amount: string) => {
-    return parseInt(amount).toLocaleString("vi-VN");
+  const formatCurrency = (amount: string | number) => {
+    return Number(amount).toLocaleString("vi-VN");
   };
 
   const getTransactionTypeLabel = (type: string) => {
-    const typeMap: Record<string, { label: string; color: string }> = {
-      PAYMENT: { label: "Thanh toán", color: "text-red-500" },
-      REFUND: { label: "Hoàn tiền", color: "text-green-500" },
-      TOP_UP: { label: "Nạp tiền", color: "text-blue-500" },
-      WITHDRAWAL: { label: "Rút tiền", color: "text-orange-500" },
+    const typeMap: Record<
+      string,
+      { label: string; color: string; icon: "up" | "down" }
+    > = {
+      WALLET_PAYMENT: {
+        label: "Thanh toán từ ví",
+        color: "text-red-500",
+        icon: "down",
+      },
+      WALLET_REFUND: {
+        label: "Hoàn tiền về ví",
+        color: "text-green-500",
+        icon: "up",
+      },
+      BOOKING_PAYMENT: {
+        label: "Thanh toán booking",
+        color: "text-red-500",
+        icon: "down",
+      },
+      ORDER_PAYMENT: {
+        label: "Thanh toán đơn hàng",
+        color: "text-red-500",
+        icon: "down",
+      },
+      WITHDRAW: { label: "Rút tiền", color: "text-orange-500", icon: "down" },
     };
-    return typeMap[type] || { label: type, color: "text-gray-500" };
+    return (
+      typeMap[type] || {
+        label: type,
+        color: "text-gray-500",
+        icon: "down" as const,
+      }
+    );
   };
 
   const getStatusBadge = (status: string) => {
@@ -59,20 +153,20 @@ export default function WalletPage() {
         bgColor: "bg-yellow-100",
         textColor: "text-yellow-800",
       },
-      SUCCESS: {
-        label: "Thành công",
-        bgColor: "bg-green-100",
-        textColor: "text-green-800",
-      },
       FAILED: {
         label: "Thất bại",
         bgColor: "bg-red-100",
         textColor: "text-red-800",
       },
-      CANCELLED: {
-        label: "Đã hủy",
-        bgColor: "bg-gray-100",
-        textColor: "text-gray-800",
+      REFUNDED: {
+        label: "Đã hoàn tiền",
+        bgColor: "bg-blue-100",
+        textColor: "text-blue-800",
+      },
+      PAID: {
+        label: "Đã thanh toán",
+        bgColor: "bg-green-100",
+        textColor: "text-green-800",
       },
     };
     return (
@@ -84,144 +178,640 @@ export default function WalletPage() {
     );
   };
 
-  return (
-    <>
-      <Header />
-      <main className="min-h-screen bg-gradient-to-br from-primary/5 to-primary/10 pt-24 px-4 md:px-8 flex flex-col">
-        <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col">
-          {/* Header */}
-          <div className="mb-8 mt-4">
-            <h1 className="font-poppins-regular text-3xl md:text-4xl font-bold text-gray-800 flex items-center gap-3">
-              <div className="bg-primary/20 p-3 rounded-lg">
-                <WalletIcon className="w-8 h-8 text-primary" />
-              </div>
-              Ví của tôi
-            </h1>
-          </div>
+  const transactionTypes: { value: TransactionType; label: string }[] = [
+    { value: "WALLET_PAYMENT", label: "Thanh toán từ ví" },
+    { value: "WALLET_REFUND", label: "Hoàn tiền về ví" },
+    { value: "BOOKING_PAYMENT", label: "Thanh toán booking" },
+    { value: "ORDER_PAYMENT", label: "Thanh toán đơn hàng" },
+    { value: "WITHDRAW", label: "Rút tiền" },
+  ];
 
-          {/* Content Wrapper - Rounded top with white background */}
-          <div className="rounded-t-3xl bg-white overflow-hidden flex-1 flex flex-col">
-            {/* Balance Card */}
-            <div className="bg-gradient-to-br from-primary to-primary/80 rounded-t-3xl p-8 text-white">
-              <div className="flex items-start justify-between mb-12">
-                <div>
-                  <p className="font-poppins-light text-white/80 text-sm mb-2">
-                    Số dư hiện tại
-                  </p>
-                  <h2 className="font-poppins-regular text-4xl md:text-5xl font-bold">
-                    {formatCurrency(wallet.balance)} ₫
+  const paymentMethods: { value: PaymentMethod; label: string }[] = [
+    { value: "CASH", label: "Tiền mặt" },
+    { value: "BANK_TRANSFER", label: "Chuyển khoản" },
+    { value: "WALLET", label: "Ví" },
+    { value: "MOMO", label: "MoMo" },
+    { value: "VNPAY", label: "VNPay" },
+  ];
+
+  return (
+    <main className="min-h-screen bg-linear-to-br from-primary/5 to-primary/10 px-2 md:px-4 py-4">
+      <div className="max-w-8xl px-4 mx-auto">
+        {/* Back Button */}
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-gray-700 hover:text-primary transition-colors mb-3 font-poppins-light"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          Quay lại
+        </button>
+
+        {/* Wallet Card */}
+        <div className="mb-6 flex justify-start">
+          <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
+            <div className="relative">
+              <div className="bg-linear-to-br from-primary via-primary/90 to-primary/70 px-8 pt-6 pb-2">
+                <div className="mb-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CreditCard className="w-5 h-5 text-white/70" />
+                    <p className="font-poppins-light text-white/80 text-sm">
+                      Số dư khả dụng
+                    </p>
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-poppins-regular text-white">
+                    {formatCurrency(wallet.balance)} VNĐ
                   </h2>
                 </div>
               </div>
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 bg-white/10 backdrop-blur rounded-lg p-4">
-                  <p className="text-white/70 text-xs font-poppins-light mb-1">
-                    Trạng thái
-                  </p>
-                  <p className="font-poppins-regular font-semibold">
-                    {wallet.status === "ACTIVE" ? "Hoạt động" : wallet.status}
-                  </p>
-                </div>
-                <div className="flex-1 bg-white/10 backdrop-blur rounded-lg p-4">
-                  <p className="text-white/70 text-xs font-poppins-light mb-1">
-                    Ngày tạo
-                  </p>
-                  <p className="font-poppins-regular font-semibold">
-                    {new Date(wallet.createdAt).toLocaleDateString("vi-VN")}
-                  </p>
+
+              <div className="bg-white px-6 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600 font-poppins-light">
+                      Trạng thái:
+                    </span>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-poppins-light ${
+                        wallet.status === "ACTIVE"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {wallet.status === "ACTIVE" ? "Hoạt động" : wallet.status}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600 font-poppins-light">
+                      Ngày tạo:
+                    </span>
+                    <span className="text-sm font-poppins-medium text-gray-900">
+                      {new Date(wallet.createdAt).toLocaleDateString("vi-VN")}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            {/* Transactions */}
-            <div className="bg-white overflow-hidden flex-1 flex flex-col">
-              <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-                <h3 className="font-poppins-regular text-xl font-bold text-gray-800 flex items-center gap-2">
-                  <Download className="w-5 h-5 text-primary" />
-                  Lịch sử giao dịch
-                </h3>
-                <button
-                  onClick={() => refetch()}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                  title="Tải lại"
-                >
-                  <RefreshCw className="w-5 h-5 text-primary hover:text-primary/80 transition-colors" />
-                </button>
-              </div>
-
-              {wallet.transactions && wallet.transactions.length > 0 ? (
-                <div className="divide-y divide-gray-200 flex-1 overflow-y-auto">
-                  {wallet.transactions.map((transaction) => {
-                    const typeInfo = getTransactionTypeLabel(transaction.type);
-                    const statusInfo = getStatusBadge(transaction.status);
-
-                    return (
-                      <div
-                        key={transaction.id}
-                        className="p-6 hover:bg-gray-50 transition-colors"
-                      >
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-4 flex-1">
-                            <div className="bg-primary/10 p-3 rounded-lg">
-                              <Download
-                                className={`w-5 h-5 ${typeInfo.color}`}
-                              />
-                            </div>
-                            <div className="flex-1">
-                              <p className="font-poppins-regular font-semibold text-gray-800">
-                                {typeInfo.label}
-                              </p>
-                              <p className="font-poppins-light text-sm text-gray-500">
-                                {formatDistanceToNow(
-                                  new Date(transaction.createdAt),
-                                  {
-                                    addSuffix: true,
-                                    locale: vi,
-                                  }
-                                )}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p
-                              className={`font-poppins-regular font-bold text-lg ${typeInfo.color}`}
-                            >
-                              {transaction.type === "PAYMENT" ||
-                              transaction.type === "WITHDRAWAL"
-                                ? "-"
-                                : "+"}
-                              {formatCurrency(transaction.amount)} ₫
-                            </p>
-                            <p className="font-poppins-light text-xs text-gray-500 mt-1">
-                              Số dư: {formatCurrency(transaction.balanceAfter)}{" "}
-                              ₫
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div />
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-poppins-regular font-semibold ${statusInfo.bgColor} ${statusInfo.textColor}`}
-                          >
-                            {statusInfo.label}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="p-12 text-center">
-                  <WalletIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="font-poppins-light text-gray-500">
-                    Không có giao dịch nào
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         </div>
-      </main>
-    </>
+
+        {/* Filter Bar */}
+        <div className="grid my-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          {/* Loại giao dịch */}
+          <div>
+            <label className="block text-xs font-poppins-light text-gray-600 mb-1.5">
+              Loại giao dịch
+            </label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between border-primary/10 rounded-2xl text-left shadow-sm font-poppins-light text-sm h-10 "
+                >
+                  <span>
+                    {filterType
+                      ? transactionTypes.find((t) => t.value === filterType)
+                          ?.label
+                      : "Tất cả"}
+                  </span>
+                  <Filter className="h-4 w-4 text-gray-600" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56 p-2" align="start">
+                <div className="flex flex-col gap-1">
+                  <button
+                    onClick={() => {
+                      setFilterType(undefined);
+                      setPage(1);
+                    }}
+                    className={`px-3 py-2 text-left text-sm rounded hover:bg-gray-100 transition-all duration-200 hover:translate-x-1 ${
+                      !filterType
+                        ? "bg-primary/10 text-primary font-poppins-regular"
+                        : "font-poppins-light"
+                    }`}
+                  >
+                    Tất cả
+                  </button>
+                  {transactionTypes.map((type) => (
+                    <button
+                      key={type.value}
+                      onClick={() => {
+                        setFilterType(type.value);
+                        setPage(1);
+                      }}
+                      className={`px-3 py-2 text-left text-sm rounded hover:bg-gray-100 transition-all duration-200 hover:translate-x-1 ${
+                        filterType === type.value
+                          ? "bg-primary/10 text-primary font-poppins-regular"
+                          : "font-poppins-light"
+                      }`}
+                    >
+                      {type.label}
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Phương thức thanh toán */}
+          <div>
+            <label className="block text-xs font-poppins-light text-gray-600 mb-1.5">
+              Phương thức
+            </label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between border-primary/10 rounded-2xl text-left shadow-sm font-poppins-light text-sm h-10"
+                >
+                  <span>
+                    {filterPaymentMethod
+                      ? paymentMethods.find(
+                          (m) => m.value === filterPaymentMethod
+                        )?.label
+                      : "Tất cả"}
+                  </span>
+                  <Filter className="h-4 w-4 text-gray-600" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 p-2" align="start">
+                <div className="flex flex-col gap-1">
+                  <button
+                    onClick={() => {
+                      setFilterPaymentMethod(undefined);
+                      setPage(1);
+                    }}
+                    className={`px-3 py-2 text-left text-sm rounded hover:bg-gray-100 transition-all duration-200 hover:translate-x-1 ${
+                      !filterPaymentMethod
+                        ? "bg-primary/10 text-primary font-poppins-regular"
+                        : "font-poppins-light"
+                    }`}
+                  >
+                    Tất cả
+                  </button>
+                  {paymentMethods.map((method) => (
+                    <button
+                      key={method.value}
+                      onClick={() => {
+                        setFilterPaymentMethod(method.value);
+                        setPage(1);
+                      }}
+                      className={`px-3 py-2 text-left text-sm rounded hover:bg-gray-100 transition-all duration-200 hover:translate-x-1 ${
+                        filterPaymentMethod === method.value
+                          ? "bg-primary/10 text-primary font-poppins-regular"
+                          : "font-poppins-light"
+                      }`}
+                    >
+                      {method.label}
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Ngày bắt đầu */}
+          <div>
+            <label className="block text-xs font-poppins-light text-gray-600 mb-1.5">
+              Ngày bắt đầu
+            </label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start border-primary/10 rounded-2xl text-left shadow-sm font-poppins-light text-sm h-10"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {filterStartDate ? (
+                    format(filterStartDate, "dd/MM/yyyy")
+                  ) : (
+                    <span className="text-black">Chọn ngày</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={filterStartDate}
+                  onSelect={(date) => {
+                    setFilterStartDate(date);
+                    setPage(1);
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Ngày kết thúc */}
+          <div>
+            <label className="block text-xs font-poppins-light text-gray-600 mb-1.5">
+              Ngày kết thúc
+            </label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start border-primary/10 rounded-2xl text-left shadow-sm font-poppins-light text-sm h-10"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {filterEndDate ? (
+                    format(filterEndDate, "dd/MM/yyyy")
+                  ) : (
+                    <span className="text-black">Chọn ngày</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={filterEndDate}
+                  onSelect={(date) => {
+                    setFilterEndDate(date);
+                    setPage(1);
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Reset button */}
+          <div className="flex items-end">
+            <button
+              onClick={() => {
+                setFilterType(undefined);
+                setFilterPaymentMethod(undefined);
+                setFilterStartDate(undefined);
+                setFilterEndDate(undefined);
+                setPage(1);
+              }}
+              className="w-full bg-primary/10 h-10 px-4 transition-all duration-200 ease-in-out transform hover:bg-primary-card/20 hover:-translate-y-1 hover:shadow-sm rounded-2xl font-poppins-light text-sm"
+            >
+              Xóa bộ lọc
+            </button>
+          </div>
+        </div>
+
+        {/* Bottom Row: Transaction List */}
+        <div>
+          <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="font-poppins-regular text-xl text-gray-800 flex items-center gap-2">
+                Lịch sử giao dịch
+              </h3>
+              <button
+                onClick={() => refetch()}
+                className="p-2 hover:bg-primary/10 rounded-2xl transition-colors"
+                title="Tải lại"
+              >
+                <RefreshCw className="w-5 h-5 text-primary" />
+              </button>
+            </div>
+
+            {/* Transactions List */}
+            {isLoadingTransactions ? (
+              <div className="p-12 text-center">
+                <RefreshCw className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
+                <p className="font-poppins-light text-gray-500">Đang tải...</p>
+              </div>
+            ) : transactionHistory &&
+              transactionHistory.transactions.length > 0 ? (
+              <>
+                <div className="max-h-[600px] px-4 overflow-y-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[150px]">
+                          Mã giao dịch
+                        </TableHead>
+                        <TableHead className="w-[180px]">Thời gian</TableHead>
+                        <TableHead className="text-right w-[150px]">
+                          Số tiền
+                        </TableHead>
+                        <TableHead className="w-[120px]">
+                          <div className="flex items-center justify-center gap-2">
+                            <span>Trạng thái</span>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <button className="p-1 hover:bg-gray-100 rounded transition-all duration-200 hover:translate-x-1">
+                                  <Filter className="h-4 w-4 text-gray-600" />
+                                </button>
+                              </PopoverTrigger>
+                              <PopoverContent
+                                className="w-48 p-2"
+                                align="start"
+                              >
+                                <div className="flex flex-col gap-1">
+                                  <button
+                                    onClick={() => setStatusFilter("")}
+                                    className={`px-3 py-2 text-left text-sm rounded hover:bg-gray-100 transition-all duration-200 hover:translate-x-1 ${
+                                      statusFilter === ""
+                                        ? "bg-primary/10 text-primary font-poppins-regular"
+                                        : "font-poppins-light"
+                                    }`}
+                                  >
+                                    Tất cả
+                                  </button>
+                                  <button
+                                    onClick={() => setStatusFilter("PENDING")}
+                                    className={`px-3 py-2 text-left text-sm rounded hover:bg-gray-100 transition-all duration-200 hover:translate-x-1 ${
+                                      statusFilter === "PENDING"
+                                        ? "bg-primary/10 text-primary font-poppins-regular"
+                                        : "font-poppins-light"
+                                    }`}
+                                  >
+                                    Đang xử lý
+                                  </button>
+                                  <button
+                                    onClick={() => setStatusFilter("PAID")}
+                                    className={`px-3 py-2 text-left text-sm rounded hover:bg-gray-100 transition-all duration-200 hover:translate-x-1 ${
+                                      statusFilter === "PAID"
+                                        ? "bg-primary/10 text-primary font-poppins-regular"
+                                        : "font-poppins-light"
+                                    }`}
+                                  >
+                                    Đã thanh toán
+                                  </button>
+                                  <button
+                                    onClick={() => setStatusFilter("FAILED")}
+                                    className={`px-3 py-2 text-left text-sm rounded hover:bg-gray-100 transition-all duration-200 hover:translate-x-1 ${
+                                      statusFilter === "FAILED"
+                                        ? "bg-primary/10 text-primary font-poppins-regular"
+                                        : "font-poppins-light"
+                                    }`}
+                                  >
+                                    Thất bại
+                                  </button>
+                                  <button
+                                    onClick={() => setStatusFilter("REFUNDED")}
+                                    className={`px-3 py-2 text-left text-sm rounded hover:bg-gray-100 transition-all duration-200 hover:translate-x-1 ${
+                                      statusFilter === "REFUNDED"
+                                        ? "bg-primary/10 text-primary font-poppins-regular"
+                                        : "font-poppins-light"
+                                    }`}
+                                  >
+                                    Đã hoàn tiền
+                                  </button>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                        </TableHead>
+                        <TableHead className="text-center w-[100px]">
+                          Chi tiết
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {transactionHistory.transactions
+                        .filter((transaction) => {
+                          if (
+                            statusFilter &&
+                            transaction.status !== statusFilter
+                          ) {
+                            return false;
+                          }
+                          return true;
+                        })
+                        .map((transaction) => {
+                          const typeInfo = getTransactionTypeLabel(
+                            transaction.type
+                          );
+                          const statusInfo = getStatusBadge(transaction.status);
+
+                          return (
+                            <TableRow key={transaction.id}>
+                              <TableCell className="font-poppins-light text-sm">
+                                # {transaction.id || "-"}
+                              </TableCell>
+                              <TableCell className="font-poppins-light text-sm text-gray-500">
+                                {new Date(transaction.createdAt).toLocaleString(
+                                  "vi-VN",
+                                  {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  }
+                                )}
+                              </TableCell>
+                              <TableCell
+                                className={`text-right text-sm font-poppins-light ${typeInfo.color}`}
+                              >
+                                {formatCurrency(transaction.amount)} VNĐ
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <span
+                                  className={`inline-block px-2 py-1 rounded-full text-xs font-poppins-regular ${statusInfo.bgColor} ${statusInfo.textColor}`}
+                                >
+                                  {statusInfo.label}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => {
+                                    setSelectedTransaction(transaction);
+                                    setIsDetailModalOpen(true);
+                                  }}
+                                  className="h-8 w-8"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Pagination */}
+                {transactionHistory.totalPages > 1 && (
+                  <div className="p-6 border-t border-gray-200 flex items-center justify-between">
+                    <p className="text-sm text-gray-600 font-poppins-light">
+                      Trang {transactionHistory.page} /{" "}
+                      {transactionHistory.totalPages}
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        disabled={page === 1}
+                        className="px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-poppins-light text-sm transition-colors"
+                      >
+                        Trước
+                      </button>
+                      <button
+                        onClick={() =>
+                          setPage((p) =>
+                            Math.min(transactionHistory.totalPages, p + 1)
+                          )
+                        }
+                        disabled={page === transactionHistory.totalPages}
+                        className="px-4 py-2 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-poppins-light text-sm transition-colors"
+                      >
+                        Sau
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="p-12 text-center">
+                <WalletIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <p className="font-poppins-light text-gray-500">
+                  Không có giao dịch nào
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Transaction Detail Modal */}
+        <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-white rounded-2xl">
+            <DialogHeader>
+              <DialogTitle className="font-poppins-light text-xl">
+                Chi tiết giao dịch
+              </DialogTitle>
+            </DialogHeader>
+            {selectedTransaction &&
+              (() => {
+                const typeInfo = getTransactionTypeLabel(
+                  selectedTransaction.type
+                );
+                const statusInfo = getStatusBadge(selectedTransaction.status);
+
+                return (
+                  <div className="space-y-4">
+                    {/* loại */}
+                    <div className="flex items-start gap-3 p-4 bg-white/40 backdrop-blur shadow-lg rounded-2xl">
+                      <div
+                        className={`p-3 rounded-2xl ${
+                          typeInfo.icon === "up" ? "bg-green-100" : "bg-red-100"
+                        }`}
+                      >
+                        {typeInfo.icon === "up" ? (
+                          <TrendingUp className={`w-6 h-6 ${typeInfo.color}`} />
+                        ) : (
+                          <TrendingDown
+                            className={`w-6 h-6 ${typeInfo.color}`}
+                          />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-poppins-regular text-lg">
+                          {typeInfo.label}
+                        </p>
+                        <p className="text-xs text-gray-600 font-poppins-light mt-1">
+                          {selectedTransaction.description}
+                        </p>
+                      </div>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-poppins-regular ${statusInfo.bgColor} ${statusInfo.textColor}`}
+                      >
+                        {statusInfo.label}
+                      </span>
+                    </div>
+
+                    {/* Amount */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 bg-white/40 backdrop-blur shadow-lg rounded-2xl">
+                        <p className="text-sm text-gray-600 font-poppins-light mb-1">
+                          Số tiền giao dịch
+                        </p>
+                        <p
+                          className={`text-2xl font-poppins-regular ${typeInfo.color}`}
+                        >
+                          {formatCurrency(selectedTransaction.amount)} VNĐ
+                        </p>
+                      </div>
+                      <div className="p-4 bg-white/40 backdrop-blur shadow-lg rounded-2xl">
+                        <p className="text-sm text-gray-600 font-poppins-light mb-1">
+                          Số dư sau giao dịch
+                        </p>
+                        <p className="text-2xl font-poppins-regular text-gray-900">
+                          {selectedTransaction.balanceAfter
+                            ? `${formatCurrency(
+                                selectedTransaction.balanceAfter
+                              )} VNĐ`
+                            : "-"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Details */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between py-1 border-b">
+                        <span className="text-sm text-gray-600 font-poppins-light">
+                          Mã giao dịch
+                        </span>
+                        <span className="text-md font-poppins-regular">
+                          # {selectedTransaction.id}
+                        </span>
+                      </div>
+
+                      {/* {selectedTransaction.bookingCode && (
+                        <div className="flex justify-between py-1 border-b">
+                          <span className="text-sm text-gray-600 font-poppins-light">
+                            Mã booking
+                          </span>
+                          <span className="text-md font-poppins-regular">
+                            {selectedTransaction.bookingCode}
+                          </span>
+                        </div>
+                      )} */}
+
+                      {selectedTransaction.paymentMethod && (
+                        <div className="flex justify-between py-1 border-b">
+                          <span className="text-sm text-gray-600 font-poppins-light">
+                            Phương thức thanh toán
+                          </span>
+                          <span className="text-md font-poppins-regular">
+                            {paymentMethods.find(
+                              (m) =>
+                                m.value === selectedTransaction.paymentMethod
+                            )?.label || selectedTransaction.paymentMethod}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex justify-between py-2 border-b">
+                        <span className="text-sm text-gray-600 font-poppins-light">
+                          Thời gian
+                        </span>
+                        <div className="text-right">
+                          <p className="text-md font-poppins-regular">
+                            {new Date(
+                              selectedTransaction.createdAt
+                            ).toLocaleString("vi-VN", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                          <p className="text-xs text-gray-500 font-poppins-light">
+                            {formatDistanceToNow(
+                              new Date(selectedTransaction.createdAt),
+                              {
+                                addSuffix: true,
+                                locale: vi,
+                              }
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+          </DialogContent>
+        </Dialog>
+      </div>
+    </main>
   );
 }

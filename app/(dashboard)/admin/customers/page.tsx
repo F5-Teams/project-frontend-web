@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import api from "@/config/axios";
 import { User } from "@/components/models/register";
 import { CreateUser } from "@/components/models/create-staff";
+import Pagination from "@/components/shared/Pagination";
 import {
   UserRound,
   Phone,
@@ -28,6 +29,8 @@ export default function Customers() {
   const [creating, setCreating] = useState(false);
   const [filterGender, setFilterGender] = useState("all");
   const [filterRole, setFilterRole] = useState("all");
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
 
   const defaultUser: CreateUser = {
     role: "staff",
@@ -63,21 +66,73 @@ export default function Customers() {
   const roleDisplay = (roleId?: number) =>
     roleMeta[roleId ?? 0] ?? { label: "—", cls: "text-gray-500 bg-gray-50" };
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await api.get<User[]>("/users/all");
-      setData(res.data || []);
+      setError("");
+
+      // Backend chỉ hỗ trợ pagination, không hỗ trợ filter
+      // Fetch tất cả users và filter ở frontend
+      const res = await api.get("/users", {
+        params: {
+          page: 1,
+          limit: 1000, // Lấy nhiều để có thể filter
+        },
+      });
+
+      let allUsers = res.data?.data || [];
+
+      // Filter by search
+      if (search.trim()) {
+        const searchLower = search.toLowerCase();
+        allUsers = allUsers.filter((u: User) => {
+          const name = fullName(u).toLowerCase();
+          const username = (u.userName || "").toLowerCase();
+          return name.includes(searchLower) || username.includes(searchLower);
+        });
+      }
+
+      // Filter by gender
+      if (filterGender !== "all") {
+        allUsers = allUsers.filter((u: User) => {
+          if (filterGender === "male") return u.gender === true;
+          if (filterGender === "female") return u.gender === false;
+          return true;
+        });
+      }
+
+      // Filter by role
+      if (filterRole !== "all") {
+        const roleMap: Record<string, number> = {
+          admin: 1,
+          staff: 2,
+          groomer: 3,
+          customer: 4,
+        };
+        const targetRoleId = roleMap[filterRole];
+        allUsers = allUsers.filter((u: User) => u.roleId === targetRoleId);
+      }
+
+      // Calculate pagination for filtered data
+      const total = allUsers.length;
+      const totalPagesCalculated = Math.ceil(total / perPage);
+      const startIndex = (page - 1) * perPage;
+      const endIndex = startIndex + perPage;
+      const paginatedUsers = allUsers.slice(startIndex, endIndex);
+
+      setData(paginatedUsers);
+      setTotalPages(totalPagesCalculated);
+      setTotalUsers(total);
     } catch (err: any) {
       setError(err?.response?.data?.message || "Không thể tải người dùng");
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, perPage, search, filterGender, filterRole]);
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [fetchUsers]);
 
   const handleCreateUser = async () => {
     try {
@@ -103,40 +158,6 @@ export default function Customers() {
     }
   };
 
-  const filteredData = useMemo(() => {
-    return data.filter((u) => {
-      const name = fullName(u).toLowerCase();
-      const username = (u.userName || "").toLowerCase();
-
-      const matchesSearch =
-        name.includes(search.toLowerCase()) ||
-        username.includes(search.toLowerCase());
-
-      const matchesGender =
-        filterGender === "all" ||
-        (filterGender === "male" && u.gender === true) ||
-        (filterGender === "female" && u.gender === false);
-
-      const matchesRole =
-        filterRole === "all" ||
-        (filterRole === "admin" && u.roleId === 1) ||
-        (filterRole === "staff" && u.roleId === 2) ||
-        (filterRole === "groomer" && u.roleId === 3) ||
-        (filterRole === "customer" && u.roleId === 4);
-
-      return matchesSearch && matchesGender && matchesRole;
-    });
-  }, [data, search, filterGender, filterRole]);
-
-  const totalPages = Math.ceil(filteredData.length / perPage);
-  const paginatedData = filteredData.slice(
-    (page - 1) * perPage,
-    page * perPage
-  );
-
-  const handlePrev = () => setPage((p) => Math.max(p - 1, 1));
-  const handleNext = () => setPage((p) => Math.min(p + 1, totalPages));
-
   const handleCloseModal = () => {
     setOpenModal(false);
     setNewUser(defaultUser);
@@ -161,9 +182,14 @@ export default function Customers() {
     <div className="space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold tracking-tight text-gray-800">
-          Danh sách người dùng
-        </h1>
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-gray-800">
+            Danh sách người dùng
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Tổng số: {totalUsers} người dùng
+          </p>
+        </div>
 
         <div className="flex items-center gap-3">
           {/* Button tạo mới */}
@@ -187,7 +213,10 @@ export default function Customers() {
                   </label>
                   <select
                     value={filterGender}
-                    onChange={(e) => setFilterGender(e.target.value)}
+                    onChange={(e) => {
+                      setFilterGender(e.target.value);
+                      setPage(1);
+                    }}
                     className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-pink-400"
                   >
                     <option value="all">Tất cả</option>
@@ -202,7 +231,10 @@ export default function Customers() {
                   </label>
                   <select
                     value={filterRole}
-                    onChange={(e) => setFilterRole(e.target.value)}
+                    onChange={(e) => {
+                      setFilterRole(e.target.value);
+                      setPage(1);
+                    }}
                     className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-pink-400"
                   >
                     <option value="all">Tất cả</option>
@@ -263,7 +295,7 @@ export default function Customers() {
           </thead>
 
           <tbody>
-            {paginatedData.map((u) => {
+            {data.map((u) => {
               const name = fullName(u);
               const genderLabel =
                 u.gender === true ? "Nam" : u.gender === false ? "Nữ" : "—";
@@ -334,13 +366,13 @@ export default function Customers() {
               );
             })}
 
-            {paginatedData.length === 0 && (
+            {data.length === 0 && (
               <tr>
                 <td
                   colSpan={5}
                   className="px-6 py-10 text-center text-sm text-gray-500"
                 >
-                  {search
+                  {search || filterGender !== "all" || filterRole !== "all"
                     ? "Không tìm thấy người dùng nào khớp."
                     : "Chưa có người dùng nào."}
                 </td>
@@ -351,31 +383,14 @@ export default function Customers() {
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-6 pt-4">
-          <button
-            onClick={handlePrev}
-            disabled={page === 1}
-            className="px-3 py-1.5 text-sm rounded-full border border-gray-300 
-                       hover:bg-pink-100 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Trước
-          </button>
-
-          <span className="text-sm text-gray-600">
-            {page} / {totalPages}
-          </span>
-
-          <button
-            onClick={handleNext}
-            disabled={page === totalPages}
-            className="px-3 py-1.5 text-sm rounded-full border border-gray-300 
-                       hover:bg-pink-100 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Sau
-          </button>
-        </div>
-      )}
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        totalItems={totalUsers}
+        itemsPerPage={perPage}
+        onPageChange={setPage}
+        loading={loading}
+      />
 
       {/* Modal tạo mới */}
       {openModal && (

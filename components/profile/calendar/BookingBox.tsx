@@ -2,17 +2,18 @@
 import React from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-
+import { useRouter } from "next/navigation";
 import { getStatusDotClass } from "./StatusBadge";
-import { formatDMY } from "@/utils/dateRange";
-import { CalendarBooking } from "@/types/calendarType";
+import { formatDateTime24 } from "@/utils/date";
+import { Booking } from "@/services/profile/profile-schedule/types";
 
 type Props = {
-  data: CalendarBooking;
+  data: Booking;
   active?: boolean;
   open?: boolean;
-  onToggle?: (b: CalendarBooking) => void;
-  onSelect?: (b: CalendarBooking) => void;
+  onToggle?: (b: Booking) => void;
+  onSelect?: (b: Booking) => void;
+  onRequestFeedback?: (b: Booking) => void;
 };
 
 export function BookingBox({
@@ -21,7 +22,9 @@ export function BookingBox({
   open = false,
   onToggle,
   onSelect,
+  onRequestFeedback,
 }: Props) {
+  const router = useRouter();
   const bodyRef = React.useRef<HTMLDivElement>(null);
   const [height, setHeight] = React.useState(0);
 
@@ -32,14 +35,11 @@ export function BookingBox({
 
   const dotClass = getStatusDotClass(data.status);
 
-  const metaStart = data.meta?.startDate ?? null;
-  const metaEnd = data.meta?.endDate ?? null;
-  const rangeStart = metaStart ?? data.startDate ?? null;
-  const rangeEnd = metaEnd ?? data.endDate ?? null;
-
-  const hasExplicitRange = Boolean(
-    (metaStart && metaEnd) || (data.startDate && data.endDate)
-  );
+  const title =
+    data.combo?.name || data.room?.name || `Booking #${data.bookingCode}`;
+  // const rangeStart = data.slot?.startDate ?? data.bookingDate;
+  // const rangeEnd = data.slot?.endDate ?? data.bookingDate;
+  // const hasRange = Boolean(data.slot?.startDate && data.slot?.endDate);
 
   return (
     <div
@@ -49,7 +49,6 @@ export function BookingBox({
         active ? "border-primary/60 ring-primary/20" : "border-gray-200"
       )}
     >
-      {/* Header */}
       <button
         className="w-full flex flex-col items-start gap-2 px-3 py-3"
         onClick={() => {
@@ -57,7 +56,6 @@ export function BookingBox({
           onSelect?.(data);
         }}
       >
-        {/* dot + chevron: full width row */}
         <div className="w-full flex items-center justify-between gap-2">
           <span
             className={cn("inline-block w-2.5 h-2.5 rounded-full", dotClass)}
@@ -67,29 +65,17 @@ export function BookingBox({
           />
         </div>
 
-        {/* main content below (title + preview) */}
         <div className="w-full min-w-0 text-left">
           <div className="text-sm font-medium text-gray-900 whitespace-normal wrap-break-words">
-            {data.title}
+            {title}
           </div>
           <div ref={bodyRef} className="pt-1 text-xs text-gray-700 space-y-1.5">
-            {data.meta?.bookingDate && !data.endDate && (
-              <div className="flex flex-col items-start">
-                <span className="text-gray-500 text-xs">Ngày:</span>
-                <span className="font-poppins-light text-gray-700 mt-0.5">
-                  {formatDMY(new Date(data.meta.bookingDate))}
-                </span>
-              </div>
-            )}
-            {hasExplicitRange && rangeStart && rangeEnd && (
-              <div className="flex justify-between">
-                <span className="text-gray-500">Ngày:</span>
-                <span className="font-poppins-light ml-1">
-                  {formatDMY(new Date(rangeStart))}–
-                  {formatDMY(new Date(rangeEnd))}
-                </span>
-              </div>
-            )}
+            <div className="flex flex-col items-start">
+              <span className="text-gray-500 text-xs">Ngày đặt:</span>
+              <span className="font-poppins-light text-gray-800 mt-0.5">
+                {formatDateTime24(data.createdAt)}
+              </span>
+            </div>
           </div>
         </div>
       </button>
@@ -100,12 +86,23 @@ export function BookingBox({
       >
         <div
           ref={bodyRef}
-          className="px-4 pb-4 pt-1 text-xs text-gray-700 space-y-1.5"
+          className="px-4 pb-4 pt-1 text-xs text-gray-700 space-y-2"
         >
-          Boss yêu của Sen:{" "}
-          <span className="font-poppins-semibold text-primary">
-            {data.pet?.name}
-          </span>
+          <div>
+            Boss yêu của Sen:{" "}
+            <span className="font-poppins-semibold text-primary">
+              {data.pet?.name}
+            </span>
+          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/profile/calendar/${data.id}`);
+            }}
+            className="w-full py-2 px-3 bg-primary hover:bg-primary/90 text-white text-xs font-poppins-medium rounded-lg transition-colors"
+          >
+            Xem chi tiết
+          </button>
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useGetAllOrder } from "@/services/orders/getAllOrder/hooks";
@@ -23,7 +24,8 @@ const OrderPage = () => {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [openComplete, setOpenComplete] = useState(false);
   const [loadingDelete, setLoadingDelete] = useState(false);
-  const { data: allOrder } = useGetAllOrder();
+  const { data: orderResponse } = useGetAllOrder();
+  const allOrder = orderResponse?.data || [];
   const [selectedOrder, setSelectedOrder] = useState<Order>();
   const queryClient = useQueryClient();
   const { mutate: postOrderGhn } = usePostOrderGhn();
@@ -35,38 +37,7 @@ const OrderPage = () => {
     const orderId = order.id;
 
     const body = {
-      status: "APPROVED" as const,
-      note: order.note || "",
-      customerId: order.customerId,
-
-      shipping: {
-        toName: order.shipping.toName,
-        toPhone: order.shipping.toPhone,
-        toAddress: order.shipping.toAddress,
-        toWardCode: order.shipping.toWardCode,
-        toDistrictId: order.shipping.toDistrictId,
-        toWardName: order.shipping.toWardName,
-        toDistrictName: order.shipping.toDistrictName,
-        toProvinceName: order.shipping.toProvinceName,
-        serviceTypeId: order.shipping.serviceTypeId,
-        paymentTypeId: order.shipping.paymentTypeId,
-        requiredNote: order.shipping.requiredNote,
-        length: order.shipping.length,
-        width: order.shipping.width,
-        height: order.shipping.height,
-        codAmount: Number(order.shipping.codAmount) || 0,
-        insuranceValue: Number(order.shipping.insuranceValue) || 0,
-        note: order.note || "",
-        status: "PENDING" as const,
-      },
-
-      paymentMethod: order.payment.paymentMethod,
-      paymentStatus: "PAID" as const,
-      shippingStatus: "PENDING" as const,
-      orderDetails: order.orderDetails.map((item) => ({
-        productId: item.product.id,
-        quantity: item.quantity,
-      })),
+      status: "APPROVED",
     };
 
     console.log("PAY", body);
@@ -86,8 +57,9 @@ const OrderPage = () => {
       onSuccess: async (res) => {
         toast.promise(
           (async () => {
+            await patchOrder({ id: order.id, body: { status: "SHIPPING" } });
             queryClient.invalidateQueries({ queryKey: ["getAllOrder"] });
-            return res.id;
+            return res.ghnOrderCode || res.id;
           })(),
           {
             loading: "Đang xử lý...",
@@ -101,6 +73,17 @@ const OrderPage = () => {
         toast.error("Tạo vận đơn thất bại!");
       },
     });
+  };
+
+  const handleInternalShipping = async (order: Order) => {
+    try {
+      await patchOrder({ id: order.id, body: { status: "SHIPPING" } });
+      toast.success("Đơn hàng đã chuyển sang giao hàng nội bộ!");
+      queryClient.invalidateQueries({ queryKey: ["getAllOrder"] });
+    } catch (error) {
+      toast.error("Cập nhật thất bại!");
+      console.log(error);
+    }
   };
 
   const handleCancelGHN = (order: Order) => {
@@ -150,36 +133,7 @@ const OrderPage = () => {
         onSuccess: async () => {
           try {
             const body = {
-              status: "REFUND" as const,
-              note: order.note || "",
-              customerId: order.customerId,
-              shipping: {
-                toName: order.shipping.toName,
-                toPhone: order.shipping.toPhone,
-                toAddress: order.shipping.toAddress,
-                toWardCode: order.shipping.toWardCode,
-                toDistrictId: order.shipping.toDistrictId,
-                toWardName: order.shipping.toWardName,
-                toDistrictName: order.shipping.toDistrictName,
-                toProvinceName: order.shipping.toProvinceName,
-                serviceTypeId: order.shipping.serviceTypeId,
-                paymentTypeId: order.shipping.paymentTypeId,
-                requiredNote: order.shipping.requiredNote,
-                length: order.shipping.length,
-                width: order.shipping.width,
-                height: order.shipping.height,
-                codAmount: Number(order.shipping.codAmount) || 0,
-                insuranceValue: Number(order.shipping.insuranceValue) || 0,
-                note: order.note || "",
-                status: "PENDING" as const,
-              },
-              paymentMethod: order.payment.paymentMethod,
-              paymentStatus: "PAID" as const,
-              shippingStatus: "PENDING" as const,
-              orderDetails: order.orderDetails.map((item) => ({
-                productId: item.product.id,
-                quantity: item.quantity,
-              })),
+              status: "REFUND",
             };
 
             await patchOrder({ id: order.id, body });
@@ -209,36 +163,7 @@ const OrderPage = () => {
       onSuccess: async () => {
         try {
           const body = {
-            status: "REFUND_DONE" as const,
-            note: order.note || "",
-            customerId: order.customerId,
-            shipping: {
-              toName: order.shipping.toName,
-              toPhone: order.shipping.toPhone,
-              toAddress: order.shipping.toAddress,
-              toWardCode: order.shipping.toWardCode,
-              toDistrictId: order.shipping.toDistrictId,
-              toWardName: order.shipping.toWardName,
-              toDistrictName: order.shipping.toDistrictName,
-              toProvinceName: order.shipping.toProvinceName,
-              serviceTypeId: order.shipping.serviceTypeId,
-              paymentTypeId: order.shipping.paymentTypeId,
-              requiredNote: order.shipping.requiredNote,
-              length: order.shipping.length,
-              width: order.shipping.width,
-              height: order.shipping.height,
-              codAmount: Number(order.shipping.codAmount) || 0,
-              insuranceValue: Number(order.shipping.insuranceValue) || 0,
-              note: order.note || "",
-              status: "PENDING" as const,
-            },
-            paymentMethod: order.payment.paymentMethod,
-            paymentStatus: "PAID" as const,
-            shippingStatus: "PENDING" as const,
-            orderDetails: order.orderDetails.map((item) => ({
-              productId: item.product.id,
-              quantity: item.quantity,
-            })),
+            status: "REFUND_DONE",
           };
 
           await patchOrder({ id: order.id, body });
@@ -257,7 +182,11 @@ const OrderPage = () => {
       case "CASH":
         return "Tiền mặt";
       case "TRANSFER":
-        return "Thanh toán qua ví";
+        return "Thanh toán qua Ví";
+      case "VNPAY":
+        return "Thanh toán VNPAY";
+      case "MOMO":
+        return "Thanh toán MOMO";
       default:
         return "Không xác định";
     }
@@ -266,7 +195,9 @@ const OrderPage = () => {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "PAID":
-        return "Đã thanh toán";
+        return "Chờ duyệt";
+      case "ON_PROGRESSING":
+        return "Chờ thanh toán";
       case "APPROVED":
         return "Đã duyệt";
       case "SHIPPING":
@@ -280,13 +211,13 @@ const OrderPage = () => {
       case "REFUND":
         return "Hoàn tiền";
       case "REFUND_DONE":
-        return "Hoàn tiền";
+        return "Trả hàng/Hoàn tiền";
       default:
         return status;
     }
   };
 
-  console.log("first", allOrder);
+  console.log("Order Response:", orderResponse);
 
   const columns = [
     {
@@ -318,8 +249,8 @@ const OrderPage = () => {
     {
       title: "Tổng tiền",
       width: 120,
-      render: (_: unknown, record: Order) => {
-        const amount = record.payment?.amount ?? 0;
+      render: (_: any, record: Order) => {
+        const amount = record.payment?.totalAmount ?? record.payment?.amount ?? 0;
         return (
           <span className="font-semibold text-pink-600">
             {Number(amount).toLocaleString("vi-VN")} đ
@@ -331,14 +262,15 @@ const OrderPage = () => {
     {
       title: "Thanh toán",
       dataIndex: "payment",
-      render: (pay: { paymentMethod: string } | null) =>
-        pay ? (
-          <Tag color={pay.paymentMethod === "CASH" ? "purple" : "green"}>
-            {getPaymentLabel(pay.paymentMethod)}
+      render: (pay: any) => {
+        if (!pay) return <Tag>Chưa thanh toán</Tag>;
+        const method = pay.paymentMethod?.name || pay.paymentMethod;
+        return (
+          <Tag color={method === "CASH" ? "purple" : "green"}>
+            {getPaymentLabel(method)}
           </Tag>
-        ) : (
-          <Tag>Chưa thanh toán</Tag>
-        ),
+        );
+      },
     },
     {
       title: "Ngày tạo",
@@ -410,27 +342,40 @@ const OrderPage = () => {
             </Button>
           )}
 
-          {record.status === "APPROVED" && (
-            <Button
-              type="default"
-              size="small"
-              className="bg-[#5ecdf1]! text-white! hover:bg-[#3ebbe5]!"
-              onClick={() => handleCreateGHN(record)}
-            >
-              Tạo vận đơn GHN
-            </Button>
-          )}
+          {record.status === "APPROVED" &&
+            record.shipping?.provider !== "INTERNAL" && (
+              <Button
+                type="default"
+                size="small"
+                className="bg-[#5ecdf1]! text-white! hover:bg-[#3ebbe5]!"
+                onClick={() => handleCreateGHN(record)}
+              >
+                Tạo vận đơn GHN
+              </Button>
+            )}
+
+          {record.status === "APPROVED" &&
+            record.shipping?.provider === "INTERNAL" && (
+              <Button
+                type="default"
+                size="small"
+                className="bg-purple-500! text-white! hover:bg-purple-600!"
+                onClick={() => handleInternalShipping(record)}
+              >
+                Giao hàng nội bộ
+              </Button>
+            )}
 
           {record.status === "SHIPPING" && (
             <>
-              <Button
+              {/* <Button
                 className="bg-[#f15e6a]! text-white! hover:bg-[#dd3744]!"
                 danger
                 size="small"
                 onClick={() => handleCancelGHN(record)}
               >
                 Hủy vận đơn
-              </Button>
+              </Button> */}
               <Button
                 className="bg-[#47c7a0]! text-white! hover:bg-[#25b68b]!"
                 type="primary"
@@ -440,13 +385,22 @@ const OrderPage = () => {
                   handleComplete();
                 }}
               >
-                Hoàn thành
+                Xác nhận
               </Button>
             </>
           )}
 
-          {record.status === "FAILED" && (
-            <>
+          {record.status === "FAILED" &&
+            (record.payment?.paymentMethod === "CASH" ? (
+              <Button
+                className="bg-pink-500! text-white! hover:bg-pink-600!"
+                danger
+                size="small"
+                onClick={() => handleVoucher(record)}
+              >
+                Ghi nhận
+              </Button>
+            ) : (
               <Button
                 className="bg-[#f15e6a]! text-white! hover:bg-[#dd3744]!"
                 danger
@@ -455,8 +409,7 @@ const OrderPage = () => {
               >
                 Hoàn tiền
               </Button>
-            </>
-          )}
+            ))}
 
           {record.status === "REFUND" && (
             <>
@@ -466,7 +419,7 @@ const OrderPage = () => {
                 size="small"
                 onClick={() => handleVoucher(record)}
               >
-                Ghi nhận
+                Tặng voucher
               </Button>
             </>
           )}
@@ -484,7 +437,7 @@ const OrderPage = () => {
       <Table
         rowKey="id"
         columns={columns}
-        dataSource={allOrder || []}
+        dataSource={allOrder}
         pagination={{ pageSize: 8 }}
       />
 

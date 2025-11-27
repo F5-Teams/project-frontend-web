@@ -55,22 +55,17 @@ export default function RegisterPage() {
       gender: genderBoolean,
     };
 
-    // perform request and show toast (loading → success / error)
-    const registerPromise = api.post("auth/sign-up", submitData);
-
     try {
-      // await the actual request, then show success toast immediately
-      await registerPromise;
-      toast.success(
-        "Đăng ký thành công! Vui lòng kiểm tra email để lấy mã xác thực."
-      );
+      await api.post("auth/sign-up", submitData);
+      toast.success("Đăng ký thành công! Đang chuyển đến trang đăng nhập...");
 
-      // navigate after successful registration to OTP verification
-      router.push(`/verify-otp?email=${encodeURIComponent(formData.email)}`);
+      // Navigate to login after successful registration
+      setTimeout(() => {
+        router.push("/login");
+      }, 1000);
     } catch (err: any) {
       const message =
         err?.response?.data?.message || "Đăng ký thất bại. Vui lòng thử lại.";
-      // show toast error so user sees immediate feedback
       toast.error(message);
       setError(message);
       console.error("Registration error:", err);

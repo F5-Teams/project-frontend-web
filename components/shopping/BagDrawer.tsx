@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Trash2, X } from "lucide-react";
 import { ReactNode, useState, useMemo } from "react";
 import BuyModal from "./BuyModal";
+import { useGetWallet } from "@/services/wallets/hooks";
 
 interface BagDrawerProps {
   children: ReactNode;
@@ -14,10 +15,10 @@ interface BagDrawerProps {
 export function BagDrawer({ children }: BagDrawerProps) {
   const [open, setOpen] = useState(false);
   const [openBuy, setOpenBuy] = useState(false);
-  const { items, removeProduct, clearCart } = useProductCartStore();
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const { items, removeProduct, clearCart, updateQuantity } =
+    useProductCartStore();
 
-  // Tính tổng chỉ dựa trên sản phẩm được chọn
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const selectedTotal = useMemo(
     () =>
       items
@@ -35,6 +36,17 @@ export function BagDrawer({ children }: BagDrawerProps) {
   const selectedProducts = items.filter((item) =>
     selectedItems.includes(String(item.productId))
   );
+
+  const isAllSelected =
+    selectedItems.length === items.length && items.length > 0;
+
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems(items.map((item) => String(item.productId)));
+    }
+  };
 
   return (
     <>
@@ -65,6 +77,7 @@ export function BagDrawer({ children }: BagDrawerProps) {
                 Giỏ của tôi
               </span>
             </div>
+
             {items.length > 1 && (
               <button
                 onClick={clearCart}
@@ -84,6 +97,24 @@ export function BagDrawer({ children }: BagDrawerProps) {
           </button>
         }
       >
+        <div className="flex items-center justify-between mb-4">
+          {items.length >= 1 && (
+            <div className="flex items-center gap-2">
+              <Checkbox checked={isAllSelected} onChange={toggleSelectAll} />
+              <span className="font-medium">Chọn tất cả</span>
+            </div>
+          )}
+
+          {selectedItems.length > 0 && (
+            <button
+              onClick={() => setSelectedItems([])}
+              className="text-sm text-pink-600 hover:text-pink-700"
+            >
+              Bỏ chọn
+            </button>
+          )}
+        </div>
+
         {items.length === 0 ? (
           <div className="flex flex-col items-center h-full text-center text-gray-500">
             <p className="font-semibold text-lg mb-1">Giỏ hàng đang trống!</p>
@@ -118,10 +149,69 @@ export function BagDrawer({ children }: BagDrawerProps) {
                       </div>
                       <div className="text-left">
                         <p className="font-medium text-gray-800">{item.name}</p>
-                        <p className="text-sm text-gray-500">
-                          {item.quantity} × {item.price.toLocaleString("vi-VN")}
-                          đ
-                        </p>
+
+                        <div className="flex items-center justify-between mt-2">
+                          <div className="flex items-center border border-pink-300 rounded-full overflow-hidden">
+                            <button
+                              onClick={() =>
+                                updateQuantity(
+                                  item.productId,
+                                  Math.max(1, item.quantity - 1)
+                                )
+                              }
+                              className="w-8 h-2 flex items-center justify-center text-pink-600 hover:bg-pink-50 transition"
+                            >
+                              −
+                            </button>
+
+                            <input
+                              type="number"
+                              min={1}
+                              max={50}
+                              value={item.quantity}
+                              onChange={(e) => {
+                                let value = Number(e.target.value);
+
+                                if (isNaN(value)) return;
+
+                                if (value < 1) value = 1;
+                                if (value > 50) value = 50;
+
+                                updateQuantity(item.productId, value);
+                              }}
+                              onBlur={(e) => {
+                                let value = Number(e.target.value);
+
+                                if (isNaN(value) || value < 1) value = 1;
+                                if (value > 50) value = 50;
+
+                                updateQuantity(item.productId, value);
+                              }}
+                              onKeyDown={(e) => {
+                                if (["e", "E", "+", "-", "."].includes(e.key)) {
+                                  e.preventDefault();
+                                }
+                              }}
+                              className="w-10 text-center text-sm border-x border-pink-300 focus:outline-none"
+                            />
+
+                            <button
+                              onClick={() =>
+                                updateQuantity(
+                                  item.productId,
+                                  Math.min(50, item.quantity + 1)
+                                )
+                              }
+                              className="w-8 h-7 flex items-center justify-center text-pink-600 hover:bg-pink-50 transition"
+                            >
+                              +
+                            </button>
+                          </div>
+
+                          <span className="text-sm font-semibold text-gray-600">
+                            {item.price.toLocaleString("vi-VN")} đ
+                          </span>
+                        </div>
                       </div>
                     </div>
 
@@ -142,11 +232,6 @@ export function BagDrawer({ children }: BagDrawerProps) {
               <div className="flex justify-between text-sm font-medium">
                 <span>Đã chọn ({selectedItems.length}):</span>
                 <span>{selectedTotal.toLocaleString("vi-VN")} VNĐ</span>
-              </div>
-
-              <div className="flex justify-between text-sm font-medium">
-                <span>Đặt cọc (10%):</span>
-                <span>{(selectedTotal / 10).toLocaleString("vi-VN")} VNĐ</span>
               </div>
 
               <div className="border-t border-pink-400 my-2" />

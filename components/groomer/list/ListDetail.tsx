@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { Booking } from "@/services/groomer/list/type";
 import { formatCurrency } from "@/utils/currency";
+import { formatDMY } from "@/utils/date";
 import Image from "next/image";
 import ModalUpload from "./ModalUpload";
 
@@ -41,6 +42,16 @@ export default function ListDetail({ booking }: Props) {
       ),
     [booking]
   );
+
+  // local optimistic after-images to show immediately after upload/complete
+  const [localAfterImages, setLocalAfterImages] = useState<
+    { id: number; imageUrl: string }[]
+  >([]);
+
+  const afterImagesCombined = useMemo(() => {
+    // local images (most recent) first, then server-provided ones
+    return [...localAfterImages, ...afterImagesAll];
+  }, [localAfterImages, afterImagesAll]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -92,9 +103,7 @@ export default function ListDetail({ booking }: Props) {
         <div className="font-poppins-light text-xs text-muted-foreground">
           {" "}
           Đặt ngày:{" "}
-          {booking.createdAt
-            ? new Date(booking.createdAt).toLocaleString()
-            : "—"}
+          {booking.createdAt ? formatDMY(new Date(booking.createdAt)) : "—"}
         </div>
       </div>
 
@@ -264,99 +273,102 @@ export default function ListDetail({ booking }: Props) {
                 );
               })()}
             </div>
-            {/* AFTER */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-sm font-poppins-light text-black">
-                  Hình ảnh (Sau dịch vụ)
+            {/* AFTER - Only show for SPA */}
+            {String(booking.type ?? "").toUpperCase() === "SPA" && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-sm font-poppins-light text-black">
+                    Hình ảnh (Sau dịch vụ)
+                  </div>
                 </div>
-              </div>
-              {(() => {
-                const afterImages = afterImagesAll;
-                if (afterImages.length === 0) {
+                {(() => {
+                  const afterImages = afterImagesCombined;
+                  if (afterImages.length === 0) {
+                    return (
+                      <div className="text-sm font-poppins-light text-muted-foreground">
+                        Không có ảnh
+                      </div>
+                    );
+                  }
+                  const current = afterImages[afterIndex % afterImages.length];
                   return (
-                    <div className="text-sm font-poppins-light text-muted-foreground">
-                      Không có ảnh
+                    <div className="flex items-center gap-2">
+                      {afterImages.length >= 3 && (
+                        <button
+                          type="button"
+                          aria-label="Previous image"
+                          className="bg-white/90 hover:bg-white p-1 rounded-full shadow border"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setAfterDir("left");
+                            setAfterIndex(
+                              (i) =>
+                                (i - 1 + afterImages.length) %
+                                afterImages.length
+                            );
+                          }}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </button>
+                      )}
+                      <div className="relative inline-block">
+                        <div
+                          className="w-30 h-30 relative overflow-hidden border rounded-md cursor-zoom-in"
+                          onClick={() =>
+                            setLightbox({
+                              open: true,
+                              images: afterImages,
+                              index: afterIndex,
+                              title: "Ảnh sau dịch vụ",
+                            })
+                          }
+                        >
+                          <AnimatePresence initial={false} custom={afterDir}>
+                            <motion.div
+                              key={current.id}
+                              custom={afterDir}
+                              initial={{
+                                opacity: 0,
+                                x: afterDir === "right" ? 24 : -24,
+                              }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{
+                                opacity: 0,
+                                x: afterDir === "right" ? -24 : 24,
+                              }}
+                              transition={{ duration: 0.25, ease: "easeOut" }}
+                              className="absolute inset-0"
+                            >
+                              <Image
+                                src={current.imageUrl}
+                                alt={`after-${current.id}`}
+                                fill
+                                sizes="200px"
+                                className="object-cover"
+                              />
+                            </motion.div>
+                          </AnimatePresence>
+                        </div>
+                      </div>
+                      {afterImages.length >= 3 && (
+                        <button
+                          type="button"
+                          aria-label="Next image"
+                          className="bg-white/90 hover:bg-white p-1 rounded-full shadow border"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setAfterDir("right");
+                            setAfterIndex((i) => (i + 1) % afterImages.length);
+                          }}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   );
-                }
-                const current = afterImages[afterIndex];
-                return (
-                  <div className="flex items-center gap-2">
-                    {afterImages.length >= 3 && (
-                      <button
-                        type="button"
-                        aria-label="Previous image"
-                        className="bg-white/90 hover:bg-white p-1 rounded-full shadow border"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setAfterDir("left");
-                          setAfterIndex(
-                            (i) =>
-                              (i - 1 + afterImages.length) % afterImages.length
-                          );
-                        }}
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </button>
-                    )}
-                    <div className="relative inline-block">
-                      <div
-                        className="w-30 h-30 relative overflow-hidden border rounded-md cursor-zoom-in"
-                        onClick={() =>
-                          setLightbox({
-                            open: true,
-                            images: afterImages,
-                            index: afterIndex,
-                            title: "Ảnh sau dịch vụ",
-                          })
-                        }
-                      >
-                        <AnimatePresence initial={false} custom={afterDir}>
-                          <motion.div
-                            key={current.id}
-                            custom={afterDir}
-                            initial={{
-                              opacity: 0,
-                              x: afterDir === "right" ? 24 : -24,
-                            }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{
-                              opacity: 0,
-                              x: afterDir === "right" ? -24 : 24,
-                            }}
-                            transition={{ duration: 0.25, ease: "easeOut" }}
-                            className="absolute inset-0"
-                          >
-                            <Image
-                              src={current.imageUrl}
-                              alt={`after-${current.id}`}
-                              fill
-                              sizes="200px"
-                              className="object-cover"
-                            />
-                          </motion.div>
-                        </AnimatePresence>
-                      </div>
-                    </div>
-                    {afterImages.length >= 3 && (
-                      <button
-                        type="button"
-                        aria-label="Next image"
-                        className="bg-white/90 hover:bg-white p-1 rounded-full shadow border"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setAfterDir("right");
-                          setAfterIndex((i) => (i + 1) % afterImages.length);
-                        }}
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
-                );
-              })()}
-            </div>
+                })()}
+              </div>
+            )}
 
             {/* PET */}
             <div className="flex flex-col items-stretch justify-start h-full">
@@ -395,9 +407,9 @@ export default function ListDetail({ booking }: Props) {
       </div>
 
       <div className="mt-auto font-poppins-light text-xs text-muted-foreground">
-        {afterImagesAll.length === 0 &&
-          booking.status === "ON_SERVICE" &&
-          String(booking.type ?? "").toUpperCase() === "SPA" && (
+        {booking.status === "ON_SERVICE" &&
+          String(booking.type ?? "").toUpperCase() === "SPA" &&
+          afterImagesCombined.length === 0 && (
             <div className="flex justify-end">
               <button
                 type="button"
@@ -415,7 +427,18 @@ export default function ListDetail({ booking }: Props) {
           bookingId={booking.id}
           imageType="AFTER"
           onCancel={() => setShowModal(false)}
-          onDone={() => setShowModal(false)}
+          onDone={(uploadedUrls) => {
+            // close modal
+            setShowModal(false);
+            // if backend returns uploaded urls, show them immediately
+            if (uploadedUrls && uploadedUrls.length > 0) {
+              const mapped = uploadedUrls.map((u, i) => ({
+                id: Date.now() + i,
+                imageUrl: u,
+              }));
+              setLocalAfterImages((s) => [...mapped, ...s]);
+            }
+          }}
         />
       )}
 

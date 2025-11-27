@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { GetAllProductAdminResponse } from "./type";
+import { ProductAdmin } from "./type";
 import { getAllProductAdmin } from "./api";
 
 export const ALL_PRODUCT_ADMIN_QUERY_KEY = ["allProductAdmin"];
 
 export function useAllProductAdmin() {
-  return useQuery<GetAllProductAdminResponse>({
+  return useQuery<ProductAdmin[]>({
     queryKey: ALL_PRODUCT_ADMIN_QUERY_KEY,
     queryFn: getAllProductAdmin,
   });

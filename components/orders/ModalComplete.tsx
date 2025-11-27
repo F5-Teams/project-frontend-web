@@ -87,37 +87,7 @@ const ModalComplete: React.FC<ModalCompleteProps> = ({
       };
 
       const payloadPatch = {
-        status: "CANCELLED" as const,
-        note: order.note || "",
-        customerId: order.customerId,
-        shippingStatus: "CANCELLED" as const,
-
-        shipping: {
-          toName: order.shipping.toName,
-          toPhone: order.shipping.toPhone,
-          toAddress: order.shipping.toAddress,
-          toWardCode: order.shipping.toWardCode,
-          toDistrictId: order.shipping.toDistrictId,
-          toWardName: order.shipping.toWardName,
-          toDistrictName: order.shipping.toDistrictName,
-          toProvinceName: order.shipping.toProvinceName,
-          serviceTypeId: order.shipping.serviceTypeId,
-          paymentTypeId: order.shipping.paymentTypeId,
-          requiredNote: order.shipping.requiredNote,
-          length: order.shipping.length,
-          width: order.shipping.width,
-          height: order.shipping.height,
-          codAmount: Number(order.shipping.codAmount) || 0,
-          insuranceValue: Number(order.shipping.insuranceValue) || 0,
-          note: order.note || "",
-        },
-
-        paymentMethod: order.payment.paymentMethod,
-        paymentStatus: "PAID" as const,
-        orderDetails: order.orderDetails.map((item) => ({
-          productId: item.product.id,
-          quantity: item.quantity,
-        })),
+        status: "FAILED",
       };
 
       putGhnStatusMutation.mutate(
@@ -207,7 +177,7 @@ const ModalComplete: React.FC<ModalCompleteProps> = ({
                   className="bg-pink-500! hover:bg-pink-600! "
                   loading={loading}
                 >
-                  Xác nhận hoàn thành
+                  Xác nhận
                 </Button>
               </Form.Item>
             </div>
@@ -240,7 +210,7 @@ const ModalComplete: React.FC<ModalCompleteProps> = ({
                     className="bg-pink-500! hover:bg-pink-600! "
                     loading={loading}
                   >
-                    Xác nhận hoàn thành
+                    Xác nhận
                   </Button>
                 </Form.Item>
               </div>

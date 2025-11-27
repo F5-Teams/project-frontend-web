@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { Footer, Header } from "@/components/shared";
 import { PushLayout } from "@/components/cart/PushLayout";
-import ChatBubble from "@/components/chat/ChatBubble";
+// import ChatBubble from "@/components/chat/ChatBubble"; // Đã gộp vào HappyPawsChat
 import api from "@/config/axios";
 
 const ROLE_BY_ID: Record<number, "admin" | "staff" | "groomer" | "customer"> = {
@@ -59,6 +59,9 @@ export default function HomeLayout({
         setCookie("accessToken", token, oneDay);
         setCookie("role", roleUpper, oneDay);
 
+        // Dispatch custom event để các component khác cập nhật
+        window.dispatchEvent(new Event("auth-changed"));
+
         // 🔹 Set Authorization mặc định cho API
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
@@ -66,6 +69,28 @@ export default function HomeLayout({
         window.history.replaceState({}, "", window.location.pathname);
       } catch (err) {
         console.error("❌ Lỗi xử lý user Google login:", err);
+      }
+    }
+
+    const type = params.get("type");
+    const id = params.get("id");
+    const paymentStatus = params.get("payment_status") || params.get("status");
+
+    if (type === "order" && id && paymentStatus) {
+      const redirectUrl = `/success?type=${encodeURIComponent(
+        type
+      )}&id=${encodeURIComponent(id)}&payment_status=${encodeURIComponent(
+        paymentStatus
+      )}`;
+
+      if (paymentStatus === "success") {
+        window.location.href = redirectUrl;
+      } else {
+        window.location.href = `/failed?type=${encodeURIComponent(
+          type
+        )}&id=${encodeURIComponent(id)}&payment_status=${encodeURIComponent(
+          paymentStatus
+        )}`;
       }
     }
   }, []);
@@ -77,8 +102,7 @@ export default function HomeLayout({
         <main className="flex-1 overflow-x-hidden pt-24">{children}</main>
         <Footer />
 
-        {/* Chat Bubble for Customer Support */}
-        <ChatBubble />
+        {/* Chat Bubble đã được gộp vào HappyPawsChat trong app/layout.tsx */}
       </div>
     </PushLayout>
   );

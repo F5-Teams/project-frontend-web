@@ -3,16 +3,42 @@ export interface OrderDetails {
   quantity: number;
 }
 
+export interface Shipping {
+  toName: string;
+  toPhone: string;
+  toAddress: string;
+  toWardCode: string;
+  toDistrictId: number;
+  toWardName: string;
+  toDistrictName: string;
+  toProvinceName: string;
+  serviceTypeId: number;
+  paymentTypeId: number;
+  requiredNote: string;
+  length: number;
+  width: number;
+  height: number;
+  codAmount: number;
+  insuranceValue: number;
+  note: string;
+}
+
 export interface Orders {
   status: string;
   note: string;
   customerId?: number;
   orderDetails: OrderDetails[];
-  addressId: number;
-  paymentMethod: "CASH" | "TRANSFER" | "VNPAY";
+  shipping?: Shipping;
+  paymentMethod: "CASH" | "TRANSFER" | "MOMO" | "VNPAY";
+  addressId?: number;
   voucherCode?: string;
+  vnpUrl?: string;
+  momoUrl?: string;
+  totalPrice?: number;
+  shippingFee?: number;
 }
 
 export interface CreateOrderResponse {
-  vnpUrl: string;
+  vnpUrl?: string;
+  momoUrl?: string;
 }

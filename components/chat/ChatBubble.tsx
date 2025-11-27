@@ -101,6 +101,7 @@ export default function ChatBubble() {
   useEffect(() => {
     if (!socket || !isConnected || !roomId || !hasSession) return;
 
+    console.log("📣 ChatBubble emitting join_room", { roomId, socketId: socket.id });
     socket.emit("join_room", { roomId });
 
     socket.on("joined_room", (data) => {
@@ -159,6 +160,17 @@ export default function ChatBubble() {
       socket.off("session_ended");
     };
   }, [socket, isConnected, roomId, hasSession, isOpen, currentUserId]);
+
+  // Re-emit join_room on reconnect
+  useEffect(() => {
+    if (!socket || !roomId) return;
+    const onConnect = () => {
+      console.log("🔌 ChatBubble socket reconnected - re-emitting join_room", { roomId });
+      socket.emit("join_room", { roomId });
+    };
+    socket.on("connect", onConnect);
+    return () => socket.off("connect", onConnect);
+  }, [socket, roomId]);
 
   // Auto scroll to bottom
   useEffect(() => {
@@ -277,7 +289,7 @@ export default function ChatBubble() {
   return (
     <>
       {/* Chat Bubble */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-2 right-1 z-50">
         {!isOpen && (
           <button
             onClick={toggleOpen}

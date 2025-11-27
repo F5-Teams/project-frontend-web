@@ -5,6 +5,7 @@ import { useEffect, useState, Fragment, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/config/axios";
 import type { Booking } from "@/components/models/booking";
+import { toast } from "sonner";
 import {
   Loader2,
   ChevronDown,
@@ -22,9 +23,13 @@ export default function BookingPendingPage() {
 
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [confirmingId, setConfirmingId] = useState<number | null>(null);
+  const [cancelingId, setCancelingId] = useState<number | null>(null);
+
   const [search, setSearch] = useState("");
+
   const router = useRouter();
 
+  // Format tiền tệ
   const formatMoney = (v: string | number | null | undefined) =>
     v == null ? "—" : `${Intl.NumberFormat("vi-VN").format(Number(v))}₫`;
 
@@ -32,25 +37,29 @@ export default function BookingPendingPage() {
     const res = await api.get<Booking[]>("/bookings/staff/pending", {
       headers: { "Cache-Control": "no-cache" },
     });
-    const pendingList = Array.isArray(res.data)
-      ? res.data.filter((b) => b.status === "PENDING")
-      : [];
+
+    const pendingList = (res.data ?? []).filter((b) => b.status === "PENDING");
     setBookings(pendingList);
   };
 
+  /**
+   * Fetch khi load page
+   */
   useEffect(() => {
     let mounted = true;
+
     (async () => {
       try {
         setLoading(true);
         setError(null);
         await fetchPendingBookings();
       } catch (e: any) {
-        if (mounted) setError(e?.response?.data?.message || e?.message);
+        if (mounted) setError(e?.response?.data?.message || e.message);
       } finally {
         if (mounted) setLoading(false);
       }
     })();
+
     return () => {
       mounted = false;
     };
@@ -59,20 +68,67 @@ export default function BookingPendingPage() {
   async function handleConfirmBooking(id: number) {
     try {
       setConfirmingId(id);
+
+      const booking = bookings.find((b) => b.id === id);
+      const paymentId = booking?.payments?.[0]?.id ?? null;
+
+      // Cập nhật thanh toán nếu có
+      if (paymentId) {
+        try {
+          await api.put(`/bookings/payments/${paymentId}/status`, {
+            status: "PAID",
+          });
+        } catch (e: any) {
+          console.warn("Payment update failed:", e);
+          toast(
+            e?.response?.data?.message ||
+              e.message ||
+              "Cập nhật trạng thái thanh toán thất bại"
+          );
+        }
+      }
+
+      // Cập nhật trạng thái booking
       await api.put(`/bookings/${id}/status`, { status: "CONFIRMED" });
+
+      // Xóa khỏi list tạm + đóng detail
       setBookings((prev) => prev.filter((b) => b.id !== id));
       if (expandedId === id) setExpandedId(null);
+
       await fetchPendingBookings();
+
       router.push("/staff/groomer");
     } catch (e: any) {
-      alert(e?.response?.data?.message || e?.message || "Xác nhận thất bại");
+      toast(e?.response?.data?.message || "Xác nhận thất bại");
       await fetchPendingBookings();
     } finally {
       setConfirmingId(null);
     }
   }
 
-  // 1. Không phân biệt dấu khi tìm kiếm
+  async function handleCancelBooking(id: number) {
+    try {
+      setCancelingId(id);
+      await api.put(`/bookings/${id}/status`, { status: "CANCELLED" });
+
+      setBookings((prev) => prev.filter((b) => b.id !== id));
+      if (expandedId === id) setExpandedId(null);
+
+      toast("Hủy đơn thành công");
+      await fetchPendingBookings();
+    } catch (e: any) {
+      toast(e?.response?.data?.message || "Hủy đơn thất bại");
+      await fetchPendingBookings();
+    } finally {
+      setCancelingId(null);
+    }
+  }
+
+  /**
+   * =============================
+   *  SEARCH: không phân biệt dấu
+   * =============================
+   */
   const normalize = (s: string) =>
     (s || "")
       .toLowerCase()
@@ -80,67 +136,71 @@ export default function BookingPendingPage() {
       .replace(/\p{Diacritic}/gu, "")
       .trim();
 
-  // 2. Lọc danh sách theo tên
   const filteredBookings = useMemo(() => {
     if (!search) return bookings;
+
     const q = normalize(search);
     return bookings.filter((b) => {
-      const fullName = `${b.customer?.firstName ?? ""} ${
-        b.customer?.lastName ?? ""
-      }`.trim();
-      return normalize(fullName).includes(q);
+      const fullName = normalize(
+        `${b.customer?.firstName ?? ""} ${b.customer?.lastName ?? ""}`
+      );
+      return fullName.includes(q);
     });
   }, [bookings, search]);
 
   return (
     <div className="space-y-6">
+      {/* HEADER */}
       <header className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Đơn chờ xác nhận</h1>
       </header>
 
+      {/* SEARCH BOX */}
       <div className="relative w-full sm:max-w-md">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
-          <Search className="w-4 h-4" />
-        </span>
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+
         <input
-          type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Tìm theo tên khách hàng…"
-          className="w-full rounded-lg border border-gray-300 bg-white text-gray-900 pl-9 pr-8 py-2 text-sm focus:outline-none gap-2"
+          className="w-full rounded-lg border bg-white pl-9 pr-9 py-2 text-sm focus:outline-none"
         />
+
         {search && (
           <button
             onClick={() => setSearch("")}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 hover:text-red-600"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500"
           >
             <X className="w-4 h-4" />
           </button>
         )}
       </div>
 
+      {/* LOADING STATE */}
       {loading && (
         <div className="flex items-center gap-2 p-4 border rounded-lg bg-white text-gray-600">
           <Loader2 className="w-4 h-4 animate-spin" /> Đang tải danh sách...
         </div>
       )}
 
+      {/* ERROR */}
       {error && (
         <div className="p-4 rounded-lg border bg-red-50 text-red-700 text-sm">
           {error}
         </div>
       )}
 
+      {/* TABLE */}
       {!loading && !error && (
-        <div className="overflow-hidden rounded-lg border bg-white">
+        <div className="rounded-lg overflow-hidden border bg-white">
           <table className="min-w-full text-sm">
             <thead className="bg-gray-200">
               <tr>
-                <th className="px-4 py-3 text-left font-medium">ID</th>
-                <th className="px-4 py-3 text-left font-medium">Thú cưng</th>
-                <th className="px-4 py-3 text-left font-medium">Khách hàng</th>
-                <th className="px-4 py-3 text-left font-medium">Dịch vụ</th>
-                <th className="px-4 py-3 text-center font-medium">Thao tác</th>
+                <th className="px-4 py-3 font-medium text-left">ID</th>
+                <th className="px-4 py-3 font-medium text-left">Thú cưng</th>
+                <th className="px-4 py-3 font-medium text-left">Khách hàng</th>
+                <th className="px-4 py-3 font-medium text-left">Dịch vụ</th>
+                <th className="px-4 py-3 font-medium text-center">Thao tác</th>
               </tr>
             </thead>
 
@@ -149,56 +209,74 @@ export default function BookingPendingPage() {
                 const services =
                   [b.combo?.name, b.Room?.name].filter(Boolean).join(" • ") ||
                   "—";
+
                 const totalPrice =
                   Number(b.comboPrice ?? 0) + Number(b.Room?.price ?? 0);
 
                 return (
                   <Fragment key={b.id}>
+                    {/* ROW */}
                     <tr className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-800">
-                        #{b.id}
-                      </td>
+                      <td className="px-4 py-3 font-medium">#{b.id}</td>
                       <td className="px-4 py-3">{b.pet?.name || "—"}</td>
                       <td className="px-4 py-3">
                         {`${b.customer?.firstName ?? ""} ${
                           b.customer?.lastName ?? ""
                         }`.trim()}
                       </td>
-                      <td className="px-4 py-3 text-gray-700">{services}</td>
+                      <td className="px-4 py-3">{services}</td>
+
                       <td className="px-4 py-3 text-center">
-                        <Button
-                          size="sm"
-                          className="bg-pink-500 hover:bg-pink-600 text-white"
-                          onClick={() =>
-                            setExpandedId(expandedId === b.id ? null : b.id)
-                          }
-                        >
-                          {expandedId === b.id ? (
-                            <>
-                              Ẩn chi tiết <ChevronUp className="w-4 h-4 ml-1" />
-                            </>
-                          ) : (
-                            <>
-                              Xem chi tiết{" "}
-                              <ChevronDown className="w-4 h-4 ml-1" />
-                            </>
-                          )}
-                        </Button>
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          {/* Toggle Detail */}
+                          <Button
+                            size="sm"
+                            className="bg-pink-500 hover:bg-pink-600 text-white w-28"
+                            onClick={() =>
+                              setExpandedId(expandedId === b.id ? null : b.id)
+                            }
+                          >
+                            {expandedId === b.id ? (
+                              <>
+                                Ẩn chi tiết{" "}
+                                <ChevronUp className="w-4 h-4 ml-1" />
+                              </>
+                            ) : (
+                              <>
+                                Chi tiết{" "}
+                                <ChevronDown className="w-4 h-4 ml-1" />
+                              </>
+                            )}
+                          </Button>
+
+                          {/* CANCEL */}
+                          <Button
+                            size="sm"
+                            className="bg-red-500 hover:bg-red-600 text-white w-28"
+                            onClick={() => handleCancelBooking(b.id)}
+                            disabled={cancelingId === b.id}
+                          >
+                            {cancelingId === b.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              "Hủy đơn"
+                            )}
+                          </Button>
+                        </div>
                       </td>
                     </tr>
 
+                    {/* DETAILS */}
                     {expandedId === b.id && (
                       <tr className="bg-gray-50/60">
                         <td colSpan={5} className="p-6">
-                          <div className="text-sm space-y-2 text-gray-700">
+                          <div className="space-y-2 text-sm text-gray-700">
                             <p>
                               <strong>Dịch vụ:</strong> {services}
                             </p>
                             <p>
                               <strong>Khách hàng:</strong>{" "}
-                              {`${b.customer?.firstName ?? ""} ${
-                                b.customer?.lastName ?? ""
-                              }`.trim()}
+                              {b.customer?.firstName} {b.customer?.lastName}
                             </p>
                             <p>
                               <strong>SĐT:</strong>{" "}
@@ -224,7 +302,7 @@ export default function BookingPendingPage() {
                           >
                             {confirmingId === b.id ? (
                               <>
-                                <Loader2 className="w-4 h-4 mr-1 animate-spin" />{" "}
+                                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
                                 Đang xác nhận...
                               </>
                             ) : (
@@ -240,12 +318,10 @@ export default function BookingPendingPage() {
                 );
               })}
 
+              {/* EMPTY STATE */}
               {!filteredBookings.length && (
                 <tr>
-                  <td
-                    colSpan={5}
-                    className="px-4 py-8 text-center text-gray-500"
-                  >
+                  <td colSpan={5} className="py-8 text-center text-gray-500">
                     {bookings.length
                       ? "Không có đơn nào khớp với từ khóa."
                       : "Không có đơn chờ xác nhận."}

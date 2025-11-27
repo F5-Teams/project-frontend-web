@@ -16,12 +16,14 @@ export const ProductCard = ({ product }: { product: Product }) => {
   const [openBuy, setOpenBuy] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const clearCart = useProductCartStore((state) => state.clearCart);
+
   const nextImage = () =>
     setCurrentImage((prev) => (prev + 1) % product.images.length);
   const prevImage = () =>
     setCurrentImage((prev) =>
       prev === 0 ? product.images.length - 1 : prev - 1
     );
+
   const maxStock = product?.stocks ?? 0;
 
   const handleDecrease = () => setQuantity((prev) => Math.max(1, prev - 1));
@@ -141,6 +143,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
           </button>
         </div>
       </div>
+
       <BuyModal
         isOpen={openBuy}
         isCancel={() => setOpenBuy(false)}
@@ -161,10 +164,14 @@ export const ProductCard = ({ product }: { product: Product }) => {
 };
 
 const PetStorePage = () => {
-  const { data: products = [], isLoading, error } = useAllProduct();
+  const { data: response, isLoading, error } = useAllProduct();
+  const products = response?.data || [];
   const [type, setType] = useState<string[]>([]);
   const [select, setSelect] = useState<string>("All");
   const [search, setSearch] = useState<string>("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     if (products.length > 0) {
@@ -172,8 +179,6 @@ const PetStorePage = () => {
       setType(filterType);
     }
   }, [products]);
-
-  console.log("PRODUCT", products);
 
   if (isLoading)
     return (
@@ -188,10 +193,16 @@ const PetStorePage = () => {
         Lỗi tải sản phẩm
       </div>
     );
-
   const filteredProduct = products
     .filter((p) => (select === "All" ? true : p.type === select))
     .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
+
+  const totalPages = Math.ceil(filteredProduct.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedProducts = filteredProduct.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -246,7 +257,10 @@ const PetStorePage = () => {
       <div className="max-w-7xl mx-auto px-6 mt-10 flex flex-col md:flex-row items-center md:items-start justify-between gap-3">
         <div className="flex flex-wrap font-poppins-light text-[14px] items-center gap-2">
           <p
-            onClick={() => setSelect("All")}
+            onClick={() => {
+              setSelect("All");
+              setCurrentPage(1);
+            }}
             className={`px-2 py-1 rounded-xl cursor-pointer transition ${
               select === "All"
                 ? "bg-pink-500 text-white"
@@ -265,7 +279,10 @@ const PetStorePage = () => {
               transition={{ duration: 0.8, delay: index * 0.1 }}
             >
               <p
-                onClick={() => setSelect(item)}
+                onClick={() => {
+                  setSelect(item);
+                  setCurrentPage(1);
+                }}
                 className={`px-2 py-1 rounded-xl font-poppins-light cursor-pointer transition ${
                   select === item
                     ? "bg-pink-500 text-white"
@@ -283,16 +300,60 @@ const PetStorePage = () => {
             style={{ width: 250 }}
             placeholder="Tìm sản phẩm ..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
           />
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {filteredProduct.map((p) => (
+        {paginatedProducts.map((p) => (
           <ProductCard key={p.id} product={p} />
         ))}
       </div>
+
+      <div className="flex justify-center mt-4 gap-3">
+        <button
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage((prev) => prev - 1)}
+          className={`px-3 py-1 rounded ${
+            currentPage === 1
+              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+              : "bg-pink-300 hover:bg-pink-400 text-white"
+          }`}
+        >
+          Prev
+        </button>
+
+        {[...Array(totalPages)].map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrentPage(i + 1)}
+            className={`px-3 py-1 rounded ${
+              currentPage === i + 1
+                ? "bg-pink-500 text-white"
+                : "bg-pink-200 hover:bg-pink-400 text-white"
+            }`}
+          >
+            {i + 1}
+          </button>
+        ))}
+
+        <button
+          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage((prev) => prev + 1)}
+          className={`px-3 py-1 rounded ${
+            currentPage === totalPages
+              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+              : "bg-pink-300 hover:bg-pink-400 text-white"
+          }`}
+        >
+          Next
+        </button>
+      </div>
+      <br />
     </main>
   );
 };

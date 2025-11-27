@@ -5,12 +5,11 @@ import { useMyBookings } from "@/services/groomer/list/hooks";
 import type { Booking } from "@/services/groomer/list/type";
 import Image from "next/image";
 import { gsap } from "gsap";
-// Note: ImageType removed here as it's not yet used within this list component
+import { formatDMY } from "@/utils/date";
 
 type Props = {
   onSelectBooking?: (b: Booking | null) => void;
   selectedBooking?: Booking | null;
-  // Removed onRequestUpload for now (was unused); can be reintroduced when upload actions added here.
 };
 
 export default function BookingsWithImagesList({
@@ -22,9 +21,7 @@ export default function BookingsWithImagesList({
     "ALL"
   );
   const filterRef = React.useRef<HTMLDivElement | null>(null);
-  // Removed unused local state (openMenuFor) after simplifying UI
 
-  // Show bookings that already have images OR are currently ON_SERVICE (even if no images yet)
   const itemsBase: Booking[] = (bookings ?? []).filter((b) => {
     const hasImages = Array.isArray(b.Image) && b.Image.length > 0;
     const isOnService = b.status === "ON_SERVICE";
@@ -39,7 +36,6 @@ export default function BookingsWithImagesList({
     );
   }, [itemsBase, typeFilter]);
 
-  // Animate the active button slightly when typeFilter changes
   React.useEffect(() => {
     if (!filterRef.current) return;
     const active = filterRef.current.querySelector<HTMLButtonElement>(
@@ -147,9 +143,7 @@ export default function BookingsWithImagesList({
                   </div>
                   <div className="font-poppins-regular">
                     {b.customer?.firstName || ""} {b.customer?.lastName || ""} —{" "}
-                    {b.bookingDate
-                      ? new Date(b.bookingDate).toLocaleString()
-                      : "—"}
+                    {b.bookingDate ? formatDMY(new Date(b.bookingDate)) : "—"}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     Trạng thái: {b.status}

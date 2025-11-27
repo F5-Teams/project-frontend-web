@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +26,7 @@ import { BookingDraft } from "@/types/cart";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { GET_USER_QUERY_KEY } from "@/services/users/hooks";
+import api from "@/config/axios";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -48,6 +49,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
+  const [petNames, setPetNames] = useState<Record<number, string>>({});
 
   // Helper functions to display item details like in cart
   const getItemIcon = (item: BookingDraft) => {
@@ -78,8 +80,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const getItemDetails = (item: BookingDraft) => {
     const details = [];
 
-    // For SPA services
-    if (item.serviceIds && item.serviceIds.length > 0) {
+    // For SPA services or combos
+    if ((item.serviceIds && item.serviceIds.length > 0) || item.comboId) {
       if (item.bookingDate) {
         details.push(
           `Date: ${format(new Date(item.bookingDate), "MMM dd, yyyy")}`
@@ -108,17 +110,44 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   };
 
   const getPetName = (petId: number) => {
-    return `Pet ${petId}`;
+    return petNames[petId] || `Pet ${petId}`;
   };
 
-  // Component to display item price
+  // Component to display item price with breakdown
   const ItemPriceDisplay: React.FC<{ tempId: string }> = ({ tempId }) => {
     const pricing = useCartItemPrice(tempId);
+    const hasBreakdown =
+      pricing.breakdown &&
+      (pricing.breakdown.weightSurcharge || pricing.breakdown.weekendSurcharge);
+
     return (
       <div className="text-right">
-        <div className="font-poppins-regular text-[16px] text-green-600">
-          {formatCurrency(pricing.price)}
-        </div>
+        {hasBreakdown ? (
+          <div className="space-y-1">
+            <div className="text-sm text-gray-600">
+              Giá gốc: {formatCurrency(pricing.breakdown!.basePrice)}
+            </div>
+            {pricing.breakdown!.weightSurcharge && (
+              <div className="text-xs text-amber-600">
+                + Phụ thu cân nặng ({pricing.breakdown!.petWeight}kg):{" "}
+                {formatCurrency(pricing.breakdown!.weightSurcharge)}
+              </div>
+            )}
+            {pricing.breakdown!.weekendSurcharge && (
+              <div className="text-xs text-amber-600">
+                + Phụ thu cuối tuần:{" "}
+                {formatCurrency(pricing.breakdown!.weekendSurcharge)}
+              </div>
+            )}
+            <div className="font-poppins-semibold text-[16px] text-green-600 border-t border-gray-200 pt-1">
+              {formatCurrency(pricing.price)}
+            </div>
+          </div>
+        ) : (
+          <div className="font-poppins-regular text-[16px] text-green-600">
+            {formatCurrency(pricing.price)}
+          </div>
+        )}
       </div>
     );
   };
@@ -133,6 +162,29 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       setCartOpen(false);
     }
   }, [isOpen, setCartOpen]);
+
+  // Fetch pet names for display in summary
+  useEffect(() => {
+    const fetchPetNames = async () => {
+      if (!isOpen) return;
+      try {
+        const user = JSON.parse(localStorage.getItem("user") || "null");
+        if (!user?.id) return;
+
+        const response = await api.get(`/pet/user/${user.id}`);
+        const petList = response.data || [];
+        const map: Record<number, string> = {};
+        petList.forEach((pet: { id: number; name?: string }) => {
+          map[pet.id] = pet.name || `Pet ${pet.id}`;
+        });
+        setPetNames(map);
+      } catch (err) {
+        console.error("Không thể tải tên thú cưng:", err);
+      }
+    };
+
+    fetchPetNames();
+  }, [isOpen]);
 
   const handleCheckout = async () => {
     if (!selectedPaymentMethod) {
@@ -236,6 +288,22 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               "pendingPaymentMethod",
               response.paymentMethod
             );
+
+            // Store hotel booking dates if there's a hotel booking
+            const hasHotelBooking = bookings.some((booking) => booking.roomId);
+            if (hasHotelBooking) {
+              const hotelBooking = bookings.find((booking) => booking.roomId);
+              if (hotelBooking?.startDate && hotelBooking?.endDate) {
+                localStorage.setItem(
+                  "pendingHotelCheckIn",
+                  hotelBooking.startDate
+                );
+                localStorage.setItem(
+                  "pendingHotelCheckOut",
+                  hotelBooking.endDate
+                );
+              }
+            }
           }
 
           // Redirect to payment gateway
@@ -244,19 +312,23 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         }
 
         // For WALLET payment, handle normally
-        // Show success toast if there are created bookings
-        if (response.createdCount && response.createdCount > 0) {
-          toast.success(`Đã tạo ${response.createdCount} đơn đặt thành công!`, {
-            duration: 5000,
-          });
-        }
-
-        // Show error toasts for each error message
+        // Show error toasts for each error message first
         if (response.errors && response.errors.length > 0) {
           response.errors.forEach((errorMsg) => {
             toast.error(errorMsg, {
               duration: 6000,
             });
+          });
+        }
+
+        // Show success toast only if there are NO errors and bookings were created
+        if (
+          response.createdCount &&
+          response.createdCount > 0 &&
+          (!response.errors || response.errors.length === 0)
+        ) {
+          toast.success(`Đã tạo ${response.createdCount} đơn đặt thành công!`, {
+            duration: 5000,
           });
         }
 
@@ -267,6 +339,32 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           await queryClient.invalidateQueries({
             queryKey: GET_USER_QUERY_KEY,
           });
+
+          // Invalidate hotel rooms cache to refresh room availability status
+          // Check if any booking is a hotel booking
+          const hasHotelBooking = bookings.some((booking) => booking.roomId);
+          if (hasHotelBooking) {
+            // Invalidate all hotel-related queries to refresh room status
+            await queryClient.invalidateQueries({
+              predicate: (query) => {
+                const queryKey = query.queryKey as string[];
+                return queryKey[0] === "hotel" || queryKey[0] === "rooms";
+              },
+              refetchType: "active",
+            });
+
+            // Also trigger a full page refetch if on hotel page
+            if (
+              typeof window !== "undefined" &&
+              window.location.pathname.includes("/hotel")
+            ) {
+              // Small delay to ensure backend has processed the booking
+              setTimeout(() => {
+                window.location.reload();
+              }, 1000);
+            }
+          }
+
           onSuccess(response.bookingIds[0].toString());
         }
         onClose();
@@ -381,7 +479,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                           <span className="font-poppins-regular">
                             Thú cưng:
                           </span>{" "}
-                          {getPetName(item.petId)}
+                          “{getPetName(item.petId)}”
                         </div>
 
                         {getItemDetails(item).length > 0 && (
@@ -417,19 +515,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
                 <Separator className="my-3" />
 
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-[14px]">
-                    <span>Tạm tính:</span>
-                    <span className="font-poppins-light">
-                      {formatCurrency(totalPrice)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between border-t pt-1.5 text-base">
-                    <span className="font-poppins-regular">Tổng cộng:</span>
-                    <span className="text-green-600 font-poppins-regular">
-                      {formatCurrency(totalPrice)}
-                    </span>
-                  </div>
+                <div className="flex justify-between border-t pt-1.5 text-base">
+                  <span className="font-poppins-regular">Tổng cộng:</span>
+                  <span className="text-green-600 font-poppins-regular">
+                    {formatCurrency(totalPrice)}
+                  </span>
                 </div>
               </CardContent>
             </Card>

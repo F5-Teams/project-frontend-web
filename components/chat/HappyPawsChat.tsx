@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { Bot, Send, X } from "lucide-react";
+import { Bot, Send, X, MessageSquare, Loader2 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import gsap from "gsap";
 import {
@@ -14,8 +15,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getPetsByUser } from "@/services/profile/profile-pet/api";
 import type { Pet } from "@/services/profile/profile-pet/types";
+import { useSocket } from "@/contexts/SocketContext";
+import { chatApi, Message, Session } from "@/services/chat/api";
+import { toast } from "sonner";
 
 type ChatMessage = { sender: "user" | "bot"; text: string };
 
@@ -29,19 +34,36 @@ type UserInfo = {
   notes?: string;
 };
 
+type ChatMode = "ai" | "staff";
+
 export function HappyPawsChat({ className }: { className?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      sender: "bot",
-      text: "Xin chào! Mình là trợ lý HappyPaws. Bạn muốn đặt lịch grooming/spa, hỏi giá khách sạn thú cưng, hay tư vấn sản phẩm?",
-    },
-  ]);
+  const [chatMode, setChatMode] = useState<ChatMode>("ai");
+
+  // AI Chat States
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+
+  // Staff Chat States
+  const { socket, isConnected } = useSocket();
+  const [roomId, setRoomId] = useState<number | null>(null);
+  const [currentSession, setCurrentSession] = useState<Session | null>(null);
+  const [hasSession, setHasSession] = useState(false);
+  const [staffMessages, setStaffMessages] = useState<Message[]>([]);
+  const [staffInput, setStaffInput] = useState("");
+  const [staffSending, setStaffSending] = useState(false);
+  const [staffJoined, setStaffJoined] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [consultationTitle, setConsultationTitle] = useState("");
+  const [selectedConsultationType, setSelectedConsultationType] = useState("");
+  const [customConsultationInput, setCustomConsultationInput] = useState("");
+  const [creatingSession, setCreatingSession] = useState(false);
+
   const viewportRef = useRef<HTMLDivElement | null>(null);
+  const staffMessagesEndRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement | null>(null);
   const glowRef = useRef<HTMLSpanElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -56,6 +78,18 @@ export function HappyPawsChat({ className }: { className?: string }) {
   const [selectedPetId, setSelectedPetId] = useState<string | undefined>();
 
   const [userInfo, setUserInfo] = useState<UserInfo>({});
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const resetSessionState = useCallback(() => {
+    setHasSession(false);
+    setCurrentSession(null);
+    setStaffMessages([]);
+    setStaffInput("");
+    setConsultationTitle("");
+    setSelectedConsultationType("");
+    setCustomConsultationInput("");
+    setStaffJoined(false);
+  }, []);
 
   const canSend = useMemo(
     () => input.trim().length > 0 && !sending,
@@ -66,6 +100,186 @@ export function HappyPawsChat({ className }: { className?: string }) {
     const el = viewportRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, open]);
+
+  // Get current user ID for staff chat and check login status
+  useEffect(() => {
+    const checkAuthStatus = () => {
+      const accessToken = localStorage.getItem("accessToken");
+      const userStr = localStorage.getItem("user");
+
+      if (accessToken && userStr) {
+        setIsLoggedIn(true);
+        try {
+          const user = JSON.parse(userStr);
+          setCurrentUserId(user.id);
+        } catch (error) {
+          console.error("Failed to parse user:", error);
+          setIsLoggedIn(false);
+        }
+      } else {
+        setIsLoggedIn(false);
+        // Nếu đang ở tab staff mà không có đăng nhập, chuyển về AI
+        if (chatMode === "staff") {
+          setChatMode("ai");
+        }
+      }
+    };
+
+    // Check on mount and when chatMode changes
+    checkAuthStatus();
+
+    // Listen for storage changes (login/logout events)
+    window.addEventListener("storage", checkAuthStatus);
+
+    // Listen for custom auth events
+    window.addEventListener("auth-changed", checkAuthStatus);
+
+    return () => {
+      window.removeEventListener("storage", checkAuthStatus);
+      window.removeEventListener("auth-changed", checkAuthStatus);
+    };
+  }, [chatMode]);
+
+  // Initialize welcome message based on login status
+  useEffect(() => {
+    if (messages.length === 0) {
+      const welcomeMessage = isLoggedIn
+        ? "Xin chào! Mình là trợ lý HappyPaws. Bạn muốn đặt lịch grooming/spa, hỏi giá khách sạn thú cưng, hay tư vấn sản phẩm?\n\n💡 Nếu cần hỗ trợ trực tiếp, bạn có thể chuyển sang tab Staff Support để chat với nhân viên tư vấn."
+        : "Xin chào! Mình là trợ lý HappyPaws. Bạn muốn đặt lịch grooming/spa, hỏi giá khách sạn thú cưng, hay tư vấn sản phẩm?\n\n💡 Đăng nhập để sử dụng thêm tính năng chat với nhân viên tư vấn!";
+
+      setMessages([{ sender: "bot", text: welcomeMessage }]);
+    }
+  }, [isLoggedIn, messages.length]);
+
+  // Check existing staff chat session
+  useEffect(() => {
+    const checkExistingSession = async () => {
+      if (
+        typeof window === "undefined" ||
+        !localStorage.getItem("accessToken")
+      ) {
+        return;
+      }
+
+      try {
+        const rooms = await chatApi.getRooms();
+        if (rooms && rooms.length > 0) {
+          const room = rooms[0];
+          setRoomId(room.id);
+
+          const currentSession = await chatApi.getCurrentSession();
+          if (currentSession) {
+            setHasSession(true);
+            setCurrentSession(currentSession);
+            setStaffJoined(
+              currentSession.status === "ACTIVE" && !!currentSession.staff
+            );
+          }
+        }
+      } catch (error) {
+        console.error("Failed to check existing session:", error);
+      }
+    };
+
+    checkExistingSession();
+  }, []);
+
+  // Setup WebSocket for staff chat
+  useEffect(() => {
+    if (
+      !socket ||
+      !isConnected ||
+      !roomId ||
+      !hasSession ||
+      chatMode !== "staff"
+    )
+      return;
+
+    console.log("📣 HappyPawsChat emitting join_room", { roomId, socketId: socket.id });
+    socket.emit("join_room", { roomId });
+
+    socket.on("joined_room", () => {
+      console.log("✅ Joined staff chat room");
+    });
+
+    socket.on("room_history", (data) => {
+      setStaffMessages(data.messages || []);
+    });
+
+    socket.on("new_message", (message: Message) => {
+      setStaffMessages((prev) => [...prev, message]);
+      if (message.sender.id !== currentUserId) {
+        toast.info(`Tin nhắn mới từ ${message.sender.firstName}`);
+      }
+    });
+
+    socket.on("session_joined", (data) => {
+      setStaffJoined(true);
+      setCurrentSession((prev) =>
+        prev ? { ...prev, staff: data.staff, status: "ACTIVE" } : null
+      );
+      toast.success(`Staff ${data.staff.firstName} đã vào tư vấn!`);
+    });
+
+    socket.on("session_ended", () => {
+      setCurrentSession((prev) =>
+        prev ? { ...prev, status: "CLOSED" } : null
+      );
+      toast.info("Phiên tư vấn đã kết thúc");
+    });
+
+    type SocketErrorPayload = { message?: string; roomClosed?: boolean };
+    const handleSocketError = (error: SocketErrorPayload | string) => {
+      console.error("Socket error in HappyPawsChat:", error);
+      const payload =
+        typeof error === "object" && error !== null ? error : undefined;
+      const errorMessage =
+        typeof error === "string"
+          ? error
+          : payload?.message || "Không thể kết nối tới phòng chat";
+      toast.error(errorMessage);
+
+      if (payload?.roomClosed) {
+        resetSessionState();
+        toast.info("Phiên tư vấn đã đóng, hãy tạo yêu cầu mới nhé!");
+      }
+    };
+
+    socket.on("error", handleSocketError);
+
+    return () => {
+      socket.off("joined_room");
+      socket.off("room_history");
+      socket.off("new_message");
+      socket.off("session_joined");
+      socket.off("session_ended");
+      socket.off("error", handleSocketError);
+    };
+  }, [
+    socket,
+    isConnected,
+    roomId,
+    hasSession,
+    chatMode,
+    currentUserId,
+    resetSessionState,
+  ]);
+
+  // Re-emit join_room when socket reconnects
+  useEffect(() => {
+    if (!socket || !roomId) return;
+    const onConnect = () => {
+      console.log("🔌 HappyPawsChat socket reconnected - re-emit join_room", { roomId, socketId: socket.id });
+      socket.emit("join_room", { roomId });
+    };
+    socket.on("connect", onConnect);
+    return () => socket.off("connect", onConnect);
+  }, [socket, roomId]);
+
+  // Auto scroll for staff chat
+  useEffect(() => {
+    staffMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [staffMessages]);
 
   // Re-initialize launcher animations whenever the launcher re-appears (open === false)
   useEffect(() => {
@@ -204,14 +418,16 @@ export function HappyPawsChat({ className }: { className?: string }) {
     [sendMessage]
   );
 
-  // Render bot message and convert [[btn Label|/path]] to real buttons
+  // Render bot message and convert [[btn Label|/path]] to buttons or [[staff]] to staff chat trigger
   const renderBotContent = useCallback(
     (text: string) => {
       const parts: React.ReactNode[] = [];
-      const regex = /\[\[btn\s+([^|\]]+)\|([^\]]+)\]\]/g;
+      // Match both [[btn Label|/path]] and [[staff]]
+      const regex = /\[\[btn\s+([^|\]]+)\|([^\]]+)\]\]|\[\[staff\]\]/g;
       let lastIndex = 0;
       let match: RegExpExecArray | null;
       let key = 0;
+
       while ((match = regex.exec(text))) {
         const before = text.slice(lastIndex, match.index);
         if (before.trim().length) {
@@ -221,24 +437,54 @@ export function HappyPawsChat({ className }: { className?: string }) {
             </p>
           );
         }
-        const label = match[1].trim();
-        const href = match[2].trim();
-        parts.push(
-          <Button
-            key={`btn-${key++}`}
-            variant="secondary"
-            size="sm"
-            className="self-start"
-            onClick={() => {
-              router.push(href);
-              setOpen(false);
-            }}
-          >
-            {label}
-          </Button>
-        );
+
+        if (match[0] === "[[staff]]") {
+          // Render "Chat với Staff" button
+          parts.push(
+            <Button
+              key={`staff-${key++}`}
+              variant="default"
+              size="sm"
+              className="self-start bg-linear-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+              onClick={() => {
+                const token = localStorage.getItem("accessToken");
+                if (!token) {
+                  toast.error(
+                    "Vui lòng đăng nhập để chat với nhân viên tư vấn"
+                  );
+                  router.push("/login");
+                  return;
+                }
+                setChatMode("staff");
+                toast.info("Chuyển sang chat với nhân viên tư vấn");
+              }}
+            >
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Nhắn tin với Staff
+            </Button>
+          );
+        } else {
+          // Regular button with link
+          const label = match[1].trim();
+          const href = match[2].trim();
+          parts.push(
+            <Button
+              key={`btn-${key++}`}
+              variant="secondary"
+              size="sm"
+              className="self-start"
+              onClick={() => {
+                router.push(href);
+                setOpen(false);
+              }}
+            >
+              {label}
+            </Button>
+          );
+        }
         lastIndex = regex.lastIndex;
       }
+
       const rest = text.slice(lastIndex);
       if (rest.trim().length) {
         parts.push(
@@ -280,7 +526,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
             cache = { userId, pets: parsed as Pet[] };
             break;
           }
-        } catch {}
+        } catch { }
       }
 
       const FRESH_MS = 10 * 60 * 1000; // 10 minutes
@@ -304,7 +550,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
               "userPetsCache_v1",
               JSON.stringify({ userId, pets: data ?? [], ts: Date.now() })
             );
-          } catch {}
+          } catch { }
         })
         .catch(() => {
           // ignore errors; UI will keep manual fields
@@ -332,6 +578,96 @@ export function HappyPawsChat({ className }: { className?: string }) {
     [pets]
   );
 
+  // Staff Chat Functions
+  const handleCreateStaffSession = async () => {
+    if (!consultationTitle.trim()) {
+      toast.error("Vui lòng nhập nội dung yêu cầu tư vấn");
+      return;
+    }
+
+    if (typeof window === "undefined" || !localStorage.getItem("accessToken")) {
+      toast.error("Vui lòng đăng nhập để sử dụng tính năng này");
+      return;
+    }
+
+    let targetRoomId = roomId;
+
+    if (!targetRoomId) {
+      try {
+        const rooms = await chatApi.getRooms();
+        if (rooms && rooms.length > 0) {
+          targetRoomId = rooms[0].id;
+          setRoomId(targetRoomId);
+        } else {
+          toast.error("Không tìm thấy phòng chat của bạn");
+          return;
+        }
+      } catch {
+        toast.error("Không thể kết nối với hệ thống chat");
+        return;
+      }
+    }
+
+    if (!targetRoomId) {
+      toast.error("Không thể xác định phòng chat");
+      return;
+    }
+
+    setCreatingSession(true);
+    try {
+      const session = await chatApi.createSession(
+        targetRoomId,
+        consultationTitle.trim()
+      );
+      setHasSession(true);
+      setCurrentSession(session);
+      setConsultationTitle("");
+      toast.success("Đã tạo yêu cầu tư vấn! Đang chờ staff...");
+    } catch (error) {
+      console.error("Failed to create session:", error);
+      toast.error("Không thể tạo yêu cầu tư vấn");
+    } finally {
+      setCreatingSession(false);
+    }
+  };
+
+  const handleSendStaffMessage = async () => {
+    if (!socket || !staffInput.trim() || staffSending || !roomId) return;
+
+    const messageContent = staffInput.trim();
+    setStaffInput("");
+    setStaffSending(true);
+
+    try {
+      socket.emit("send_message", {
+        roomId,
+        content: messageContent,
+      });
+    } catch (error) {
+      console.error("Failed to send message:", error);
+      toast.error("Không thể gửi tin nhắn");
+      setStaffInput(messageContent);
+    } finally {
+      setStaffSending(false);
+    }
+  };
+
+  const handleResetToNewSession = () => {
+    resetSessionState();
+    toast.info("Hãy tạo yêu cầu tư vấn mới");
+  };
+
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase();
+  };
+
+  const formatTime = (dateString: string) => {
+    return new Date(dateString).toLocaleTimeString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   const shouldHide =
     pathname === "/login" ||
     pathname === "/register" ||
@@ -340,11 +676,12 @@ export function HappyPawsChat({ className }: { className?: string }) {
     pathname?.startsWith("/staff") ||
     pathname?.startsWith("/groomer");
 
-  if (shouldHide) {
+  // Chỉ hiển thị chat button khi đã đăng nhập
+  if (shouldHide || !isLoggedIn) {
     return null;
   }
   return (
-    <div className={cn("fixed bottom-25 right-6 z-20", className)}>
+    <div className={cn("fixed bottom-4 right-4 z-50", className)}>
       {!open && (
         <div className="relative" ref={containerRef}>
           <span
@@ -367,7 +704,7 @@ export function HappyPawsChat({ className }: { className?: string }) {
           <Button
             ref={btnRef}
             size="lg"
-            className="rounded-full h-15 w-15 p-0 shadow-2xl bg-linear-to-br from-pink-500  to-indigo-400 text-white ring-2 ring-white/40 hover:ring-white/70"
+            className="rounded-full h-15 w-15 p-0 shadow-2xl bg-linear-to-br from-pink-500 to-indigo-400 text-white ring-2 ring-white/40 hover:ring-white/70"
             aria-label="Mở chat HappyPaws"
             onClick={() => setOpen(true)}
           >
@@ -377,113 +714,464 @@ export function HappyPawsChat({ className }: { className?: string }) {
       )}
 
       {open && (
-        <div className="w-[340px] sm:w-[380px] h-[460px] bg-white border rounded-xl shadow-2xl flex flex-col overflow-hidden">
-          {/* Header */}
-          <div className="flex items-center justify-between px-3 py-2 border-b bg-white">
-            <div className="font-poppins-regular">Trợ Lý Thú Cưng AI</div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setOpen(false)}
-              aria-label="Đóng"
-            >
-              <X className="h-5 w-5" />
-            </Button>
+        <div className="w-[340px] sm:w-[400px] h-[560px] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+          {/* Header with Tabs */}
+          <div className="bg-linear-to-r from-pink-500 to-purple-600 text-white rounded-t-2xl">
+            <div className="flex items-center justify-between px-4 py-3">
+              <div className="font-semibold text-lg">HappyPaws Chat</div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setOpen(false)}
+                className="text-white hover:bg-white/20 h-8 w-8 rounded-full"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* Tab Navigation */}
+            <div className="flex gap-1 px-2">
+              <button
+                onClick={() => setChatMode("ai")}
+                className={cn(
+                  "px-4 py-2.5 font-medium text-sm transition-all rounded-t-xl relative",
+                  isLoggedIn ? "flex-1" : "w-full",
+                  chatMode === "ai"
+                    ? "bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white before:content-[''] before:absolute before:bottom-0 before:left-[-8px] before:w-[8px] before:h-[8px] before:rounded-br-2xl before:shadow-[4px_4px_0_0] before:shadow-gray-50 dark:before:shadow-gray-800/50 after:content-[''] after:absolute after:bottom-0 after:right-[-8px] after:w-[8px] after:h-[8px] after:rounded-bl-2xl after:shadow-[-4px_4px_0_0] after:shadow-gray-50 dark:after:shadow-gray-800/50"
+                    : "text-white/80 hover:bg-white/10 hover:text-white"
+                )}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <Bot className="h-4 w-4" />
+                  <span>AI Assistant</span>
+                </div>
+              </button>
+
+              {isLoggedIn && (
+                <button
+                  onClick={() => setChatMode("staff")}
+                  className={cn(
+                    "flex-1 px-4 py-2.5 font-medium text-sm transition-all rounded-t-xl relative",
+                    chatMode === "staff"
+                      ? "bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white before:content-[''] before:absolute before:bottom-0 before:left-[-8px] before:w-[8px] before:h-[8px] before:rounded-br-2xl before:shadow-[4px_4px_0_0] before:shadow-gray-50 dark:before:shadow-gray-800/50 after:content-[''] after:absolute after:bottom-0 after:right-[-8px] after:w-[8px] after:h-[8px] after:rounded-bl-2xl after:shadow-[-4px_4px_0_0] after:shadow-gray-50 dark:after:shadow-gray-800/50"
+                      : "text-white/80 hover:bg-white/10 hover:text-white"
+                  )}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    <span>Staff Support</span>
+                    {chatMode === "staff" && hasSession && (
+                      <div
+                        className={cn(
+                          "w-2 h-2 rounded-full animate-pulse",
+                          staffJoined ? "bg-green-500" : "bg-yellow-500"
+                        )}
+                      />
+                    )}
+                  </div>
+                </button>
+              )}
+            </div>
           </div>
 
-          <div className="px-3">
-            <button
-              type="button"
-              className="text-xs text-primary hover:text-primary/80"
-              onClick={() => setShowInfo((v) => !v)}
-            >
-              {showInfo ? "Ẩn thông tin (tuỳ chọn)" : "Thông tin (tuỳ chọn)"}
-            </button>
-            {showInfo && (
-              <div className="grid grid-cols-1 gap-2 mt-2">
-                <div className="col-span-1 font-poppins-light">
-                  <Select
-                    value={selectedPetId}
-                    onValueChange={handleSelectPet}
-                    disabled={loadingPets || pets.length === 0}
+          {chatMode === "ai" ? (
+            // AI Chat Mode
+            <>
+              <div className="px-3 py-2 bg-gray-50 dark:bg-gray-800/50 border-b">
+                <button
+                  type="button"
+                  className="text-xs text-primary hover:text-primary/80 font-medium"
+                  onClick={() => setShowInfo((v) => !v)}
+                >
+                  {showInfo
+                    ? "▼ Ẩn thông tin thú cưng"
+                    : "▶ Thông tin thú cưng (tuỳ chọn)"}
+                </button>
+                {showInfo && (
+                  <div className="grid grid-cols-1 gap-2 mt-2">
+                    <div className="col-span-1 font-poppins-light">
+                      <Select
+                        value={selectedPetId}
+                        onValueChange={handleSelectPet}
+                        disabled={loadingPets || pets.length === 0}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue
+                            className="font-poppins-light"
+                            placeholder={
+                              loadingPets
+                                ? "Đang tải thú cưng..."
+                                : pets.length
+                                  ? "Chọn thú cưng của bạn"
+                                  : "Chưa có thú cưng để chọn"
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent align="start">
+                          {pets.map((p) => (
+                            <SelectItem key={p.id} value={String(p.id)}>
+                              <span className="font-poppins-light">
+                                {p.name}
+                              </span>
+                              <span className="text-black font-poppins-light">
+                                {" "}
+                                — {p.species}
+                                {p.breed ? ` / ${p.breed}` : ""}
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* AI Conversation */}
+              <div
+                ref={viewportRef}
+                className="flex-1 px-4 py-3 overflow-y-auto bg-linear-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800"
+              >
+                <ul className="space-y-4">
+                  {messages.map((m, idx) => (
+                    <li key={idx} className="flex items-start gap-3">
+                      {m.sender === "bot" && (
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-linear-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+                          <Bot className="h-4 w-4 text-white" />
+                        </div>
+                      )}
+                      <div
+                        className={cn(
+                          "max-w-[80%] rounded-2xl px-4 py-3 text-sm shadow-sm",
+                          m.sender === "user"
+                            ? "ml-auto bg-linear-to-br from-pink-500 to-purple-600 text-white rounded-tr-sm"
+                            : "mr-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-tl-sm"
+                        )}
+                      >
+                        {m.sender === "bot" ? renderBotContent(m.text) : m.text}
+                      </div>
+                      {m.sender === "user" && (
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-linear-to-br from-pink-500 to-purple-600 flex items-center justify-center text-white text-xs font-semibold">
+                          You
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* AI Composer */}
+              <div className="border-t px-4 py-3 bg-white dark:bg-gray-900">
+                <div className="flex gap-2 items-end">
+                  <Textarea
+                    placeholder="Nhập câu hỏi của bạn..."
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={onKeyDown}
+                    rows={2}
+                    className="flex-1 resize-none rounded-xl"
+                  />
+                  <Button
+                    onClick={() => void sendMessage()}
+                    disabled={!canSend}
+                    className="h-10 w-10 p-0 rounded-full bg-linear-to-br from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+                    size="icon"
                   >
-                    <SelectTrigger className="w-full">
-                      <SelectValue
-                        className="font-poppins-light"
-                        placeholder={
-                          loadingPets
-                            ? "Đang tải thú cưng..."
-                            : pets.length
-                            ? "Chọn thú cưng của bạn"
-                            : "Chưa có thú cưng để chọn"
-                        }
-                      />
-                    </SelectTrigger>
-                    <SelectContent align="start">
-                      {pets.map((p) => (
-                        <SelectItem key={p.id} value={String(p.id)}>
-                          <span className="font-poppins-light">{p.name}</span>
-                          <span className="text-black font-poppins-light">
-                            {" "}
-                            — {p.species}
-                            {p.breed ? ` / ${p.breed}` : ""}
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    {sending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
+                  </Button>
                 </div>
               </div>
-            )}
-          </div>
-
-          {/* Conversation */}
-          <div ref={viewportRef} className="flex-1 px-3 py-2 overflow-y-auto">
-            <ul className="space-y-3">
-              {messages.map((m, idx) => (
-                <li key={idx} className="flex items-start gap-2">
-                  <div
-                    className={cn(
-                      "max-w-[85%] rounded-lg px-3 py-2 text-sm",
-                      m.sender === "user"
-                        ? "ml-auto bg-primary font-poppins-regular text-primary-foreground"
-                        : "mr-auto bg-muted"
+            </>
+          ) : (
+            // Staff Chat Mode
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {/* Status Badge */}
+              {hasSession && (
+                <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800/50 border-b">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {staffJoined ? (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                            <span className="text-xs font-medium text-green-700 dark:text-green-400">
+                              Đang tư vấn
+                            </span>
+                          </div>
+                          {currentSession?.staff && (
+                            <span className="text-xs text-muted-foreground">
+                              • {currentSession.staff.firstName}{" "}
+                              {currentSession.staff.lastName}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
+                          <span className="text-xs font-medium text-yellow-700 dark:text-yellow-400">
+                            Đang chờ staff...
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    {isConnected ? (
+                      <span className="text-xs text-green-600 dark:text-green-400">
+                        ● Online
+                      </span>
+                    ) : (
+                      <span className="text-xs text-red-600 dark:text-red-400">
+                        ○ Offline
+                      </span>
                     )}
-                  >
-                    {m.sender === "bot" ? renderBotContent(m.text) : m.text}
                   </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Composer */}
-          <div className="border-t px-3 py-2 grid grid-cols-[1fr_auto] gap-2 font-poppins-light items-end bg-white">
-            <Textarea
-              placeholder="Nhập tin nhắn..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={onKeyDown}
-              rows={2}
-            />
-            <Button
-              onClick={() => void sendMessage()}
-              disabled={!canSend}
-              className="h-10"
-            >
-              {sending ? (
-                <span>Đang gửi...</span>
-              ) : (
-                <span className="inline-flex font-poppins-light items-center gap-2">
-                  <Send className="h-4 w-4" />
-                </span>
+                </div>
               )}
-            </Button>
-          </div>
+
+              {!hasSession ? (
+                // Create Staff Session Form
+                <div className="flex-1 p-4 flex flex-col">
+                  <div className="mb-4 space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Nhập nội dung bạn cần tư vấn, đội ngũ staff sẽ hỗ trợ bạn
+                      ngay
+                    </p>
+
+                    <div className="space-y-2">
+                      <Select
+                        value={selectedConsultationType}
+                        onValueChange={(value) => {
+                          setSelectedConsultationType(value);
+                          if (value !== "other") {
+                            setConsultationTitle(value);
+                            setCustomConsultationInput("");
+                          } else {
+                            setConsultationTitle("");
+                          }
+                        }}
+                        disabled={creatingSession}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Chọn loại yêu cầu tư vấn" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Tư vấn dịch vụ">
+                            Tư vấn dịch vụ
+                          </SelectItem>
+                          <SelectItem value="Hỗ trợ đơn hàng">
+                            Hỗ trợ đơn hàng
+                          </SelectItem>
+                          <SelectItem value="other">Khác</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {selectedConsultationType === "other" && (
+                      <div className="space-y-2">
+                        <Input
+                          type="text"
+                          placeholder="VD: Tư vấn về dịch vụ spa cho chó..."
+                          value={customConsultationInput}
+                          onChange={(e) => {
+                            setCustomConsultationInput(e.target.value);
+                            setConsultationTitle(e.target.value);
+                          }}
+                          onKeyPress={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                              e.preventDefault();
+                              handleCreateStaffSession();
+                            }
+                          }}
+                          disabled={creatingSession}
+                          className="w-full"
+                          maxLength={200}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          {customConsultationInput.length}/200 ký tự
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg text-sm mb-4">
+                    <p className="text-blue-800 dark:text-blue-200">
+                      💡 <strong>Lưu ý:</strong> Staff sẽ tham gia tư vấn cho
+                      bạn trong thời gian sớm nhất.
+                    </p>
+                  </div>
+
+                  <Button
+                    onClick={handleCreateStaffSession}
+                    disabled={!consultationTitle.trim() || creatingSession}
+                    className="w-full bg-linear-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+                  >
+                    {creatingSession ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Đang tạo...
+                      </>
+                    ) : (
+                      <>
+                        <MessageSquare className="mr-2 h-4 w-4" />
+                        Tạo yêu cầu tư vấn
+                      </>
+                    )}
+                  </Button>
+                </div>
+              ) : (
+                // Staff Chat Messages
+                <>
+                  <div className="flex-1 overflow-y-auto p-4 bg-linear-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+                    {staffMessages.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center h-full text-center py-12">
+                        <div className="w-16 h-16 rounded-full bg-linear-to-br from-pink-100 to-purple-100 dark:from-pink-900/20 dark:to-purple-900/20 flex items-center justify-center mb-4">
+                          <MessageSquare className="h-8 w-8 text-pink-500" />
+                        </div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Chưa có tin nhắn
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {staffJoined
+                            ? "Bắt đầu trò chuyện với staff!"
+                            : "Đang chờ staff tham gia..."}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {staffMessages.map((msg) => {
+                          const isOwn = currentUserId === msg.sender.id;
+
+                          return (
+                            <div
+                              key={msg.id}
+                              className={cn(
+                                "flex gap-3 items-start",
+                                isOwn ? "flex-row-reverse" : "flex-row"
+                              )}
+                            >
+                              <Avatar className="h-8 w-8 flex-shrink-0 shadow-sm">
+                                <AvatarFallback
+                                  className={cn(
+                                    "text-xs font-semibold",
+                                    isOwn
+                                      ? "bg-linear-to-br from-pink-500 to-purple-600 text-white"
+                                      : "bg-linear-to-br from-blue-500 to-indigo-600 text-white"
+                                  )}
+                                >
+                                  {getInitials(
+                                    msg.sender.firstName,
+                                    msg.sender.lastName
+                                  )}
+                                </AvatarFallback>
+                              </Avatar>
+
+                              <div
+                                className={cn(
+                                  "flex flex-col max-w-[75%]",
+                                  isOwn ? "items-end" : "items-start"
+                                )}
+                              >
+                                <div
+                                  className={cn(
+                                    "flex items-center gap-2 mb-1 px-1",
+                                    isOwn ? "flex-row-reverse" : "flex-row"
+                                  )}
+                                >
+                                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                                    {isOwn ? "You" : msg.sender.firstName}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {formatTime(msg.createdAt)}
+                                  </span>
+                                </div>
+
+                                <div
+                                  className={cn(
+                                    "px-4 py-3 rounded-2xl text-sm shadow-sm",
+                                    isOwn
+                                      ? "bg-linear-to-br from-pink-500 to-purple-600 text-white rounded-tr-sm"
+                                      : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-tl-sm"
+                                  )}
+                                >
+                                  <p className="whitespace-pre-wrap break-words leading-relaxed">
+                                    {msg.content}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                    <div ref={staffMessagesEndRef} />
+                  </div>
+
+                  {/* Staff Input */}
+                  <div className="border-t p-4 bg-white dark:bg-gray-900">
+                    {currentSession?.status === "CLOSED" ? (
+                      <Button
+                        onClick={handleResetToNewSession}
+                        className="w-full bg-linear-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+                      >
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Tạo phiên tư vấn mới
+                      </Button>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Input
+                          type="text"
+                          value={staffInput}
+                          onChange={(e) => setStaffInput(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                              e.preventDefault();
+                              handleSendStaffMessage();
+                            }
+                          }}
+                          placeholder="Nhập tin nhắn..."
+                          disabled={staffSending || !isConnected}
+                          className="flex-1 rounded-xl"
+                        />
+                        <Button
+                          onClick={handleSendStaffMessage}
+                          disabled={
+                            !staffInput.trim() || staffSending || !isConnected
+                          }
+                          size="icon"
+                          className="h-10 w-10 rounded-full bg-linear-to-br from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+                        >
+                          {staffSending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Send className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-export default HappyPawsChat;
+// Wrapper component to conditionally render chat
+function HappyPawsChatWrapper({ className }: { className?: string }) {
+  const pathname = usePathname();
+
+  // Hide chat on wallet page
+  if (pathname?.includes("/wallet")) {
+    return null;
+  }
+
+  return <HappyPawsChat className={className} />;
+}
+
+export default HappyPawsChatWrapper;

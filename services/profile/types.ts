@@ -7,6 +7,7 @@ export interface User {
   userName: string;
   avatar: string;
   phoneNumber: string;
+  email: string;
   address: string;
   gender: boolean;
   firstName: string;

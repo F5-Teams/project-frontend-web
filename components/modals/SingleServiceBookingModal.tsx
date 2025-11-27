@@ -24,7 +24,7 @@ import { CalendarIcon, Clock, AlertCircle, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { BookingDraft } from "@/types/cart";
 import { generateTempId } from "@/utils/booking";
-import { generateTimeSlots } from "@/utils/timeSlots";
+import { generateTimeSlots, isTimeSlotPassed } from "@/utils/timeSlots";
 import api from "@/config/axios";
 
 interface SingleServiceBookingModalProps {
@@ -42,11 +42,20 @@ interface SingleServiceBookingModalProps {
     isActive: boolean;
     serviceLinks: Array<{ id: number; service: { name: string } }>;
   }; // Optional service data to avoid duplicate API calls
+  initialDate?: Date | null;
 }
 
 export const SingleServiceBookingModal: React.FC<
   SingleServiceBookingModalProps
-> = ({ isOpen, onClose, onConfirm, serviceId, selectedPetIds, service }) => {
+> = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  serviceId,
+  selectedPetIds,
+  service,
+  initialDate,
+}) => {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
@@ -61,6 +70,7 @@ export const SingleServiceBookingModal: React.FC<
     serviceLinks: Array<{ id: number; service: { name: string } }>;
   } | null>(null);
   const [loading, setLoading] = useState(false);
+  const isDateLocked = Boolean(initialDate);
 
   // Fetch service data from API or use provided service prop
   useEffect(() => {
@@ -129,12 +139,12 @@ export const SingleServiceBookingModal: React.FC<
   // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
-      setSelectedDate(undefined);
+      setSelectedDate(initialDate || undefined);
       setSelectedTime("");
       setNotes("");
       setErrors([]);
     }
-  }, [isOpen]);
+  }, [isOpen, initialDate]);
 
   const handleConfirm = () => {
     const validationErrors: string[] = [];
@@ -309,54 +319,91 @@ export const SingleServiceBookingModal: React.FC<
           </div>
         )}
 
-        {/* Date Selection */}
-        <div className="space-y-3">
-          <Label className="text-base font-medium">Chọn ngày</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full justify-start text-left font-normal"
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {selectedDate ? format(selectedDate, "PPP") : "Chọn ngày"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                disabled={(date) => date < new Date()}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
+        {/* Date and Time Selection - Same Row */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Date Selection */}
+          <div className="space-y-3">
+            <Label className="text-base font-medium">
+              {isDateLocked ? "Ngày đã chọn" : "Chọn ngày"}
+            </Label>
+            {isDateLocked ? (
+              <div>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal cursor-not-allowed"
+                  disabled
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, "PPP") : "Không có ngày"}
+                </Button>
+              </div>
+            ) : (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {selectedDate ? format(selectedDate, "PPP") : "Chọn ngày"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    disabled={(date) => {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      const maxDate = new Date();
+                      maxDate.setDate(maxDate.getDate() + 30);
+                      maxDate.setHours(23, 59, 59, 999);
+                      return date < today || date > maxDate;
+                    }}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
+          </div>
 
-        {/* Time Selection */}
-        {selectedDate && (
+          {/* Time Selection */}
           <div className="space-y-3">
             <Label className="text-base font-medium">Chọn khung giờ</Label>
-            <Select value={selectedTime} onValueChange={setSelectedTime}>
+            <Select
+              value={selectedTime}
+              onValueChange={setSelectedTime}
+              disabled={!selectedDate}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn khung giờ" />
               </SelectTrigger>
               <SelectContent>
-                {availableTimeSlots.map((slot) => (
-                  <SelectItem key={slot.value} value={slot.value}>
-                    {slot.label}
-                  </SelectItem>
-                ))}
+                {availableTimeSlots.map((slot) => {
+                  const isPassed = isTimeSlotPassed(slot, selectedDate);
+                  return (
+                    <SelectItem
+                      key={slot.value}
+                      value={slot.value}
+                      disabled={isPassed}
+                      className={
+                        isPassed ? "opacity-50 cursor-not-allowed" : ""
+                      }
+                    >
+                      {slot.label} {isPassed && "(Đã qua giờ)"}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
-            {availableTimeSlots.length === 0 && (
+            {selectedDate && availableTimeSlots.length === 0 && (
               <p className="text-sm text-gray-500">
                 Không còn khung giờ nào khả dụng cho ngày này.
               </p>
             )}
           </div>
-        )}
+        </div>
 
         {/* Notes */}
         <div className="space-y-3">

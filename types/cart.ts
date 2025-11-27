@@ -1,5 +1,14 @@
 // Cart System Types
 
+// Price breakdown for displaying surcharge details
+export interface PriceBreakdown {
+  basePrice: number;
+  weightSurcharge?: number; // For spa services
+  weekendSurcharge?: number; // For hotel services
+  petWeight?: number; // Pet weight in kg
+  totalPrice: number;
+}
+
 // Unified Booking Draft - chuẩn hóa cho tất cả loại dịch vụ
 export interface BookingDraft {
   tempId: string;
@@ -23,6 +32,13 @@ export interface Pet {
   avatar: string;
   age: number;
   notes?: string;
+  species?: string;
+  breed?: string;
+  gender?: boolean | string;
+  weight?: number;
+  height?: number;
+  images?: Array<{ id?: number; imageUrl: string; type?: string | null }>;
+  isAvailable?: boolean;
 }
 
 export interface Groomer {
