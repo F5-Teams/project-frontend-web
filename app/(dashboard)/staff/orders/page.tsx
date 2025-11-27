@@ -184,7 +184,7 @@ const OrderPage = () => {
     switch (method) {
       case "CASH":
         return "Tiền mặt";
-      case "TRANSFER":
+      case "WALLET":
         return "Thanh toán qua Ví";
       case "VNPAY":
         return "Thanh toán VNPAY";
@@ -197,6 +197,8 @@ const OrderPage = () => {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
+      case "PENDING":
+        return "Chờ duyệt";
       case "PAID":
         return "Chờ duyệt";
       case "ON_PROGRESSING":
@@ -298,6 +300,8 @@ const OrderPage = () => {
               ? "green"
               : s === "REFUND"
               ? "yellow"
+              : s === "PENDING"
+              ? "orange"
               : "red"
           }
         >
@@ -334,7 +338,7 @@ const OrderPage = () => {
             <Eye size="16" />
           </Button>
 
-          {record.status === "PAID" && (
+          {(record.status === "PENDING" || record.status === "PAID") && (
             <Button
               type="primary"
               size="small"

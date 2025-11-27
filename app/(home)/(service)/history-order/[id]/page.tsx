@@ -16,7 +16,7 @@ import { useParams } from "next/navigation";
 import dayjs from "dayjs";
 
 const statusSteps = [
-  { key: "ON_PROGRESSING", label: "Chờ thanh toán", icon: Timer },
+  { key: "ON_PROGRESSING", label: "Đơn sắp hủy", icon: Timer },
   { key: "PAID", label: "Đang chờ duyệt", icon: Clock },
   { key: "APPROVED", label: "Đã duyệt", icon: ClipboardCheck },
   { key: "SHIPPING", label: "Đang giao hàng", icon: Truck },
@@ -47,11 +47,15 @@ export default function OrderDetailPage() {
       <p className="text-center p-10 text-gray-500">Đang tải đơn hàng...</p>
     );
 
-  const currentStep = statusSteps.findIndex((s) =>
-    s.key === "REFUND"
-      ? ["REFUND", "REFUND_DONE"].includes(order.status)
-      : s.key === order.status
-  );
+  const currentStep = statusSteps.findIndex((s) => {
+    if (s.key === "REFUND") {
+      return ["REFUND", "REFUND_DONE"].includes(order.status);
+    }
+    if (s.key === "PAID") {
+      return ["PAID", "PENDING"].includes(order.status);
+    }
+    return s.key === order.status;
+  });
 
   const totalPrice = Number(order.payment?.totalAmount ?? 0);
 

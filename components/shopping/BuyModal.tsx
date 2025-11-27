@@ -72,14 +72,12 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
 
   const queryClient = useQueryClient();
 
-  // Lưu địa chỉ khi modal đóng
   useEffect(() => {
     if (!isOpen && address) {
       setSavedAddress(address);
     }
   }, [isOpen, address]);
 
-  // Khôi phục địa chỉ khi modal mở
   useEffect(() => {
     if (isOpen && savedAddress) {
       setAddress(savedAddress);
@@ -183,7 +181,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
     }
 
     const orderPayloadTransfer: Orders = {
-      status: "PAID",
+      status: option === "cod" ? "PENDING" : "PAID",
       note,
       customerId: user.id,
       orderDetails: items.map((item) => ({

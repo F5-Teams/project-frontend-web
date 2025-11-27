@@ -21,8 +21,8 @@ import { useProductCartStore } from "@/stores/productCart.store";
 import { usePostRegenerateOrder } from "@/services/orders/regenerateOrder/hook";
 
 const statusLabel = {
-  PENDING: "Chờ xác nhận",
-  ON_PROGRESSING: "Chờ thanh toán",
+  PENDING: "Đang chờ duyệt",
+  ON_PROGRESSING: "Đơn sắp hủy",
   PAID: "Đang chờ duyệt",
   APPROVED: "Đã duyệt",
   SHIPPING: "Đang giao",
@@ -35,7 +35,7 @@ const statusLabel = {
 };
 
 const statusColor = {
-  PENDING: "bg-gray-100 text-gray-700",
+  PENDING: "bg-yellow-100 text-yellow-700",
   ON_PROGRESSING: "bg-pink-100 text-pink-700",
   PAID: "bg-yellow-100 text-yellow-700",
   CANCELLED: "bg-red-100 text-red-700",
@@ -75,6 +75,8 @@ export default function HistoryOrder() {
       ? orders?.filter(
           (o) => o.status === "REFUND" || o.status === "REFUND_DONE"
         )
+      : status === "PAID"
+      ? orders?.filter((o) => o.status === "PAID" || o.status === "PENDING")
       : orders?.filter((o) => o.status === status);
 
   const handleCancelOrder = (orderId: number) => {
@@ -123,7 +125,7 @@ export default function HistoryOrder() {
       <div className="flex gap-16 bg-white w-[97%] m-auto px-10 py-3 justify-center rounded-2xl mb-5">
         {[
           { key: "ALL", label: "Tất cả" },
-          { key: "ON_PROGRESSING", label: "Chờ thanh toán" },
+          { key: "ON_PROGRESSING", label: "Đơn sắp hủy" },
           { key: "PAID", label: "Đang chờ duyệt" },
           { key: "APPROVED", label: "Đã duyệt" },
           { key: "SHIPPING", label: "Vận chuyển" },
@@ -216,7 +218,8 @@ export default function HistoryOrder() {
                       Xem chi tiết
                     </button>
 
-                    {order.status === "PAID" && (
+                    {(order.status === "PAID" ||
+                      order.status === "PENDING") && (
                       <button
                         onClick={() => handleCancelOrder(order.id)}
                         className="mt-2 py-1 text-[13px] text-white rounded-xl w-full bg-pink-500 hover:bg-pink-600 transition"
