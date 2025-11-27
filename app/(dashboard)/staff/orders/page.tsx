@@ -37,7 +37,7 @@ const OrderPage = () => {
     const orderId = order.id;
 
     const body = {
-      status: "APPROVED",
+      status: "APPROVED" as const,
     };
 
     console.log("PAY", body);
@@ -57,7 +57,10 @@ const OrderPage = () => {
       onSuccess: async (res) => {
         toast.promise(
           (async () => {
-            await patchOrder({ id: order.id, body: { status: "SHIPPING" } });
+            await patchOrder({
+              id: order.id,
+              body: { status: "SHIPPING" as const },
+            });
             queryClient.invalidateQueries({ queryKey: ["getAllOrder"] });
             return res.ghnOrderCode || res.id;
           })(),
@@ -77,7 +80,7 @@ const OrderPage = () => {
 
   const handleInternalShipping = async (order: Order) => {
     try {
-      await patchOrder({ id: order.id, body: { status: "SHIPPING" } });
+      await patchOrder({ id: order.id, body: { status: "SHIPPING" as const } });
       toast.success("Đơn hàng đã chuyển sang giao hàng nội bộ!");
       queryClient.invalidateQueries({ queryKey: ["getAllOrder"] });
     } catch (error) {
@@ -133,7 +136,7 @@ const OrderPage = () => {
         onSuccess: async () => {
           try {
             const body = {
-              status: "REFUND",
+              status: "REFUND" as const,
             };
 
             await patchOrder({ id: order.id, body });
@@ -163,7 +166,7 @@ const OrderPage = () => {
       onSuccess: async () => {
         try {
           const body = {
-            status: "REFUND_DONE",
+            status: "REFUND_DONE" as const,
           };
 
           await patchOrder({ id: order.id, body });
@@ -250,7 +253,7 @@ const OrderPage = () => {
       title: "Tổng tiền",
       width: 120,
       render: (_: any, record: Order) => {
-        const amount = record.payment?.totalAmount ?? record.payment?.amount ?? 0;
+        const amount = record.payment?.totalAmount ?? 0;
         return (
           <span className="font-semibold text-pink-600">
             {Number(amount).toLocaleString("vi-VN")} đ

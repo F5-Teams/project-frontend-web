@@ -87,7 +87,7 @@ const ModalComplete: React.FC<ModalCompleteProps> = ({
       };
 
       const payloadPatch = {
-        status: "FAILED",
+        status: "FAILED" as const,
       };
 
       putGhnStatusMutation.mutate(

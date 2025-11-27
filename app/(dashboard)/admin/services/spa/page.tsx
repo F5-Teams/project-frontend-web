@@ -16,9 +16,21 @@ export default function ServicesPage() {
   const [editing, setEditing] = useState<Service | null>(null);
 
   const fetchServices = async () => {
+    setLoading(true);
     try {
       const res = await api.get("/services");
-      setServices(res.data);
+      const servicesData = res.data.data || [];
+      // Convert price from string to number if needed
+      const formattedServices = servicesData.map(
+        (service: Service & { price?: string | number }) => ({
+          ...service,
+          price:
+            typeof service.price === "string"
+              ? Number(service.price)
+              : service.price,
+        })
+      );
+      setServices(formattedServices);
     } catch (err) {
       toast.error("Không thể tải danh sách dịch vụ.");
       console.error(err);

@@ -169,7 +169,9 @@ export default function ChatBubble() {
       socket.emit("join_room", { roomId });
     };
     socket.on("connect", onConnect);
-    return () => socket.off("connect", onConnect);
+    return () => {
+      socket.off("connect", onConnect);
+    };
   }, [socket, roomId]);
 
   // Auto scroll to bottom

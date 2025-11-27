@@ -29,7 +29,7 @@ export interface Orders {
   customerId?: number;
   orderDetails: OrderDetails[];
   shipping?: Shipping;
-  paymentMethod: "CASH" | "TRANSFER" | "MOMO" | "VNPAY";
+  paymentMethod: "CASH" | "WALLET" | "MOMO" | "VNPAY";
   addressId?: number;
   voucherCode?: string;
   vnpUrl?: string;

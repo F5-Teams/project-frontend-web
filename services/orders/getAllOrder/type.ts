@@ -81,13 +81,13 @@ export interface Shipping {
   failureReason: string | null;
   status: "PENDING" | "SHIPPING" | "DELIVERED" | "CANCELLED";
   orderId: number;
-  failureReason?: string;
 }
 
 export interface Payment {
   id: number;
   paymentMethod: "CASH" | "BANK" | "MOMO" | "ZALOPAY" | "TRANSFER" | "VNPAY";
   amount: string;
+  totalAmount: string;
   status: "PENDING" | "PAID" | "FAILED";
   createdAt: string;
   orderId: number;

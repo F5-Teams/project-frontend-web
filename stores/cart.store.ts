@@ -685,9 +685,9 @@ export const useCartConflicts = () => useCartStore((state) => state.conflicts);
 export const useIsCartOpen = () => useCartStore((state) => state.isCartOpen);
 export const useIsCartLoading = () => useCartStore((state) => state.isLoading);
 // Default pricing object to avoid creating new objects on each render
-const DEFAULT_PRICING = { price: 0, deposit: 0 };
+const DEFAULT_PRICING: { price: number; deposit: number; breakdown?: PriceBreakdown } = { price: 0, deposit: 0 };
 
-export const useCartItemPrice = (tempId: string) => {
+export const useCartItemPrice = (tempId: string): { price: number; deposit: number; breakdown?: PriceBreakdown } => {
   return useCartStore((state) => {
     const pricing = state.itemPrices.get(tempId);
     return pricing || DEFAULT_PRICING;

@@ -47,5 +47,5 @@ export interface OrderDetailRequest {
 
 export interface PatchOrder {
   id: number;
-  body: CreateOrderRequest;
+  body: Partial<CreateOrderRequest>;
 }

@@ -24,6 +24,7 @@ import {
   WalletCards,
 } from "lucide-react";
 import { usePostOrderInternal } from "@/services/orders/postOrderInternal/hooks";
+import type { Orders as OrdersInternal } from "@/services/orders/postOrderInternal/type";
 interface CartItem {
   productId: number;
   price: number;
@@ -193,7 +194,9 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
           total +
           (fee?.data?.service_fee ?? 0) -
           (chooseVoucher
-            ? ((total + fee?.data?.service_fee) * chooseVoucher.percent) / 100
+            ? ((total + (fee?.data?.service_fee ?? 0)) *
+                chooseVoucher.percent) /
+              100
             : 0);
         if (money > Number(wallets?.balance || 0)) {
           toast.error("Tiền trong ví không đủ, vui lòng nạp thêm!");
@@ -206,7 +209,9 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       if (methodGHN === "fast") {
         response = await createOrder(orderPayloadTransfer);
       } else {
-        response = await createOrderInternal(orderPayloadTransfer);
+        response = await createOrderInternal(
+          orderPayloadTransfer as OrdersInternal
+        );
       }
 
       if (response?.vnpUrl) {
@@ -215,7 +220,7 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
         window.location.href = response.momoUrl;
       }
 
-      queryClient.invalidateQueries(POST_ORDER_QUERY_KEY);
+      queryClient.invalidateQueries({ queryKey: POST_ORDER_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: ["createOrder"] });
       form.resetFields();
       clearCart();
@@ -227,9 +232,9 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
       ) {
         toast.success("Đặt hàng thành công!");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Order error:", error);
-      toast.error(error.response.data.message);
+      toast.error(error?.response?.data?.message || "Đặt hàng thất bại!");
     } finally {
       setLoading(false);
       isCancel();
@@ -489,4 +494,3 @@ const BuyModal = ({ isOpen, isCancel, items, clearCart }: DataProps) => {
 };
 
 export default BuyModal;
-

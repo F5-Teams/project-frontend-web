@@ -193,7 +193,7 @@ const AddressModal = ({ open, isCancel, addressList, onSelect }: DataProps) => {
                 toast.success("Xoá địa chỉ thành công!");
                 setDeleteItem(null);
               }
-              queryClient.invalidateQueries(["getAddress"]);
+              queryClient.invalidateQueries({ queryKey: ["getAddress"] });
             }}
           >
             Xóa

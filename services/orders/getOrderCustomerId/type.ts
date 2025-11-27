@@ -19,6 +19,7 @@ export interface OrderCustomer {
   orderDetails: OrderDetail[];
   shipping: Shipping;
   payment: Payment;
+  voucherPercent?: number | null;
 }
 
 export interface Customer {
@@ -85,6 +86,7 @@ export interface Payment {
   id: number;
   paymentMethod: string; // CASH / VNPAY / MOMO ...
   amount: string;
+  totalAmount: string;
   status: string; // PENDING / PAID / FAILED ...
   createdAt: string;
   orderId: number;

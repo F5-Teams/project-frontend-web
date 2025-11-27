@@ -54,7 +54,7 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
   const pathname = usePathname();
 
   const NavButton = ({ item }: { item: NavItem }) => {
-    const Icon = item.icon;
+    const Icon = item.icon as React.ComponentType<{ className?: string }>;
     const isActive =
       pathname === item.href ||
       (item.href !== "/profile/info" && pathname?.startsWith(item.href));
