@@ -1,14 +1,15 @@
 "use client";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Package, Truck, Shield } from "lucide-react";
 import Image from "next/image";
 import bg from "@/public/images/care.jpg";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Input, Spin } from "antd";
 import { Product } from "@/services/product/getProductPublic/type";
 import { useAllProduct } from "@/services/product/getProductPublic/hooks";
 import { useProductCartStore } from "@/stores/productCart.store";
 import BuyModal from "@/components/shopping/BuyModal";
+import { createPortal } from "react-dom";
 
 export const ProductCard = ({ product }: { product: Product }) => {
   const [currentImage, setCurrentImage] = useState(0);
@@ -16,6 +17,20 @@ export const ProductCard = ({ product }: { product: Product }) => {
   const [openBuy, setOpenBuy] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const clearCart = useProductCartStore((state) => state.clearCart);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+  const [flyers, setFlyers] = useState<
+    {
+      id: number;
+      src: string;
+      start: { x: number; y: number };
+      end: { x: number; y: number };
+    }[]
+  >([]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const nextImage = () =>
     setCurrentImage((prev) => (prev + 1) % product.images.length);
@@ -30,8 +45,39 @@ export const ProductCard = ({ product }: { product: Product }) => {
   const handleIncrease = () =>
     setQuantity((prev) => Math.min(maxStock, prev + 1));
 
+  const triggerFlyToCart = () => {
+    const cartEl = document.querySelector("[data-cart-target]") as
+      | HTMLElement
+      | null;
+    const imgEl = cardRef.current?.querySelector("img");
+    if (!cartEl || !imgEl) return;
+
+    const cartRect = cartEl.getBoundingClientRect();
+    const imgRect = imgEl.getBoundingClientRect();
+
+    const id = Date.now();
+    setFlyers((prev) => [
+      ...prev,
+      {
+        id,
+        src: imgEl.getAttribute("src") || "",
+        start: {
+          x: imgRect.left + imgRect.width / 2,
+          y: imgRect.top + imgRect.height / 2,
+        },
+        end: {
+          x: cartRect.left + cartRect.width / 2,
+          y: cartRect.top + cartRect.height / 2,
+        },
+      },
+    ]);
+  };
+
   return (
-    <div className="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col cursor-pointer">
+    <div
+      ref={cardRef}
+      className="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col cursor-pointer"
+    >
       <div className="relative h-60 w-full overflow-hidden">
         <Image
           src={product.images[currentImage]?.imageUrl || "/placeholder.svg"}
@@ -120,6 +166,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
                 imageUrl: product.images?.[0]?.imageUrl,
                 weight: product.weight,
               });
+              triggerFlyToCart();
             }}
             className={`h-10 text-sm cursor-pointer rounded-xl w-full font-poppins-light transition ${
               maxStock === 0
@@ -159,6 +206,41 @@ export const ProductCard = ({ product }: { product: Product }) => {
           },
         ]}
       />
+
+      {mounted &&
+        createPortal(
+          <AnimatePresence>
+            {flyers.map((f) => (
+              <motion.img
+                key={f.id}
+                src={f.src || product.images?.[0]?.imageUrl || ""}
+                initial={{ x: f.start.x, y: f.start.y, scale: 1, opacity: 1 }}
+                animate={{
+                  x: f.end.x,
+                  y: f.end.y,
+                  scale: 0.2,
+                  opacity: 0,
+                }}
+                transition={{ duration: 0.7, ease: "easeInOut" }}
+                style={{
+                  position: "fixed",
+                  left: 0,
+                  top: 0,
+                  width: 80,
+                  height: 80,
+                  borderRadius: "50%",
+                  pointerEvents: "none",
+                  objectFit: "cover",
+                  zIndex: 9999,
+                }}
+                onAnimationComplete={() =>
+                  setFlyers((prev) => prev.filter((i) => i.id !== f.id))
+                }
+              />
+            ))}
+          </AnimatePresence>,
+          document.body
+        )}
     </div>
   );
 };
