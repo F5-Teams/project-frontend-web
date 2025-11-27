@@ -16,7 +16,7 @@ import { useParams } from "next/navigation";
 import dayjs from "dayjs";
 
 const statusSteps = [
-  { key: "ON_PROGRESSING", label: "Đơn sắp hủy", icon: Timer },
+  { key: "ON_PROGRESSING", label: "Chờ thanh toán", icon: Timer },
   { key: "PAID", label: "Đang chờ duyệt", icon: Clock },
   { key: "APPROVED", label: "Đã duyệt", icon: ClipboardCheck },
   { key: "SHIPPING", label: "Đang giao hàng", icon: Truck },

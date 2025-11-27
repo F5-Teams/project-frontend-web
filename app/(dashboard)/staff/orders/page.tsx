@@ -138,7 +138,6 @@ const OrderPage = () => {
             const body = {
               status: "REFUND" as const,
             };
-
             await patchOrder({ id: order.id, body });
             toast.success("Hoàn tiền và cập nhật đơn thành công!");
             queryClient.invalidateQueries({ queryKey: ["getAllOrder"] });
@@ -202,7 +201,7 @@ const OrderPage = () => {
       case "PAID":
         return "Chờ duyệt";
       case "ON_PROGRESSING":
-        return "Chờ thanh toán";
+        return "Đơn sắp hủy";
       case "APPROVED":
         return "Đã duyệt";
       case "SHIPPING":

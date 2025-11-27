@@ -2,6 +2,7 @@ export interface Order {
   id: number;
   status:
     | "PAID"
+    | "PENDING"
     | "PROCESSING"
     | "SHIPPING"
     | "COMPLETED"

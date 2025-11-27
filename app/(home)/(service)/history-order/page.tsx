@@ -22,7 +22,7 @@ import { usePostRegenerateOrder } from "@/services/orders/regenerateOrder/hook";
 
 const statusLabel = {
   PENDING: "Đang chờ duyệt",
-  ON_PROGRESSING: "Đơn sắp hủy",
+  ON_PROGRESSING: "Chờ thanh toán",
   PAID: "Đang chờ duyệt",
   APPROVED: "Đã duyệt",
   SHIPPING: "Đang giao",
@@ -125,7 +125,7 @@ export default function HistoryOrder() {
       <div className="flex gap-16 bg-white w-[97%] m-auto px-10 py-3 justify-center rounded-2xl mb-5">
         {[
           { key: "ALL", label: "Tất cả" },
-          { key: "ON_PROGRESSING", label: "Đơn sắp hủy" },
+          { key: "ON_PROGRESSING", label: "Chờ thanh toán" },
           { key: "PAID", label: "Đang chờ duyệt" },
           { key: "APPROVED", label: "Đã duyệt" },
           { key: "SHIPPING", label: "Vận chuyển" },
