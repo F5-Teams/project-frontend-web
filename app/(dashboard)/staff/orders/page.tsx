@@ -199,7 +199,7 @@ const OrderPage = () => {
       case "PAID":
         return "Chờ duyệt";
       case "ON_PROGRESSING":
-        return "Đơn sắp hủy";
+        return "Chờ thanh toán";
       case "APPROVED":
         return "Đã duyệt";
       case "SHIPPING":
