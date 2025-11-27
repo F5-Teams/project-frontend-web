@@ -3,6 +3,7 @@ export interface Order {
   status:
     | "PAID"
     | "PENDING"
+    | "ON_PROGRESSING"
     | "PROCESSING"
     | "SHIPPING"
     | "COMPLETED"
