@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import Image from "next/image";
 import api from "@/config/axios";
 import { User } from "@/components/models/register";
@@ -20,6 +20,7 @@ import { toast } from "sonner";
 
 export default function Customers() {
   const [data, setData] = useState<User[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
@@ -71,68 +72,144 @@ export default function Customers() {
       setLoading(true);
       setError("");
 
-      // Backend chỉ hỗ trợ pagination, không hỗ trợ filter
-      // Fetch tất cả users và filter ở frontend
-      const res = await api.get("/users", {
-        params: {
-          page: 1,
-          limit: 10, // Lấy nhiều để có thể filter
-        },
-      });
+      const aggregatedUsers: User[] = [];
+      const perRequest = perPage;
+      const maxPages = 50;
+      let currentPage = 1;
+      let expectedTotal: number | null = null;
 
-      let allUsers = res.data?.data || [];
-
-      // Filter by search
-      if (search.trim()) {
-        const searchLower = search.toLowerCase();
-        allUsers = allUsers.filter((u: User) => {
-          const name = fullName(u).toLowerCase();
-          const username = (u.userName || "").toLowerCase();
-          return name.includes(searchLower) || username.includes(searchLower);
+      while (currentPage <= maxPages) {
+        const res = await api.get("/users", {
+          params: {
+            page: currentPage,
+            limit: perRequest,
+          },
         });
-      }
 
-      // Filter by gender
-      if (filterGender !== "all") {
-        allUsers = allUsers.filter((u: User) => {
-          if (filterGender === "male") return u.gender === true;
-          if (filterGender === "female") return u.gender === false;
-          return true;
-        });
-      }
-
-      // Filter by role
-      if (filterRole !== "all") {
-        const roleMap: Record<string, number> = {
-          admin: 1,
-          staff: 2,
-          groomer: 3,
-          customer: 4,
+        const payload = res.data as {
+          data?: User[];
+          items?: User[];
+          results?: User[];
+          total?: number;
+          meta?: { totalItems?: number; totalPages?: number };
+          pagination?: { totalItems?: number; totalPages?: number };
         };
-        const targetRoleId = roleMap[filterRole];
-        allUsers = allUsers.filter((u: User) => u.roleId === targetRoleId);
+
+        const chunk =
+          (Array.isArray(payload?.data)
+            ? payload.data
+            : Array.isArray(payload?.items)
+            ? payload.items
+            : Array.isArray(payload?.results)
+            ? payload.results
+            : Array.isArray(payload)
+            ? (payload as unknown as User[])
+            : []) ?? [];
+
+        if (chunk.length === 0) {
+          break;
+        }
+
+        aggregatedUsers.push(...chunk);
+
+        const totalFromMeta =
+          payload?.meta?.totalItems ??
+          payload?.pagination?.totalItems ??
+          payload?.total;
+        if (typeof totalFromMeta === "number") {
+          expectedTotal = totalFromMeta;
+        }
+
+        const totalPagesFromMeta =
+          payload?.meta?.totalPages ?? payload?.pagination?.totalPages;
+
+        const fetchedAllByCount =
+          typeof expectedTotal === "number" &&
+          aggregatedUsers.length >= expectedTotal;
+        const fetchedAllByChunk = chunk.length < perRequest;
+        const fetchedAllByMeta =
+          typeof totalPagesFromMeta === "number" &&
+          currentPage >= totalPagesFromMeta;
+
+        if (fetchedAllByCount || fetchedAllByChunk || fetchedAllByMeta) {
+          break;
+        }
+
+        currentPage += 1;
       }
 
-      // Calculate pagination for filtered data
-      const total = allUsers.length;
-      const totalPagesCalculated = Math.ceil(total / perPage);
-      const startIndex = (page - 1) * perPage;
-      const endIndex = startIndex + perPage;
-      const paginatedUsers = allUsers.slice(startIndex, endIndex);
-
-      setData(paginatedUsers);
-      setTotalPages(totalPagesCalculated);
-      setTotalUsers(total);
+      setAllUsers(aggregatedUsers);
     } catch (err: any) {
       setError(err?.response?.data?.message || "Không thể tải người dùng");
     } finally {
       setLoading(false);
     }
-  }, [page, perPage, search, filterGender, filterRole]);
+  }, []);
 
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  const filteredUsers = useMemo(() => {
+    let users = [...allUsers];
+
+    if (search.trim()) {
+      const searchLower = search.toLowerCase();
+      users = users.filter((u: User) => {
+        const first = (u.firstName || "").trim();
+        const last = (u.lastName || "").trim();
+        const name =
+          `${first} ${last}`.trim() || u.userName || `#${u.id}`;
+        const username = (u.userName || "").toLowerCase();
+        return (
+          name.toLowerCase().includes(searchLower) ||
+          username.includes(searchLower)
+        );
+      });
+    }
+
+    if (filterGender !== "all") {
+      users = users.filter((u: User) => {
+        if (filterGender === "male") return u.gender === true;
+        if (filterGender === "female") return u.gender === false;
+        return true;
+      });
+    }
+
+    if (filterRole !== "all") {
+      const roleMap: Record<string, number> = {
+        admin: 1,
+        staff: 2,
+        groomer: 3,
+        customer: 4,
+      };
+      const targetRoleId = roleMap[filterRole];
+      users = users.filter((u: User) => u.roleId === targetRoleId);
+    }
+
+    return users;
+  }, [allUsers, search, filterGender, filterRole]);
+
+  useEffect(() => {
+    const total = filteredUsers.length;
+    setTotalUsers(total);
+    const calculatedTotalPages =
+      total > 0 ? Math.ceil(total / perPage) : 1;
+    setTotalPages(calculatedTotalPages);
+
+    const safePage = Math.min(page, calculatedTotalPages) || 1;
+    if (safePage !== page) {
+      setPage(safePage);
+      return;
+    }
+
+    const startIndex = (safePage - 1) * perPage;
+    const paginatedUsers = filteredUsers.slice(
+      startIndex,
+      startIndex + perPage
+    );
+    setData(paginatedUsers);
+  }, [filteredUsers, page, perPage]);
 
   const handleCreateUser = async () => {
     try {
