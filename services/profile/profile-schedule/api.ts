@@ -22,3 +22,8 @@ export async function getBookingById(id: number): Promise<Booking> {
   const { data } = await api.get<Booking>(`/bookings/${id}`);
   return data;
 }
+
+export async function cancelBooking(id: number, note: string) {
+  const { data } = await api.put(`/bookings/${id}/cancel`, { note });
+  return data;
+}

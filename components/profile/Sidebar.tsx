@@ -47,7 +47,7 @@ const mainNav: NavItem[] = [
 const bottomNav: NavItem[] = [
   // { href: "/profile/settings", icon: Settings, label: "Settings" },
   // { href: "/profile/about", icon: Info, label: "About" },
-  { href: "/profile/address", icon: ClipboardList, label: "Address" },
+  // Kept empty to avoid duplicating items already present in mainNav.
 ];
 
 export default function Sidebar({ open, onToggle }: SidebarProps) {

@@ -19,6 +19,7 @@ import ServiceTagList from "@/components/profile/calendar/ServiceTagList";
 import FeedbackForm from "@/components/profile/calendar/FeedbackModal";
 import { useGetBookingFeedback } from "@/services/profile/feedback/hooks";
 import { Star } from "lucide-react";
+import CancelBookingDialog from "@/components/profile/calendar/CancelBookingDialog";
 
 export default function BookingDetailPage() {
   const params = useParams();
@@ -373,29 +374,35 @@ export default function BookingDetailPage() {
                 )}
               </div>
             </div>
-            {(() => {
-              const canRequestRefund = Boolean(
-                bookingId &&
-                  booking.isPaid &&
-                  booking.status !== "CANCELLED" &&
-                  booking.status !== "PENDING"
-              );
-              let reason = "";
-              if (!bookingId) reason = "Không có booking";
-              else if (!booking.isPaid) reason = "Chưa thanh toán";
-              else if (booking.status === "CANCELLED")
-                reason = "Booking đã hủy";
-              else if (booking.status === "PENDING")
-                reason = "Booking chưa được xác nhận";
+            {booking.status === "COMPLETED" &&
+              (() => {
+                const canRequestRefund = Boolean(
+                  bookingId &&
+                    booking.isPaid &&
+                    booking.status !== "CANCELLED" &&
+                    booking.status !== "PENDING"
+                );
+                let reason = "";
+                if (!bookingId) reason = "Không có booking";
+                else if (!booking.isPaid) reason = "Chưa thanh toán";
+                else if (booking.status === "CANCELLED")
+                  reason = "Booking đã hủy";
+                else if (booking.status === "PENDING")
+                  reason = "Booking chưa được xác nhận";
 
-              return (
-                <RefundModal
-                  bookingId={bookingId}
-                  canRequestRefund={canRequestRefund}
-                  reasonLabel={reason}
-                />
-              );
-            })()}
+                return (
+                  <RefundModal
+                    bookingId={bookingId}
+                    canRequestRefund={canRequestRefund}
+                    reasonLabel={reason}
+                  />
+                );
+              })()}
+
+            {["CONFIRMED", "PENDING", "ON_PROGRESSING"].includes(
+              booking.status
+            ) &&
+              bookingId && <CancelBookingDialog bookingId={bookingId} />}
 
             {/* Images */}
             {booking.imagesBooking && booking.imagesBooking.length > 0 && (
